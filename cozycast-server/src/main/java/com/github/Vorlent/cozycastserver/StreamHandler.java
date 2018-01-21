@@ -65,6 +65,21 @@ public class StreamHandler extends TextWebSocketHandler {
         case "stop":
           stop(sessionId);
           break;
+				case "mousemove":
+					mousemove(session, jsonMessage);
+					break;
+				case "mouseup":
+					mouseup(session, jsonMessage);
+					break;
+				case "mousedown":
+					mousedown(session, jsonMessage);
+					break;
+				case "keyup":
+					keyup(session, jsonMessage);
+					break;
+				case "keydown":
+					keydown(session, jsonMessage);
+					break;
         case "onIceCandidate":
           onIceCandidate(sessionId, jsonMessage);
           break;
@@ -120,6 +135,26 @@ public class StreamHandler extends TextWebSocketHandler {
 
     playerEndpoint.play();
   }
+
+	private void keyup(final WebSocketSession session, JsonObject jsonMessage) {
+			System.out.println(jsonMessage);
+	}
+
+	private void keydown(final WebSocketSession session, JsonObject jsonMessage) {
+			System.out.println(jsonMessage);
+	}
+
+	private void mousemove(final WebSocketSession session, JsonObject jsonMessage) {
+			System.out.println(jsonMessage);
+	}
+
+	private void mouseup(final WebSocketSession session, JsonObject jsonMessage) {
+			System.out.println(jsonMessage);
+	}
+
+	private void mousedown(final WebSocketSession session, JsonObject jsonMessage) {
+			System.out.println(jsonMessage);
+	}
 
   private void stop(String sessionId) {
     UserSession user = users.remove(sessionId);

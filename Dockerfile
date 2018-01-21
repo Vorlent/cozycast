@@ -9,11 +9,10 @@ RUN wget http://ubuntu.kurento.org/kurento.gpg.key -O - | apt-key add -
 RUN apt-get update && apt-get install -y kurento-media-server-6.0 kms-datachannelexample
 RUN sed -i 's/sudo/#/' /etc/init.d/kurento-media-server-6.0
 
-# Install Kurento Tutorial
+# Install cozycast-server
 
-RUN cd /root/ && git clone https://github.com/Kurento/kurento-tutorial-java.git
-WORKDIR /root/kurento-tutorial-java/kurento-player
-RUN git checkout 6.6.2
+RUN cd /root/ && git clone https://github.com/Vorlent/cozycast.git
+WORKDIR /root/cozycast/cozycast-server
 
 # Install RTSP Server
 
@@ -30,10 +29,7 @@ RUN make install
 
 # start kurento media server, rtsp server, drop to shell
 # you can manually start the webserver with mvn compile exec:java
-# modify /root/kurento-tutorial-java/kurento-player/src/main/java/org/kurento/tutorial/player/PlayerHandler.java
-# search for playerendpoint builder
-# add withNetworkCache(0) to reduce latency
 
-WORKDIR /root/kurento-tutorial-java/kurento-player
+#WORKDIR /root/cozycast/cozycast-server
 
 CMD service kurento-media-server-6.0 start && (perl /root/rtsp-server/rtsp-server.pl > /dev/null 2>&1 &) && /bin/bash #mvn compile exec:java

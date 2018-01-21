@@ -1,6 +1,7 @@
 sudo docker run \
   --rm \
   -it \
+  -v /home/arch/kurento-ubuntu/:/root \
   -p 8443:8443 \
   -p 8888:8888 \
   -p 5545:5545 \
@@ -19,5 +20,5 @@ sudo docker run \
 # --rm deletes the container after running it
 # -it runs the container interactively
 # -v mounts a directory into the container. RECOMMENDED
-# Add this line after -it, change the username:
 # -v /home/<insert_linux_username_here>/kurento-ubuntu/:/root \
+# Add this line after -it, change the username:

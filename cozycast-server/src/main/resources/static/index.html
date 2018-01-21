@@ -8,47 +8,44 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="shortcut icon" href="img/kurento.png" type="image/png">
 
-<link rel="stylesheet"
-	href="webjars/bootstrap/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="webjars/demo-console/index.css">
+<link rel="stylesheet" href="webjars/bootstrap/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="css/kurento.css">
+<link rel="stylesheet" href="css/styles.css">
 
 <script src="webjars/jquery/dist/jquery.min.js"></script>
 <script src="webjars/bootstrap/dist/js/bootstrap.min.js"></script>
 <script src="webjars/adapter.js/adapter.js"></script>
-<script src="webjars/demo-console/index.js"></script>
 
 <script src="js/kurento-utils.js"></script>
 <script src="js/index.js"></script>
 <title>CozyCast: Low latency screen capture via WebRTC</title>
 </head>
 <body>
-	<div class="container">
-		<div class="row">
-			<div class="col-md-5">
-				<div class="row">
-					<div class="col-md-12">
-            <a id="stop" href="#" class="btn btn-danger">
-                <span class="glyphicon glyphicon-stop"></span>
-                Stop
-            </a>
-					</div>
-				</div>
-
-				<div class="row">
-					<div class="col-md-12">
-						<input type="text" id="videourl"
-							value="rtsp://localhost:554/abc4"
-							style="width: 100%">
-					</div>
-				</div>
-
-		</div>
-		<div class="row">
-			</div>
-			<div class="col-md-7">
+	<div class="container-fluid nogap">
+		<div class="row nogap">
+			<div class="col-md-12 nogap">
 				<div id="videoBig">
 					<video id="video" autoplay width="1280px" height="720px"></video>
+				</div>
+			</div>
+		</div>
+		<div class="row nogap">
+			<div class="col-md-5 nogap">
+				<div class="row">
+					<div class="col-md-12">
+						<a id="stop" href="#" class="btn btn-danger">
+							<span class="glyphicon glyphicon-stop"></span>
+							Stop
+						</a>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-12 nogap">
+						<input type="text" id="videourl"
+						value="rtsp://localhost:554/abc4"
+						style="width: 100%">
+					</div>
 				</div>
 			</div>
 		</div>
