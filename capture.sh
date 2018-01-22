@@ -9,6 +9,7 @@ ffmpeg \
   -f x11grab \
   -i :0.0+0,0 \
   -b:v 2M \
+  -pix_fmt yuv420p \
   -c:a libopus \
   -b:a 192k \
   -f rtsp rtsp://localhost:5545/abc4

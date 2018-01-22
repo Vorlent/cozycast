@@ -52,6 +52,10 @@ public class StreamHandler extends TextWebSocketHandler {
   private final Gson gson = new GsonBuilder().create();
   private final ConcurrentHashMap<String, UserSession> users = new ConcurrentHashMap<>();
 
+	private final ConcurrentHashMap<String, String> data = new ConcurrentHashMap<>();
+
+	WebSocketSession worker;
+
   @Override
   public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
     JsonObject jsonMessage = gson.fromJson(message.getPayload(), JsonObject.class);
@@ -79,6 +83,12 @@ public class StreamHandler extends TextWebSocketHandler {
 					break;
 				case "keydown":
 					keydown(session, jsonMessage);
+					break;
+				case "remote":
+					remote(session);
+					break;
+				case "worker":
+					worker(session);
 					break;
         case "onIceCandidate":
           onIceCandidate(sessionId, jsonMessage);
@@ -137,23 +147,72 @@ public class StreamHandler extends TextWebSocketHandler {
   }
 
 	private void keyup(final WebSocketSession session, JsonObject jsonMessage) {
+		if(session.getId().equals(data.get("remote"))) {
 			System.out.println(jsonMessage);
+			if(worker != null) {
+				JsonObject response = new JsonObject();
+		    response.addProperty("action", "keyup");
+		    response.add("key", jsonMessage.get("key"));
+				sendMessage(worker, response.toString());
+			}
+		}
 	}
 
 	private void keydown(final WebSocketSession session, JsonObject jsonMessage) {
-			System.out.println(jsonMessage);
+		if(session.getId().equals(data.get("remote"))) {
+			if(worker != null) {
+				JsonObject response = new JsonObject();
+				response.addProperty("action", "keydown");
+				response.add("key", jsonMessage.get("key"));
+				sendMessage(worker, response.toString());
+			}
+		}
 	}
 
 	private void mousemove(final WebSocketSession session, JsonObject jsonMessage) {
-			System.out.println(jsonMessage);
+		if(session.getId().equals(data.get("remote"))) {
+			if(worker != null) {
+				JsonObject response = new JsonObject();
+				response.addProperty("action", "mousedown");
+				response.add("mouseX", jsonMessage.get("mouseX"));
+				response.add("mouseY", jsonMessage.get("mouseY"));
+				sendMessage(worker, response.toString());
+			}
+		}
 	}
 
 	private void mouseup(final WebSocketSession session, JsonObject jsonMessage) {
-			System.out.println(jsonMessage);
+		if(session.getId().equals(data.get("remote"))) {
+			if(worker != null) {
+				JsonObject response = new JsonObject();
+				response.addProperty("action", "mouseup");
+				response.add("mouseX", jsonMessage.get("mouseX"));
+				response.add("mouseY", jsonMessage.get("mouseY"));
+				response.add("button", jsonMessage.get("button"));
+				sendMessage(worker, response.toString());
+			}
+		}
 	}
 
 	private void mousedown(final WebSocketSession session, JsonObject jsonMessage) {
-			System.out.println(jsonMessage);
+		if(session.getId().equals(data.get("remote"))) {
+			if(worker != null) {
+				JsonObject response = new JsonObject();
+				response.addProperty("action", "mousedown");
+				response.add("mouseX", jsonMessage.get("mouseX"));
+				response.add("mouseY", jsonMessage.get("mouseY"));
+				response.add("button", jsonMessage.get("button"));
+				sendMessage(worker, response.toString());
+			}
+		}
+	}
+
+	private void remote(final WebSocketSession session) {
+		data.put("remote", session.getId());
+	}
+
+	private void worker(final WebSocketSession session) {
+		worker = session;
 	}
 
   private void stop(String sessionId) {

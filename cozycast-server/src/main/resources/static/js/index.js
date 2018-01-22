@@ -7,6 +7,7 @@ var videoElement;
 window.onload = function() {
 	var video = document.getElementById('video');
 	$('#stop').attr('onclick', 'stop()');
+	$('#remote').click(remote);
 	$('#video').mousemove((e) => videoMousemove(e));
 	$('#video').mouseup((e) => videoMouseUp(e));
 	$('#video').mousedown((e) => videoMouseDown(e));
@@ -17,6 +18,12 @@ window.onload = function() {
 	setTimeout(function() {
 		start(video);
 	}, 300);
+}
+
+function remote() {
+	sendMessage({
+		action : 'remote'
+	});
 }
 
 function videoKeyUp(e) {
