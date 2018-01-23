@@ -173,7 +173,7 @@ public class StreamHandler extends TextWebSocketHandler {
 		if(session.getId().equals(data.get("remote"))) {
 			if(worker != null) {
 				JsonObject response = new JsonObject();
-				response.addProperty("action", "mousedown");
+				response.addProperty("action", "mousemove");
 				response.add("mouseX", jsonMessage.get("mouseX"));
 				response.add("mouseY", jsonMessage.get("mouseY"));
 				sendMessage(worker, response.toString());
@@ -212,6 +212,7 @@ public class StreamHandler extends TextWebSocketHandler {
 	}
 
 	private void worker(final WebSocketSession session) {
+		System.out.println("WORKER FOUND");
 		worker = session;
 	}
 
