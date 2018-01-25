@@ -11,6 +11,11 @@ local keyboard_web_to_xdo = {
   [" "] = "space",
   ["Enter"] = "KP_Enter",
   ["Escape"] = "Escape",
+  ["ArrowLeft"] = "Left",
+  ["ArrowRight"] = "Right",
+  ["ArrowUp"] = "Up",
+  ["ArrowDown"] = "Down",
+  ["Backspace"] = "BackSpace",
 }
 
 local ws = websocket.new_from_uri("ws://localhost:8080/stream")
