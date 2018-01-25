@@ -69,6 +69,9 @@ public class StreamHandler extends TextWebSocketHandler {
         case "stop":
           stop(sessionId);
           break;
+				case "scroll":
+					scroll(session, jsonMessage);
+					break;
 				case "mousemove":
 					mousemove(session, jsonMessage);
 					break;
@@ -145,6 +148,18 @@ public class StreamHandler extends TextWebSocketHandler {
 
     playerEndpoint.play();
   }
+
+	private void scroll(final WebSocketSession session, JsonObject jsonMessage) {
+		if(session.getId().equals(data.get("remote"))) {
+			System.out.println(jsonMessage);
+			if(worker != null) {
+				JsonObject response = new JsonObject();
+				response.addProperty("action", "scroll");
+				response.add("direction", jsonMessage.get("direction"));
+				sendMessage(worker, response.toString());
+			}
+		}
+	}
 
 	private void keyup(final WebSocketSession session, JsonObject jsonMessage) {
 		if(session.getId().equals(data.get("remote"))) {

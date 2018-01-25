@@ -13,6 +13,7 @@ window.onload = function() {
 	$('#video').mousedown((e) => videoMouseDown(e));
 	$('#video').keyup((e) => videoKeyUp(e));
 	$('#video').keydown((e) => videoKeyDown(e));
+	$('#video').on('wheel', (e) => videoScroll(e));
 	videoElement = $('#video')[0];
 	$('#video')[0].oncontextmenu = function() {return false;}
 	setTimeout(function() {
@@ -24,6 +25,21 @@ function remote() {
 	sendMessage({
 		action : 'remote'
 	});
+}
+
+function videoScroll(e) {
+	if(e.originalEvent.deltaY < 0) {
+		sendMessage({
+			action : 'scroll',
+			direction: "up"
+		});
+	}
+	if(e.originalEvent.deltaY > 0) {
+		sendMessage({
+			action : 'scroll',
+			direction: "down"
+		});
+	}
 }
 
 function videoKeyUp(e) {

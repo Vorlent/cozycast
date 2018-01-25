@@ -38,13 +38,20 @@ while true do
 
   if data.action == "keyup" then
     data.key = keyboard_web_to_xdo[data.key] or data.key
-    print(data.key)
     os.execute ("xdotool keyup "..data.key)
   end
   if data.action == "keydown" then
     data.key = keyboard_web_to_xdo[data.key] or data.key
-    print(data.key)
     os.execute ("xdotool keydown "..data.key)
+  end
+  if data.action == "scroll" then
+    print(data)
+    if data.direction == "up" then
+      os.execute ("xdotool click 4")
+    end
+    if data.direction == "down" then
+      os.execute ("xdotool click 5")
+    end
   end
 end
 

@@ -16,9 +16,7 @@ RUN export UNAME=$UNAME UID=1000 GID=1000 && \
     gpasswd -a ${UNAME} audio
 
 COPY cozycast-worker-1.0-1.rockspec .
-COPY worker.lua .
 RUN luarocks make
-
 COPY . .
 
 USER $UNAME
