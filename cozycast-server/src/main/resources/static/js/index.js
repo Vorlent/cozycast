@@ -3,6 +3,8 @@ var webRtcPeer;
 
 var lastMouseEvent = Date.now();
 var videoElement;
+var resolutionX = 1280;
+var resolutionY = 720;
 
 window.onload = function() {
 	var video = document.getElementById('video');
@@ -58,26 +60,29 @@ function videoKeyDown(e) {
 	});
 }
 
+function getRemotePosition(e) {
+	var videoRect = videoElement.getBoundingClientRect();
+	var x = (e.originalEvent.clientX - videoRect.left) / (videoRect.right - videoRect.left) * resolutionX;
+	var y = (e.originalEvent.clientY - videoRect.top) / (videoRect.bottom - videoRect.top) * resolutionY;
+	return { x: x, y: y }
+}
+
 function videoMouseUp(e) {
-		var videoRect = videoElement.getBoundingClientRect();
-		var x = e.originalEvent.clientX - videoRect.left;
-		var y = e.originalEvent.clientY - videoRect.top;
+		var pos = getRemotePosition(e);
 		sendMessage({
 			action : 'mouseup',
-			mouseX: x,
-			mouseY: y,
+			mouseX: pos.x,
+			mouseY: pos.y,
 			button: e.originalEvent.button
 		});
 }
 
 function videoMouseDown(e) {
-		var videoRect = videoElement.getBoundingClientRect();
-		var x = e.originalEvent.clientX - videoRect.left;
-		var y = e.originalEvent.clientY - videoRect.top;
+		var pos = getRemotePosition(e);
 		sendMessage({
 			action : 'mousedown',
-			mouseX: x,
-			mouseY: y,
+			mouseX: pos.x,
+			mouseY: pos.y,
 			button: e.originalEvent.button
 		});
 }
@@ -85,13 +90,11 @@ function videoMouseDown(e) {
 function videoMousemove(e) {
 	var now = Date.now();
 	if(now - lastMouseEvent > 10) {
-		var videoRect = videoElement.getBoundingClientRect();
-		var x = e.originalEvent.clientX - videoRect.left;
-		var y = e.originalEvent.clientY - videoRect.top;
+		var pos = getRemotePosition(e);
 		sendMessage({
 			action : 'mousemove',
-			mouseX: x,
-			mouseY: y
+			mouseX: pos.x,
+			mouseY: pos.y
 		});
 		lastMouseEvent = now;
 	}

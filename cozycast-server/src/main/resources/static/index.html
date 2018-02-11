@@ -20,35 +20,74 @@
 <script src="js/index.js"></script>
 <title>CozyCast: Low latency screen capture via WebRTC</title>
 </head>
-<body>
+<body class="background">
 	<div class="container-fluid nogap">
 		<div class="row nogap">
-			<div class="col-md-12 nogap">
+			<div class="col-md-10 nogap">
 				<div id="videoBig">
-					<video id="video" autoplay width="1280px" height="720px"></video>
+					<video id="video" autoplay class="full-width"></video>
 				</div>
-			</div>
-		</div>
-		<div class="row nogap">
-			<div class="col-md-5 nogap">
 				<div class="row">
-					<div class="col-md-12">
-						<a id="stop" href="#" class="btn btn-danger">
-							<span class="glyphicon glyphicon-stop"></span>
-							Stop
-						</a>
-						<a id="remote" href="#" class="btn btn-danger">
-							<span class="glyphicon glyphicon-stop"></span>
-							Remote
-						</a>
-					</div>
+					<a id="stop" href="#" class="btn btn-danger">
+						<span class="glyphicon glyphicon-stop"></span>
+						Stop
+					</a>
+					<a id="remote" href="#" class="btn btn-danger">
+						<span class="glyphicon glyphicon-stop"></span>
+						Remote
+					</a>
 				</div>
 
 				<div class="row">
-					<div class="col-md-12 nogap">
+					<div class="col-md-4 nogap">
 						<input type="text" id="videourl"
 						value="rtsp://localhost:554/abc4"
 						style="width: 100%">
+					</div>
+				</div>
+			</div>
+			<div class="col-md-2 chat-color">
+				<div class="message">
+					<div class="username">
+					Me 7:42 pm
+					</div>
+					<div>
+					"we found it"
+					</div>
+				</div>
+				<div class="message">
+					<div class="username">
+					Frien 7:42 pm
+					</div>
+					<div>
+					aliens
+					</div>
+				</div>
+				<div class="message">
+					<div class="username">
+					Me 7:43 pm
+					</div>
+					<div>
+					how did the aliens make it
+					</div>
+				</div>
+				<div class="message">
+					<div class="username">
+					Frien 7:43 pm
+					</div>
+					<div>
+					they invented it
+					</div>
+				</div>
+				<div class="message">
+					<div class="username">
+					Me 7:43 pm
+					</div>
+					<div>
+					nah
+					</div>
+					<div>
+					"they found it"
 					</div>
 				</div>
 			</div>
