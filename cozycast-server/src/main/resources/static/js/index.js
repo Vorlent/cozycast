@@ -21,6 +21,14 @@ window.onload = function() {
 	setTimeout(function() {
 		start(video);
 	}, 300);
+
+  $("#chatbox-textarea").keypress(function (e) {
+			var enterKeycode = 13;
+      if(e.which == enterKeycode) {
+				$('#messages').append($(this).val() + "<br/>")
+				$(this).val("")
+      }
+  });
 }
 
 function remote() {

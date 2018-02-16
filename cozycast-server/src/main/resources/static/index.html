@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html class="full-height">
 <head>
 <meta charset="utf-8">
 <meta http-equiv="cache-control" content="no-cache">
@@ -20,9 +20,9 @@
 <script src="js/index.js"></script>
 <title>CozyCast: Low latency screen capture via WebRTC</title>
 </head>
-<body class="background">
-	<div class="container-fluid nogap">
-		<div class="row nogap">
+<body class="background full-height">
+	<div class="container-fluid nogap full-height">
+		<div class="row nogap full-height">
 			<div class="col-md-10 nogap">
 				<div id="videoBig">
 					<video id="video" autoplay class="full-width"></video>
@@ -46,49 +46,54 @@
 					</div>
 				</div>
 			</div>
-			<div class="col-md-2 chat-color">
-				<div class="message">
-					<div class="username">
-					Me 7:42 pm
+			<div class="col-md-2 chat-color full-height chat">
+				<div id="messages">
+					<div class="message">
+						<div class="username">
+						Me 7:42 pm
+						</div>
+						<div>
+						"we found it"
+						</div>
 					</div>
-					<div>
-					"we found it"
+					<div class="message">
+						<div class="username">
+						Frien 7:42 pm
+						</div>
+						<div>
+						aliens
+						</div>
+					</div>
+					<div class="message">
+						<div class="username">
+						Me 7:43 pm
+						</div>
+						<div>
+						how did the aliens make it
+						</div>
+					</div>
+					<div class="message">
+						<div class="username">
+						Frien 7:43 pm
+						</div>
+						<div>
+						they invented it
+						</div>
+					</div>
+					<div class="message">
+						<div class="username">
+						Me 7:43 pm
+						</div>
+						<div>
+						nah
+						</div>
+						<div>
+						"they found it"
+						</div>
 					</div>
 				</div>
-				<div class="message">
-					<div class="username">
-					Frien 7:42 pm
-					</div>
-					<div>
-					aliens
-					</div>
-				</div>
-				<div class="message">
-					<div class="username">
-					Me 7:43 pm
-					</div>
-					<div>
-					how did the aliens make it
-					</div>
-				</div>
-				<div class="message">
-					<div class="username">
-					Frien 7:43 pm
-					</div>
-					<div>
-					they invented it
-					</div>
-				</div>
-				<div class="message">
-					<div class="username">
-					Me 7:43 pm
-					</div>
-					<div>
-					nah
-					</div>
-					<div>
-					"they found it"
-					</div>
+				<div class="chatbox">
+					<textarea id="chatbox-textarea"></textarea>
 				</div>
 			</div>
 		</div>

@@ -17,6 +17,10 @@
   width: 100%;
 }
 
+.full-height {
+  height: 100%;
+}
+
 .chat-color {
   color: white;
 }
@@ -27,4 +31,27 @@
 
 .message {
   margin-top: 10px;
+}
+
+#messages {
+  height: 92%;
+  padding-left: 10px;
+  overflow-y: scroll;
+}
+
+.chat {
+  background-color: #344659;
+  padding-right: 0px;
+}
+
+.chatbox {
+  padding-right: 10px;
+  padding-top: 5px;
+}
+
+#chatbox-textarea {
+  color: #504848;
+  resize: none;
+  width: 100%;
+  border-radius: 5px;
 }
