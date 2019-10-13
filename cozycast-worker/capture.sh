@@ -1,3 +1,4 @@
+#!/bin/bash
 export DISPLAY=":99"
 
 Xvfb $DISPLAY -screen 0 1280x720x24 -nolisten tcp &
@@ -15,6 +16,8 @@ ffmpeg \
   -r 25 \
   -f x11grab \
   -i $DISPLAY.0+0,0 \
+  -c:v libx264 \
+  -preset veryfast \
   -b:v 2M \
   -pix_fmt yuv420p \
   -c:a libopus \

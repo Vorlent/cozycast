@@ -1,3 +1,4 @@
+#!/bin/bash
 pactl load-module module-null-sink sink_name=cozycast-sink
 
 pactl list sink-inputs
