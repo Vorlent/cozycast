@@ -9,10 +9,10 @@ RUN wget http://ubuntu.kurento.org/kurento.gpg.key -O - | apt-key add -
 RUN apt-get update && apt-get install -y kurento-media-server-6.0 kms-datachannelexample
 RUN sed -i 's/sudo/#/' /etc/init.d/kurento-media-server-6.0
 RUN sed -i 's/ulimit -n/#ulimit -n/' /etc/default/kurento-media-server
+RUN chown kurento:kurento -R  /etc/kurento/
+
+COPY entrypoint.sh /entrypoint.sh
 
 # start kurento media server
-
-RUN echo "turnURL=localhost:3478" >> /etc/kurento/modules/kurento/WebRtcEndpoint.conf.ini
-
 USER kurento
-CMD ["/usr/bin/kurento-media-server"]
+CMD ["/entrypoint.sh"]

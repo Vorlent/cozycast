@@ -21,9 +21,9 @@ public class CozycastServerApplication implements WebSocketConfigurer {
 	}
 
 	@Bean
-  public StreamHandler streamHandler() {
-      return new StreamHandler();
-  }
+  	public StreamHandler streamHandler() {
+      	return new StreamHandler();
+  	}
 
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
 		registry.addHandler(streamHandler(), "/stream");

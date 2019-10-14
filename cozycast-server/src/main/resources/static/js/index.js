@@ -125,6 +125,7 @@ ws.onmessage = function(message) {
 	case 'iceCandidate':
 		webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
 			if (error) {
+				console.log(parsedMessage);
 				console.log('Error iceCandidate: ' + error);
 				return;
 			}
@@ -136,16 +137,20 @@ ws.onmessage = function(message) {
 }
 
 function start(video) {
-	var options = {
-		remoteVideo : video,
-		mediaConstraints : {
-			audio : true,
-			video : true
-		},
-		onicecandidate : onIceCandidate
-	}
+	jQuery.get("/turn/credential", function(iceServer) {
+		var options = {
+			remoteVideo : video,
+			mediaConstraints : {
+				audio : true,
+				video : true
+			},
+			onicecandidate : onIceCandidate,
+			configuration: {
+				iceServers: [iceServer]
+			}
+		}
 
-	webRtcPeer = new kurentoUtils.WebRtcPeer.WebRtcPeerRecvonly(options,
+		webRtcPeer = new kurentoUtils.WebRtcPeer.WebRtcPeerRecvonly(options,
 			function(error) {
 				if (error) {
 					console.log(error);
@@ -153,6 +158,7 @@ function start(video) {
 				}
 				webRtcPeer.generateOffer(onOffer);
 			});
+	});
 }
 
 function onOffer(error, sdpOffer) {

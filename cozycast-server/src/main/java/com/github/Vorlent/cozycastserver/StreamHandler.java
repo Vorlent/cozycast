@@ -47,28 +47,28 @@ import com.google.gson.JsonObject;
 public class StreamHandler extends TextWebSocketHandler {
 
 	@Autowired
-  private KurentoClient kurento;
+  	private KurentoClient kurento;
 
-  private final Gson gson = new GsonBuilder().create();
-  private final ConcurrentHashMap<String, UserSession> users = new ConcurrentHashMap<>();
+  	private final Gson gson = new GsonBuilder().create();
+  	private final ConcurrentHashMap<String, UserSession> users = new ConcurrentHashMap<>();
 
 	private final ConcurrentHashMap<String, String> data = new ConcurrentHashMap<>();
 
 	WebSocketSession worker;
 
-  @Override
-  public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-    JsonObject jsonMessage = gson.fromJson(message.getPayload(), JsonObject.class);
-    String sessionId = session.getId();
+  	@Override
+  	public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+    	JsonObject jsonMessage = gson.fromJson(message.getPayload(), JsonObject.class);
+    	String sessionId = session.getId();
 
-    try {
-      switch (jsonMessage.get("action").getAsString()) {
-        case "start":
-          start(session, jsonMessage);
-          break;
-        case "stop":
-          stop(sessionId);
-          break;
+    	try {
+	      	switch (jsonMessage.get("action").getAsString()) {
+	        	case "start":
+	          		start(session, jsonMessage);
+	          		break;
+	        	case "stop":
+	          		stop(sessionId);
+	          	break;
 				case "scroll":
 					scroll(session, jsonMessage);
 					break;
@@ -93,61 +93,60 @@ public class StreamHandler extends TextWebSocketHandler {
 				case "worker":
 					worker(session);
 					break;
-        case "onIceCandidate":
-          onIceCandidate(sessionId, jsonMessage);
-          break;
-        default:
-          sendError(session, "Invalid message with action " + jsonMessage.get("action").getAsString());
-          break;
-      }
-    } catch (Throwable t) {
+	        	case "onIceCandidate":
+	          		onIceCandidate(sessionId, jsonMessage);
+	          		break;
+	        	default:
+	          		sendError(session, "Invalid message with action " + jsonMessage.get("action").getAsString());
+	          		break;
+	  		}
+    	} catch (Throwable t) {
 			t.printStackTrace();
-      sendError(session, t.getMessage());
-    }
-  }
+      		sendError(session, t.getMessage());
+    	}
+  	}
 
-  private void start(final WebSocketSession session, JsonObject jsonMessage) {
-    final UserSession user = new UserSession();
-    MediaPipeline pipeline = kurento.createMediaPipeline();
-    user.setMediaPipeline(pipeline);
-    WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build();
-    user.setWebRtcEndpoint(webRtcEndpoint);
-    String videourl = jsonMessage.get("url").getAsString();
-    final PlayerEndpoint playerEndpoint = new PlayerEndpoint.Builder(pipeline, videourl).withNetworkCache(0).build();
-    user.setPlayerEndpoint(playerEndpoint);
-    users.put(session.getId(), user);
+	private void start(final WebSocketSession session, JsonObject jsonMessage) {
+		final UserSession user = new UserSession();
+		MediaPipeline pipeline = kurento.createMediaPipeline();
+		user.setMediaPipeline(pipeline);
+		WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build();
+		user.setWebRtcEndpoint(webRtcEndpoint);
+		String videourl = jsonMessage.get("url").getAsString();
+		final PlayerEndpoint playerEndpoint = new PlayerEndpoint.Builder(pipeline, videourl).withNetworkCache(0).build();
+		user.setPlayerEndpoint(playerEndpoint);
+		users.put(session.getId(), user);
 
-    playerEndpoint.connect(webRtcEndpoint);
+		playerEndpoint.connect(webRtcEndpoint);
 
-    webRtcEndpoint.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
+		webRtcEndpoint.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
+			@Override
+			public void onEvent(IceCandidateFoundEvent event) {
+				JsonObject response = new JsonObject();
+				response.addProperty("action", "iceCandidate");
+				response.add("candidate", JsonUtils.toJsonObject(event.getCandidate()));
+				try {
+					synchronized (session) {
+						session.sendMessage(new TextMessage(response.toString()));
+					}
+				} catch (IOException e) {
+					System.out.println(e.getMessage());
+				}
+			}
+		});
 
-      @Override
-      public void onEvent(IceCandidateFoundEvent event) {
-        JsonObject response = new JsonObject();
-        response.addProperty("action", "iceCandidate");
-        response.add("candidate", JsonUtils.toJsonObject(event.getCandidate()));
-        try {
-          synchronized (session) {
-            session.sendMessage(new TextMessage(response.toString()));
-          }
-        } catch (IOException e) {
-          System.out.println(e.getMessage());
-        }
-      }
-    });
+		String sdpOffer = jsonMessage.get("sdpOffer").getAsString();
+		String sdpAnswer = webRtcEndpoint.processOffer(sdpOffer);
 
-    String sdpOffer = jsonMessage.get("sdpOffer").getAsString();
-    String sdpAnswer = webRtcEndpoint.processOffer(sdpOffer);
+		JsonObject response = new JsonObject();
+		response.addProperty("action", "startResponse");
+		response.addProperty("sdpAnswer", sdpAnswer);
+		sendMessage(session, response.toString());
 
-    JsonObject response = new JsonObject();
-    response.addProperty("action", "startResponse");
-    response.addProperty("sdpAnswer", sdpAnswer);
-    sendMessage(session, response.toString());
+		webRtcEndpoint.gatherCandidates();
 
-    webRtcEndpoint.gatherCandidates();
-
-    playerEndpoint.play();
-  }
+		playerEndpoint.play();
+	}
 
 	private void scroll(final WebSocketSession session, JsonObject jsonMessage) {
 		if(session.getId().equals(data.get("remote"))) {
@@ -166,8 +165,8 @@ public class StreamHandler extends TextWebSocketHandler {
 			System.out.println(jsonMessage);
 			if(worker != null) {
 				JsonObject response = new JsonObject();
-		    response.addProperty("action", "keyup");
-		    response.add("key", jsonMessage.get("key"));
+				response.addProperty("action", "keyup");
+				response.add("key", jsonMessage.get("key"));
 				sendMessage(worker, response.toString());
 			}
 		}
@@ -231,53 +230,55 @@ public class StreamHandler extends TextWebSocketHandler {
 		worker = session;
 	}
 
-  private void stop(String sessionId) {
-    UserSession user = users.remove(sessionId);
+	private void stop(String sessionId) {
+		UserSession user = users.remove(sessionId);
 
-    if (user != null) {
-      user.release();
-    }
-  }
+		if (user != null) {
+			user.release();
+		}
+	}
 
-  private void onIceCandidate(String sessionId, JsonObject jsonMessage) {
-    UserSession user = users.get(sessionId);
+	private void onIceCandidate(String sessionId, JsonObject jsonMessage) {
+		UserSession user = users.get(sessionId);
 
-    if (user != null) {
-      JsonObject jsonCandidate = jsonMessage.get("candidate").getAsJsonObject();
-      IceCandidate candidate =
-          new IceCandidate(jsonCandidate.get("candidate").getAsString(), jsonCandidate
-              .get("sdpMid").getAsString(), jsonCandidate.get("sdpMLineIndex").getAsInt());
-      user.getWebRtcEndpoint().addIceCandidate(candidate);
-    }
-  }
+		if (user != null) {
+			JsonObject jsonCandidate = jsonMessage.get("candidate").getAsJsonObject();
+			System.out.println(jsonCandidate);
+			IceCandidate candidate = new IceCandidate(
+				jsonCandidate.get("candidate").getAsString(),
+				jsonCandidate.get("sdpMid").getAsString(),
+				jsonCandidate.get("sdpMLineIndex").getAsInt());
+			user.getWebRtcEndpoint().addIceCandidate(candidate);
+		}
+	}
 
-  public void sendPlayEnd(WebSocketSession session) {
-    if (users.containsKey(session.getId())) {
-      JsonObject response = new JsonObject();
-      response.addProperty("action", "playEnd");
-      sendMessage(session, response.toString());
-    }
-  }
+	public void sendPlayEnd(WebSocketSession session) {
+		if (users.containsKey(session.getId())) {
+			JsonObject response = new JsonObject();
+			response.addProperty("action", "playEnd");
+			sendMessage(session, response.toString());
+		}
+	}
 
-  private void sendError(WebSocketSession session, String message) {
-    if (users.containsKey(session.getId())) {
-      JsonObject response = new JsonObject();
-      response.addProperty("action", "error");
-      response.addProperty("message", message);
-      sendMessage(session, response.toString());
-    }
-  }
+	private void sendError(WebSocketSession session, String message) {
+		if (users.containsKey(session.getId())) {
+			JsonObject response = new JsonObject();
+			response.addProperty("action", "error");
+			response.addProperty("message", message);
+			sendMessage(session, response.toString());
+		}
+	}
 
-  private synchronized void sendMessage(WebSocketSession session, String message) {
-    try {
-      session.sendMessage(new TextMessage(message));
-    } catch (IOException e) {
-      System.out.println("Exception sending message " + e.getMessage());
-    }
-  }
+	private synchronized void sendMessage(WebSocketSession session, String message) {
+		try {
+			session.sendMessage(new TextMessage(message));
+		} catch (IOException e) {
+			System.out.println("Exception sending message " + e.getMessage());
+		}
+	}
 
-  @Override
-  public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-    stop(session.getId());
-  }
+	@Override
+	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+		stop(session.getId());
+	}
 }
