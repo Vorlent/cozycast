@@ -16,8 +16,9 @@ ffmpeg \
   -f x11grab \
   -i $DISPLAY.0+0,0 \
   -vsync 1 -async 1 \
-  -c:v libx264 \
-  -preset veryfast \
+  -c:v libvpx \
+  -quality realtime \
+  -crf 10 \
   -b:v 5M \
   -pix_fmt yuv420p \
   -sdp_file /home/cozycast/sdp_answer \
