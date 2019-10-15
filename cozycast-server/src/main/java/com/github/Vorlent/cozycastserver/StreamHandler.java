@@ -44,6 +44,8 @@ import java.util.regex.Matcher;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import org.kurento.client.DispatcherOneToMany;
+import org.kurento.client.HubPort;
 
 @Component
 public class StreamHandler extends TextWebSocketHandler {
@@ -55,7 +57,7 @@ public class StreamHandler extends TextWebSocketHandler {
   	private final ConcurrentHashMap<String, UserSession> users = new ConcurrentHashMap<>();
 
 	private final ConcurrentHashMap<String, String> data = new ConcurrentHashMap<>();
-	private final WorkerSession workerSession = new WorkerSession();
+	private WorkerSession workerSession = new WorkerSession();
 
 	public WebSocketSession worker;
 
@@ -114,42 +116,57 @@ public class StreamHandler extends TextWebSocketHandler {
 
 	private void start(final WebSocketSession session, JsonObject jsonMessage) {
 		final UserSession user = new UserSession();
-		MediaPipeline pipeline = kurento.createMediaPipeline();
-		user.setMediaPipeline(pipeline);
+		MediaPipeline pipeline = workerSession.getMediaPipeline();
+		if(pipeline == null) {
+			pipeline = kurento.createMediaPipeline();
+			workerSession.setMediaPipeline(pipeline);
+			System.out.println("ADD createMediaPipeline");
+		}
 		WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build();
 		user.setWebRtcEndpoint(webRtcEndpoint);
 		String videourl = jsonMessage.get("url").getAsString();
 		users.put(session.getId(), user);
 
-		RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
-		workerSession.setRtpEndpoint(rtpEndpoint);
-		String workerSDPOffer = rtpEndpoint.generateOffer();
+		if(workerSession.getRtpEndpoint() == null) {
+			RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
+			workerSession.setRtpEndpoint(rtpEndpoint);
+			String workerSDPOffer = rtpEndpoint.generateOffer();
 
-		String videoPort = null;
-		Matcher videoMatcher = Pattern.compile("m=video (\\d+)").matcher(workerSDPOffer);
-		if(videoMatcher.find()) {
-			videoPort = videoMatcher.group(1);
+			String videoPort = null;
+			Matcher videoMatcher = Pattern.compile("m=video (\\d+)").matcher(workerSDPOffer);
+			if(videoMatcher.find()) {
+				videoPort = videoMatcher.group(1);
+			}
+
+			String audioPort = null;
+			Matcher audioMatcher = Pattern.compile("m=audio (\\d+)").matcher(workerSDPOffer);
+			if(audioMatcher.find()) {
+				audioPort = audioMatcher.group(1);
+			}
+			System.out.println(workerSDPOffer);
+
+			if(worker != null) {
+				JsonObject response = new JsonObject();
+				response.addProperty("type", "sdpOffer");
+				response.addProperty("ip", "127.0.0.1");
+				response.addProperty("videoPort", videoPort);
+				response.addProperty("audioPort", audioPort);
+				sendMessage(worker, response.toString());
+			}
 		}
 
-		String audioPort = null;
-		Matcher audioMatcher = Pattern.compile("m=audio (\\d+)").matcher(workerSDPOffer);
-		if(audioMatcher.find()) {
-			audioPort = audioMatcher.group(1);
-		}
-		System.out.println(workerSDPOffer);
-
-		if(worker != null) {
-			JsonObject response = new JsonObject();
-			response.addProperty("type", "sdpOffer");
-			response.addProperty("ip", "127.0.0.1");
-			System.out.println("videoPort : " + videoPort);
-			response.addProperty("videoPort", videoPort);
-			System.out.println("audioPort : " + audioPort);
-			response.addProperty("audioPort", audioPort);
-			sendMessage(worker, response.toString());
+		if(workerSession.getDispatcher() == null) {
+			DispatcherOneToMany dispatcher = new DispatcherOneToMany.Builder(pipeline).build();
+			HubPort source = new HubPort.Builder(dispatcher).build();
+			workerSession.getRtpEndpoint().connect(source);
+			dispatcher.setSource(source);
+			workerSession.setDispatcher(dispatcher);
 		}
 
-		rtpEndpoint.connect(webRtcEndpoint);
+		if(workerSession.getDispatcher() != null) {
+			HubPort sink = new HubPort.Builder(workerSession.getDispatcher()).build();
+			sink.connect(webRtcEndpoint);
+		}
 
 		webRtcEndpoint.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
 			@Override
@@ -258,13 +275,19 @@ public class StreamHandler extends TextWebSocketHandler {
 	private void worker(final WebSocketSession session) {
 		System.out.println("WORKER FOUND");
 		worker = session;
+		if(workerSession != null) {
+			workerSession.release();
+		}
+		workerSession = new WorkerSession();
 	}
 
 	private void stop(String sessionId) {
 		UserSession user = users.remove(sessionId);
-
 		if (user != null) {
 			user.release();
+		}
+		if(workerSession != null) {
+			workerSession.release();
 		}
 	}
 

@@ -9,6 +9,8 @@ RUN wget http://ubuntu.kurento.org/kurento.gpg.key -O - | apt-key add -
 RUN apt-get update && apt-get install -y kurento-media-server-6.0 kms-datachannelexample
 RUN sed -i 's/sudo/#/' /etc/init.d/kurento-media-server-6.0
 RUN sed -i 's/ulimit -n/#ulimit -n/' /etc/default/kurento-media-server
+#COPY SdpEndpoint.conf.json /etc/kurento/modules/kurento/SdpEndpoint.conf.json
+
 RUN chown kurento:kurento -R  /etc/kurento/
 
 COPY entrypoint.sh /entrypoint.sh

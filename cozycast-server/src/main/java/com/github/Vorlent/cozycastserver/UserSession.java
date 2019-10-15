@@ -8,7 +8,6 @@ import org.kurento.client.RtpEndpoint;
 public class UserSession {
 
     private WebRtcEndpoint webRtcEndpoint;
-    private MediaPipeline mediaPipeline;
 
     public UserSession() {
     }
@@ -21,19 +20,12 @@ public class UserSession {
         this.webRtcEndpoint = webRtcEndpoint;
     }
 
-    public MediaPipeline getMediaPipeline() {
-        return mediaPipeline;
-    }
-
-    public void setMediaPipeline(MediaPipeline mediaPipeline) {
-        this.mediaPipeline = mediaPipeline;
-    }
 
     public void addCandidate(IceCandidate candidate) {
         webRtcEndpoint.addIceCandidate(candidate);
     }
 
     public void release() {
-        this.mediaPipeline.release();
+        //this.mediaPipeline.release();
     }
 }
