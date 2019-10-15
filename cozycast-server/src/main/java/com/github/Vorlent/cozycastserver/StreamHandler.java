@@ -28,7 +28,7 @@ import org.kurento.client.KurentoClient;
 import org.kurento.client.MediaPipeline;
 import org.kurento.client.MediaState;
 import org.kurento.client.MediaStateChangedEvent;
-import org.kurento.client.PlayerEndpoint;
+import org.kurento.client.RtpEndpoint;
 import org.kurento.client.VideoInfo;
 import org.kurento.client.WebRtcEndpoint;
 import org.kurento.commons.exception.KurentoException;
@@ -38,6 +38,8 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -53,8 +55,9 @@ public class StreamHandler extends TextWebSocketHandler {
   	private final ConcurrentHashMap<String, UserSession> users = new ConcurrentHashMap<>();
 
 	private final ConcurrentHashMap<String, String> data = new ConcurrentHashMap<>();
+	private final WorkerSession workerSession = new WorkerSession();
 
-	WebSocketSession worker;
+	public WebSocketSession worker;
 
   	@Override
   	public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
@@ -68,7 +71,7 @@ public class StreamHandler extends TextWebSocketHandler {
 	          		break;
 	        	case "stop":
 	          		stop(sessionId);
-	          	break;
+	          		break;
 				case "scroll":
 					scroll(session, jsonMessage);
 					break;
@@ -93,6 +96,9 @@ public class StreamHandler extends TextWebSocketHandler {
 				case "worker":
 					worker(session);
 					break;
+				case "sdpAnswer":
+					sdpAnswer(sessionId, jsonMessage);
+					break;
 	        	case "onIceCandidate":
 	          		onIceCandidate(sessionId, jsonMessage);
 	          		break;
@@ -113,11 +119,37 @@ public class StreamHandler extends TextWebSocketHandler {
 		WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build();
 		user.setWebRtcEndpoint(webRtcEndpoint);
 		String videourl = jsonMessage.get("url").getAsString();
-		final PlayerEndpoint playerEndpoint = new PlayerEndpoint.Builder(pipeline, videourl).withNetworkCache(0).build();
-		user.setPlayerEndpoint(playerEndpoint);
 		users.put(session.getId(), user);
 
-		playerEndpoint.connect(webRtcEndpoint);
+		RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
+		workerSession.setRtpEndpoint(rtpEndpoint);
+		String workerSDPOffer = rtpEndpoint.generateOffer();
+
+		String videoPort = null;
+		Matcher videoMatcher = Pattern.compile("m=video (\\d+)").matcher(workerSDPOffer);
+		if(videoMatcher.find()) {
+			videoPort = videoMatcher.group(1);
+		}
+
+		String audioPort = null;
+		Matcher audioMatcher = Pattern.compile("m=audio (\\d+)").matcher(workerSDPOffer);
+		if(audioMatcher.find()) {
+			audioPort = audioMatcher.group(1);
+		}
+		System.out.println(workerSDPOffer);
+
+		if(worker != null) {
+			JsonObject response = new JsonObject();
+			response.addProperty("type", "sdpOffer");
+			response.addProperty("ip", "127.0.0.1");
+			System.out.println("videoPort : " + videoPort);
+			response.addProperty("videoPort", videoPort);
+			System.out.println("audioPort : " + audioPort);
+			response.addProperty("audioPort", audioPort);
+			sendMessage(worker, response.toString());
+		}
+
+		rtpEndpoint.connect(webRtcEndpoint);
 
 		webRtcEndpoint.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
 			@Override
@@ -144,8 +176,6 @@ public class StreamHandler extends TextWebSocketHandler {
 		sendMessage(session, response.toString());
 
 		webRtcEndpoint.gatherCandidates();
-
-		playerEndpoint.play();
 	}
 
 	private void scroll(final WebSocketSession session, JsonObject jsonMessage) {
@@ -235,6 +265,14 @@ public class StreamHandler extends TextWebSocketHandler {
 
 		if (user != null) {
 			user.release();
+		}
+	}
+
+	private void sdpAnswer(String sessionId, JsonObject jsonMessage) {
+		if (workerSession.getRtpEndpoint() != null) {
+			String sdpAnswer = jsonMessage.get("content").getAsString();
+			System.out.println(sdpAnswer);
+			workerSession.getRtpEndpoint().processAnswer(sdpAnswer);
 		}
 	}
 

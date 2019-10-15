@@ -24,4 +24,4 @@ COPY . .
 USER $UNAME
 ENV HOME /home/cozycast
 
-CMD /capture.sh
+CMD ["/entrypoint.sh"]

@@ -17,6 +17,32 @@ local keyboard_web_to_xdo = {
   ["ArrowDown"] = "Down",
   ["Backspace"] = "BackSpace",
 }
+
+function capture(data, ws)
+    print ("/capture.sh "..data.ip.." "..data.videoPort.." "..data.audioPort)
+    os.execute ("/capture.sh "..data.ip.." "..data.videoPort.." "..data.audioPort)
+    repeat
+        local file, error = io.open("/home/cozycast/sdp_answer", "rb")
+        if file then
+            local content = file:read "*a"
+            print (content);
+            print(lunajson.encode{
+                action = "sdpAnswer",
+                content = content
+            })
+            ws:send(lunajson.encode{
+                action = "sdpAnswer",
+                content = content
+            })
+            file:close()
+        else
+            print(error)
+            os.execute("sleep 1")
+        end
+    until file
+end
+
+
 function start_server()
     local ws = websocket.new_from_uri("ws://localhost:8080/stream")
     ws:connect()
@@ -24,6 +50,9 @@ function start_server()
     while true do
       local msg = ws:receive()
       local data = lunajson.decode(msg)
+      if data.type == "sdpOffer" then
+        capture(data, ws)
+      end
       if data.action == "mousemove" then
         os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
       end
@@ -59,7 +88,7 @@ function start_server()
 end
 
 while true do
-    pcall(start_server)
+    print(pcall(start_server))
     print("Restarting lua worker in 5 seconds")
     os.execute("sleep 5")
 end
