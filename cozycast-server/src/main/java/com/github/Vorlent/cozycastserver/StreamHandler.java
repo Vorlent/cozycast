@@ -74,6 +74,9 @@ public class StreamHandler extends TextWebSocketHandler {
 	        	case "stop":
 	          		stop(sessionId);
 	          		break;
+				case "chatmessage":
+					chatmessage(session, jsonMessage);
+					break;
 				case "scroll":
 					scroll(session, jsonMessage);
 					break;
@@ -124,6 +127,7 @@ public class StreamHandler extends TextWebSocketHandler {
 		}
 		WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build();
 		user.setWebRtcEndpoint(webRtcEndpoint);
+		user.setWebSocketSession(session);
 		users.put(session.getId(), user);
 
 		if(workerSession.getRtpEndpoint() == null) {
@@ -192,6 +196,18 @@ public class StreamHandler extends TextWebSocketHandler {
 		sendMessage(session, response.toString());
 
 		webRtcEndpoint.gatherCandidates();
+	}
+
+	private void chatmessage(final WebSocketSession session, JsonObject jsonMessage) {
+		System.out.println(jsonMessage);
+		JsonObject response = new JsonObject();
+		response.addProperty("action", "receivemessage");
+		response.add("message", jsonMessage.get("message"));
+		String responseString = response.toString();
+		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+    		UserSession value = entry.getValue();
+			sendMessage(value.getWebSocketSession(), responseString);
+		}
 	}
 
 	private void scroll(final WebSocketSession session, JsonObject jsonMessage) {

@@ -22,13 +22,16 @@ window.onload = function() {
 		start(video);
 	}, 300);
 
-  $("#chatbox-textarea").keypress(function (e) {
-			var enterKeycode = 13;
-      if(e.which == enterKeycode) {
-				$('#messages').append($(this).val() + "<br/>")
-				$(this).val("")
-      }
-  });
+  	$("#chatbox-textarea").keypress(function (e) {
+		var enterKeycode = 13;
+      	if(e.which == enterKeycode) {
+			sendMessage({
+				action : 'chatmessage',
+				message: $(this).val()
+			});
+			$(this).val("")
+      	}
+  	});
 }
 
 function remote() {
@@ -121,6 +124,9 @@ ws.onmessage = function(message) {
 		break;
 	case 'error':
 		console.log('Error from server: ' + parsedMessage.message);
+		break;
+	case 'receivemessage':
+		$('#messages').append(parsedMessage.message + "<br/>")
 		break;
 	case 'iceCandidate':
 		webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
