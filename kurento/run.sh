@@ -3,10 +3,11 @@ source ../.env
 
 sudo docker run \
   --rm \
-  -d \
+  -it \
   --network host \
-  --env KURENTO_PASSWORD=$KURENTO_PASSWORD \
   --env EXTERNAL_IP=$EXTERNAL_IP \
+  --env KURENTO_USERNAME=$KURENTO_USERNAME \
+  --env KURENTO_PASSWORD=$KURENTO_PASSWORD \
   --name kurento kurento
 
 # Notes:
