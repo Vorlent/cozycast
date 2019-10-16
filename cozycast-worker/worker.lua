@@ -9,6 +9,10 @@ local mouse_web_to_xdo = {
 
 local keyboard_web_to_xdo = {
   [" "] = "space",
+  ["-"] = "minus",
+  ["+"] = "plus",
+  ["PageUp"] = "Prior",
+  ["PageDown"] = "Next",
   ["Enter"] = "KP_Enter",
   ["Escape"] = "Escape",
   ["ArrowLeft"] = "Left",
@@ -54,31 +58,39 @@ function start_server()
         capture(data, ws)
       end
       if data.action == "mousemove" then
+        print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
         os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
       end
       if data.action == "mouseup" then
+        print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
         os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
+        print ("xdotool mouseup "..(mouse_web_to_xdo[data.button]))
         os.execute ("xdotool mouseup "..(mouse_web_to_xdo[data.button]))
       end
       if data.action == "mousedown" then
+        print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
         os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
+        print ("xdotool mousedown "..(mouse_web_to_xdo[data.button]))
         os.execute ("xdotool mousedown "..(mouse_web_to_xdo[data.button]))
       end
 
       if data.action == "keyup" then
         data.key = keyboard_web_to_xdo[data.key] or data.key
+        print ("xdotool keyup "..data.key)
         os.execute ("xdotool keyup "..data.key)
       end
       if data.action == "keydown" then
         data.key = keyboard_web_to_xdo[data.key] or data.key
+        print ("xdotool keydown "..data.key)
         os.execute ("xdotool keydown "..data.key)
       end
       if data.action == "scroll" then
-        print(data)
         if data.direction == "up" then
+          print ("xdotool click 4")
           os.execute ("xdotool click 4")
         end
         if data.direction == "down" then
+          print ("xdotool click 5")
           os.execute ("xdotool click 5")
         end
       end
