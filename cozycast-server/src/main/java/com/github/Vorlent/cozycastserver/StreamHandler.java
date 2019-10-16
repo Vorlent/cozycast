@@ -124,7 +124,6 @@ public class StreamHandler extends TextWebSocketHandler {
 		}
 		WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build();
 		user.setWebRtcEndpoint(webRtcEndpoint);
-		String videourl = jsonMessage.get("url").getAsString();
 		users.put(session.getId(), user);
 
 		if(workerSession.getRtpEndpoint() == null) {
@@ -283,12 +282,6 @@ public class StreamHandler extends TextWebSocketHandler {
 
 	private void stop(String sessionId) {
 		UserSession user = users.remove(sessionId);
-		if (user != null) {
-			user.release();
-		}
-		if(workerSession != null) {
-			workerSession.release();
-		}
 	}
 
 	private void sdpAnswer(String sessionId, JsonObject jsonMessage) {

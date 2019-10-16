@@ -170,8 +170,7 @@ function onOffer(error, sdpOffer) {
 
 	sendMessage({
 		action : 'start',
-		sdpOffer : sdpOffer,
-		url : document.getElementById('videourl').value
+		sdpOffer : sdpOffer
 	});
 }
 
