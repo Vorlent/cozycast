@@ -287,6 +287,7 @@ public class StreamHandler extends TextWebSocketHandler {
 	private void sdpAnswer(String sessionId, JsonObject jsonMessage) {
 		if (workerSession.getRtpEndpoint() != null) {
 			String sdpAnswer = jsonMessage.get("content").getAsString();
+			sdpAnswer = sdpAnswer.replace("sprop-stereo:1", "sprop-stereo=1");
 			System.out.println(sdpAnswer);
 			workerSession.getRtpEndpoint().processAnswer(sdpAnswer);
 		}
