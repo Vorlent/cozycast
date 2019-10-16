@@ -11,6 +11,37 @@ local keyboard_web_to_xdo = {
   [" "] = "space",
   ["-"] = "minus",
   ["+"] = "plus",
+  ["."] = "period",
+  [":"] = "colon",
+  ["|"] = "bar",
+  ["/"] = "slash",
+  ["\\"] = "backslash",
+  [";"] = "semicolon",
+  ["$"] = "dollar",
+  ["#"] = "numbersign",
+  ["!"] = "exclam",
+  ["%"] = "percent",
+  ["&"] = "ampersand",
+  ["\""] = "quotedbl",
+  ["'"] = "apostrophe",
+  ["("] = "parenleft",
+  [")"] = "parenright",
+  ["*"] = "asterisk",
+  [","] = "comma",
+  ["<"] = "less",
+  ["="] = "equal",
+  [">"] = "greater",
+  ["?"] = "question",
+  ["@"] = "at",
+  ["["] = "bracketleft",
+  ["]"] = "bracketright",
+  ["^"] = "dead_circumflex",
+  ["_"] = "underscore",
+  ["`"] = "dead_grave",
+  ["´"] = "dead_acute",
+  ["{"] = "braceleft",
+  ["}"] = "braceright",
+  ["~"] = "asciitilde",
   ["PageUp"] = "Prior",
   ["PageDown"] = "Next",
   ["Enter"] = "KP_Enter",
@@ -46,6 +77,12 @@ function capture(data, ws)
     until file
 end
 
+function validate_mouse(x,y)
+    return x ~= "-0"
+        and y ~= "-0"
+        and x >= 0
+        and y >= 0
+end
 
 function start_server()
     local ws = websocket.new_from_uri("ws://localhost:8080/stream")
@@ -57,17 +94,17 @@ function start_server()
       if data.type == "sdpOffer" then
         capture(data, ws)
       end
-      if data.action == "mousemove" then
+      if data.action == "mousemove" and validate_mouse(data.mouseX, data.mouseY) then
         print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
         os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
       end
-      if data.action == "mouseup" then
+      if data.action == "mouseup" and validate_mouse(data.mouseX, data.mouseY) then
         print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
         os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
         print ("xdotool mouseup "..(mouse_web_to_xdo[data.button]))
         os.execute ("xdotool mouseup "..(mouse_web_to_xdo[data.button]))
       end
-      if data.action == "mousedown" then
+      if data.action == "mousedown" and validate_mouse(data.mouseX, data.mouseY) then
         print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
         os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
         print ("xdotool mousedown "..(mouse_web_to_xdo[data.button]))
