@@ -35,9 +35,19 @@ window.onload = function() {
 }
 
 function remote() {
-	sendMessage({
-		action : 'remote'
-	});
+	if($('#remote').hasClass("btn-primary")) {
+		sendMessage({
+			action : 'drop_remote'
+		});
+		$('#remote').removeClass("btn-primary")
+		$('#remote').addClass("btn-danger")
+	} else {
+		sendMessage({
+			action : 'pickup_remote'
+		});
+		$('#remote').removeClass("btn-danger")
+		$('#remote').addClass("btn-primary")
+	}
 }
 
 function videoScroll(e) {
@@ -127,6 +137,12 @@ ws.onmessage = function(message) {
 		break;
 	case 'receivemessage':
 		$('#messages').append(parsedMessage.message + "<br/>")
+		break;
+	case 'drop_remote':
+		if($('#remote').hasClass("btn-primary")) {
+			$('#remote').removeClass("btn-primary");
+			$('#remote').addClass("btn-danger");
+		}
 		break;
 	case 'iceCandidate':
 		webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {

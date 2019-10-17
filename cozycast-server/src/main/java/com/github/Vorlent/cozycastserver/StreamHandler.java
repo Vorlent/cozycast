@@ -95,8 +95,11 @@ public class StreamHandler extends TextWebSocketHandler {
 				case "keydown":
 					keydown(session, jsonMessage);
 					break;
-				case "remote":
-					remote(session);
+				case "pickup_remote":
+					pickupremote(session);
+					break;
+				case "drop_remote":
+					dropremote(session);
 					break;
 				case "worker":
 					worker(session);
@@ -283,8 +286,20 @@ public class StreamHandler extends TextWebSocketHandler {
 		}
 	}
 
-	private void remote(final WebSocketSession session) {
+	private void pickupremote(final WebSocketSession session) {
 		data.put("remote", session.getId());
+		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+			UserSession value = entry.getValue();
+			if(!value.getWebSocketSession().getId().equals(session.getId())) {
+				JsonObject response = new JsonObject();
+				response.addProperty("action", "drop_remote");
+				sendMessage(value.getWebSocketSession(), response.toString());
+			}
+		}
+	}
+
+	private void dropremote(final WebSocketSession session) {
+		data.remove("remote");
 	}
 
 	private void worker(final WebSocketSession session) {
