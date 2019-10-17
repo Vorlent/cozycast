@@ -5,6 +5,11 @@ IP=$1
 VIDEO_PORT=$2
 AUDIO_PORT=$3
 
+if [ -f "/home/cozycast/ffmpeg.pid" ]; then
+    kill -9 $(cat /home/cozycast/ffmpeg.pid)
+    rm /home/cozycast/ffmpeg.pid
+fi
+
 ffmpeg \
   -thread_queue_size 512 \
   -f alsa \
@@ -26,6 +31,9 @@ ffmpeg \
   -c:a libopus \
   -b:a 192k \
   -vn -sdp_file /home/cozycast/sdp_answer -f rtp rtp://$IP:$VIDEO_PORT &
+
+FFMPEG_PID=$!
+echo "$FFMPEG_PID" >> /home/cozycast/ffmpeg.pid
 
 # Notes:
 # -f alsa -ac 2 -i pulse
