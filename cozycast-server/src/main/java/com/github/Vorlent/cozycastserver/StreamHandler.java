@@ -206,6 +206,7 @@ public class StreamHandler extends TextWebSocketHandler {
 		JsonObject response = new JsonObject();
 		response.addProperty("action", "receivemessage");
 		response.add("message", jsonMessage.get("message"));
+		response.add("username", jsonMessage.get("username"));
 		String responseString = response.toString();
 		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
     		UserSession value = entry.getValue();

@@ -6,6 +6,12 @@ var videoElement;
 var resolutionX = 1280;
 var resolutionY = 720;
 
+var username = sessionStorage.getItem("username");
+if(!username) {
+	username = window.prompt("Enter your username:","Anonymous");
+	sessionStorage.setItem("username", username);
+}
+
 window.onload = function() {
 	var video = document.getElementById('video');
 	$('#stop').attr('onclick', 'stop()');
@@ -27,7 +33,8 @@ window.onload = function() {
       	if(e.which == enterKeycode) {
 			sendMessage({
 				action : 'chatmessage',
-				message: $(this).val()
+				message: $(this).val(),
+				username: username
 			});
 			$(this).val("")
       	}
@@ -136,7 +143,12 @@ ws.onmessage = function(message) {
 		console.log('Error from server: ' + parsedMessage.message);
 		break;
 	case 'receivemessage':
-		$('#messages').append(parsedMessage.message + "<br/>")
+		$('#messages').append(
+			$("<div class=\"message\"></div>")
+			.append($("<div class=\"username\"></div>").text(parsedMessage.username + " 00:00 pm"))
+			.append($("<div></div>").text(parsedMessage.message)));
+		var messages = document.getElementById("messages");
+		messages.scrollTop = messages.scrollHeight;
 		break;
 	case 'drop_remote':
 		if($('#remote').hasClass("btn-primary")) {
