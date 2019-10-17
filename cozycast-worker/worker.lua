@@ -9,6 +9,10 @@ local mouse_web_to_xdo = {
 
 local keyboard_web_to_xdo = {
   [" "] = "space",
+  ["€"] = "EuroSign",
+  ["°"] = "degree",
+  ["µ"] = "mu",
+  ["ß"] = "ssharp",
   ["-"] = "minus",
   ["+"] = "plus",
   ["."] = "period",
