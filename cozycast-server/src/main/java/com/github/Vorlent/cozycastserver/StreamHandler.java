@@ -89,6 +89,9 @@ public class StreamHandler extends TextWebSocketHandler {
 				case "mousedown":
 					mousedown(session, jsonMessage);
 					break;
+				case "paste":
+					paste(session, jsonMessage);
+					break;
 				case "keyup":
 					keyup(session, jsonMessage);
 					break;
@@ -221,6 +224,18 @@ public class StreamHandler extends TextWebSocketHandler {
 				JsonObject response = new JsonObject();
 				response.addProperty("action", "scroll");
 				response.add("direction", jsonMessage.get("direction"));
+				sendMessage(worker, response.toString());
+			}
+		}
+	}
+
+	private void paste(final WebSocketSession session, JsonObject jsonMessage) {
+		if(session.getId().equals(data.get("remote"))) {
+			System.out.println(jsonMessage);
+			if(worker != null) {
+				JsonObject response = new JsonObject();
+				response.addProperty("action", "paste");
+				response.add("clipboard", jsonMessage.get("clipboard"));
 				sendMessage(worker, response.toString());
 			}
 		}

@@ -115,6 +115,14 @@ function start_server()
         os.execute ("xdotool mousedown "..(mouse_web_to_xdo[data.button]))
       end
 
+      if data.action == "paste" then
+        print ("xdotool type --file - ")
+        print (data.clipboard)
+        local xdotool = io.popen("xdotool type --file -", 'w')
+        xdotool:write(data.clipboard)
+        xdotool:close()
+      end
+
       if data.action == "keyup" then
         data.key = keyboard_web_to_xdo[data.key] or data.key
         print ("xdotool keyup "..data.key)

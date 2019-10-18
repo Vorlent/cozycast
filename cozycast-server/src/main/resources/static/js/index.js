@@ -19,6 +19,7 @@ window.onload = function() {
 	$('#video').mousemove((e) => videoMousemove(e));
 	$('#video').mouseup((e) => videoMouseUp(e));
 	$('#video').mousedown((e) => videoMouseDown(e));
+	$("body").on("paste", (e) => paste(e));
 	$('#video').keyup((e) => videoKeyUp(e));
 	$('#video').keydown((e) => videoKeyDown(e));
 	$('#video').on('wheel', (e) => videoScroll(e));
@@ -126,6 +127,16 @@ function videoMousemove(e) {
 		});
 		lastMouseEvent = now;
 	}
+}
+
+function paste(e) {
+	console.log(e);
+	e.originalEvent.preventDefault();
+	var pastedData = e.originalEvent.clipboardData.getData('text');
+	sendMessage({
+		action : 'paste',
+		clipboard: pastedData
+	});
 }
 
 window.onbeforeunload = function() {
