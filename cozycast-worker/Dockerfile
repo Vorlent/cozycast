@@ -21,7 +21,7 @@ COPY cozycast-worker-1.0-1.rockspec .
 RUN luarocks make
 COPY . .
 
-USER $UNAME
+#USER $UNAME
 ENV HOME /home/cozycast
 
 CMD ["/entrypoint.sh"]

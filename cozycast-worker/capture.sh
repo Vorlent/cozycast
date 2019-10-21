@@ -24,7 +24,7 @@ ffmpeg \
   -c:v libvpx \
   -quality realtime \
   -crf 10 \
-  -b:v 5M \
+  -b:v 1M \
   -pix_fmt yuv420p \
   -sdp_file /home/cozycast/sdp_answer \
   -an -f rtp rtp://$IP:$AUDIO_PORT \

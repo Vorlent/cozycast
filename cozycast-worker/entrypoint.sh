@@ -6,4 +6,4 @@ Xvfb $DISPLAY -screen 0 1280x720x24 -nolisten tcp &
 eval $(luarocks path --bin)
 lua worker.lua &
 
-xfce4-session
+sudo -u cozycast xfce4-session

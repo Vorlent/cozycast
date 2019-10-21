@@ -99,7 +99,7 @@ function start_server()
         capture(data, ws)
       end
       if data.action == "mousemove" and validate_mouse(data.mouseX, data.mouseY) then
-        print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
+        -- print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
         os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
       end
       if data.action == "mouseup" and validate_mouse(data.mouseX, data.mouseY) then
