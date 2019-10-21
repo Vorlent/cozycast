@@ -46,6 +46,11 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import org.kurento.client.DispatcherOneToMany;
 import org.kurento.client.HubPort;
+import java.util.TimeZone;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 
 @Component
 public class StreamHandler extends TextWebSocketHandler {
@@ -206,10 +211,15 @@ public class StreamHandler extends TextWebSocketHandler {
 
 	private void chatmessage(final WebSocketSession session, JsonObject jsonMessage) {
 		System.out.println(jsonMessage);
+		TimeZone tz = TimeZone.getTimeZone("UTC");
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+		df.setTimeZone(tz);
+		String nowAsISO = df.format(new Date());
 		JsonObject response = new JsonObject();
 		response.addProperty("action", "receivemessage");
 		response.add("message", jsonMessage.get("message"));
 		response.add("username", jsonMessage.get("username"));
+		response.addProperty("timestamp", nowAsISO);
 		String responseString = response.toString();
 		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
     		UserSession value = entry.getValue();

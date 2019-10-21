@@ -164,9 +164,10 @@ ws.onmessage = function(message) {
 		console.log('Error from server: ' + parsedMessage.message);
 		break;
 	case 'receivemessage':
+		var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
 		$('#messages').append(
 			$("<div class=\"message\"></div>")
-			.append($("<div class=\"username\"></div>").text(parsedMessage.username + " 00:00 pm"))
+			.append($("<div class=\"username\"></div>").text(parsedMessage.username + " " + timestamp))
 			.append($("<div></div>").text(parsedMessage.message)));
 		var messages = document.getElementById("messages");
 		messages.scrollTop = messages.scrollHeight;
