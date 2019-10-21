@@ -13,6 +13,16 @@ if(!username) {
 }
 
 window.onload = function() {
+	$('#volume').slider({
+		formatter: function(value) {
+			return value + '%';
+		}
+	}).on('slide', function() {
+		var volume = $('#volume').data('slider').getValue();
+		$('#video').prop("volume", volume/100);
+	});
+
+
 	var video = document.getElementById('video');
 	$('#stop').attr('onclick', 'stop()');
 	$('#remote').click(remote);

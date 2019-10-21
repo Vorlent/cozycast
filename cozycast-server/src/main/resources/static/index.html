@@ -1,50 +1,57 @@
 <!DOCTYPE html>
 <html class="full-height">
-<head>
-<meta charset="utf-8">
-<meta http-equiv="cache-control" content="no-cache">
-<meta http-equiv="pragma" content="no-cache">
-<meta http-equiv="expires" content="0">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="shortcut icon" href="img/kurento.png" type="image/png">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="cache-control" content="no-cache">
+		<meta http-equiv="pragma" content="no-cache">
+		<meta http-equiv="expires" content="0">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="shortcut icon" href="img/kurento.png" type="image/png">
 
-<link rel="stylesheet" href="webjars/bootstrap/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="css/kurento.css">
-<link rel="stylesheet" href="css/styles.css">
+		<link rel="stylesheet" href="webjars/bootstrap/dist/css/bootstrap.min.css">
+		<link rel="stylesheet" href="css/kurento.css">
+		<link rel="stylesheet" href="css/styles.css">
+		<link rel="stylesheet" href="css/bootstrap-slider.min.css">
 
-<script src="webjars/jquery/dist/jquery.min.js"></script>
-<script src="webjars/bootstrap/dist/js/bootstrap.min.js"></script>
-<script src="webjars/adapter.js/adapter.js"></script>
+		<script src="webjars/jquery/dist/jquery.min.js"></script>
+		<script src="webjars/bootstrap/dist/js/bootstrap.min.js"></script>
+		<script src="webjars/adapter.js/adapter.js"></script>
+		<script src="js/bootstrap-slider.min.js"></script>
 
-<script src="js/kurento-utils.js"></script>
-<script src="js/index.js"></script>
-<title>CozyCast: Low latency screen capture via WebRTC</title>
-</head>
-<body class="background full-height">
-	<div class="container-fluid nogap full-height">
-		<div class="row nogap full-height">
-			<div class="col-md-10 nogap">
-				<div id="videoBig">
-					<video id="video" autoplay class="full-width" tabindex="0"></video>
+		<script src="js/kurento-utils.js"></script>
+		<script src="js/index.js"></script>
+		<title>CozyCast: Low latency screen capture via WebRTC</title>
+	</head>
+	<body class="background full-height">
+		<div class="container-fluid nogap full-height">
+			<div class="row nogap full-height">
+				<div class="col-md-10 nogap">
+					<div id="videoBig">
+						<video id="video" autoplay class="full-width" tabindex="0"></video>
+					</div>
+					<div class="row">
+						<div class="col-md-12 controls">
+							<a id="stop" href="#" class="btn btn-danger">
+								<span class="glyphicon glyphicon-stop"></span>
+								Stop
+							</a>
+							<a id="remote" class="btn btn-danger">
+								Remote
+							</a>
+							<input id="volume" data-slider-id='volumeSlider' type="text"
+								data-slider-min="0" data-slider-max="100"
+								data-slider-step="1" data-slider-value="100"/>
+						</div>
+					</div>
 				</div>
-				<div class="row">
-					<a id="stop" href="#" class="btn btn-danger">
-						<span class="glyphicon glyphicon-stop"></span>
-						Stop
-					</a>
-					<a id="remote" class="btn btn-danger">
-						Remote
-					</a>
-				</div>
-			</div>
-			<div class="col-md-2 chat-color full-height chat">
-				<div id="messages">
-				</div>
-				<div class="chatbox">
-					<textarea id="chatbox-textarea"></textarea>
+				<div class="col-md-2 chat-color full-height chat">
+					<div id="messages">
+					</div>
+					<div class="chatbox">
+						<textarea id="chatbox-textarea"></textarea>
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
-</body>
+	</body>
 </html>
