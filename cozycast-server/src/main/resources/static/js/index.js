@@ -149,6 +149,17 @@ function paste(e) {
 	});
 }
 
+function chatmessage(parsedMessage) {
+	var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
+	var message = $("<div class=\"message\"></div>")
+		.append($("<div class=\"username\"></div>").text(parsedMessage.username + " " + timestamp))
+		.append($("<div></div>").text(parsedMessage.message));
+	$('#messages').append(message);
+	message.linkify();
+	var messages = document.getElementById("messages");
+	messages.scrollTop = messages.scrollHeight;
+}
+
 window.onbeforeunload = function() {
 	ws.close();
 }
@@ -164,13 +175,7 @@ ws.onmessage = function(message) {
 		console.log('Error from server: ' + parsedMessage.message);
 		break;
 	case 'receivemessage':
-		var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
-		$('#messages').append(
-			$("<div class=\"message\"></div>")
-			.append($("<div class=\"username\"></div>").text(parsedMessage.username + " " + timestamp))
-			.append($("<div></div>").text(parsedMessage.message)));
-		var messages = document.getElementById("messages");
-		messages.scrollTop = messages.scrollHeight;
+		chatmessage(parsedMessage);
 		break;
 	case 'drop_remote':
 		if($('#remote').hasClass("btn-primary")) {
