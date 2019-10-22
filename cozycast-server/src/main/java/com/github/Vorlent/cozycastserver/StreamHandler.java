@@ -82,6 +82,9 @@ public class StreamHandler extends TextWebSocketHandler {
 				case "chatmessage":
 					chatmessage(session, jsonMessage);
 					break;
+				case "join":
+					join(session, jsonMessage);
+					break;
 				case "scroll":
 					scroll(session, jsonMessage);
 					break;
@@ -129,7 +132,7 @@ public class StreamHandler extends TextWebSocketHandler {
   	}
 
 	private void start(final WebSocketSession session, JsonObject jsonMessage) {
-		final UserSession user = new UserSession();
+		final UserSession user = users.get(session.getId());
 		MediaPipeline pipeline = workerSession.getMediaPipeline();
 		if(pipeline == null) {
 			pipeline = kurento.createMediaPipeline();
@@ -139,7 +142,6 @@ public class StreamHandler extends TextWebSocketHandler {
 		WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build();
 		user.setWebRtcEndpoint(webRtcEndpoint);
 		user.setWebSocketSession(session);
-		users.put(session.getId(), user);
 
 		if(workerSession.getRtpEndpoint() == null) {
 			RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
@@ -224,6 +226,34 @@ public class StreamHandler extends TextWebSocketHandler {
 		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
     		UserSession value = entry.getValue();
 			sendMessage(value.getWebSocketSession(), responseString);
+		}
+	}
+
+	private void join(final WebSocketSession session, JsonObject jsonMessage) {
+		System.out.println(jsonMessage);
+		JsonObject response = new JsonObject();
+		response.addProperty("action", "join");
+		response.addProperty("session", session.getId());
+		response.add("username", jsonMessage.get("username"));
+		String responseString = response.toString();
+		sendMessage(session, responseString);
+
+		final UserSession user = new UserSession();
+		user.setUsername(jsonMessage.get("username").getAsString());
+		users.put(session.getId(), user);
+
+		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+			UserSession value = entry.getValue();
+			sendMessage(value.getWebSocketSession(), responseString);
+
+			System.out.println("get username for " + entry.getKey());
+			if (value.getUsername() != null) {
+				JsonObject existingUserResponse = new JsonObject();
+				existingUserResponse.addProperty("action", "join");
+				existingUserResponse.addProperty("username", value.getUsername());
+				existingUserResponse.addProperty("session", entry.getKey());
+				sendMessage(session, existingUserResponse.toString());
+			}
 		}
 	}
 
@@ -339,6 +369,17 @@ public class StreamHandler extends TextWebSocketHandler {
 
 	private void stop(String sessionId) {
 		UserSession user = users.remove(sessionId);
+		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+			UserSession value = entry.getValue();
+			if (value.getUsername() != null) {
+				JsonObject existingUserResponse = new JsonObject();
+				existingUserResponse.addProperty("action", "leave");
+				existingUserResponse.addProperty("username", value.getUsername());
+				existingUserResponse.addProperty("session", sessionId);
+				sendMessage(value.getWebSocketSession(), existingUserResponse.toString());
+			}
+		}
+		user.release();
 	}
 
 	private void sdpAnswer(String sessionId, JsonObject jsonMessage) {

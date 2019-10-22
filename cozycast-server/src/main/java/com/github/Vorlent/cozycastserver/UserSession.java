@@ -10,6 +10,7 @@ public class UserSession {
 
     private WebRtcEndpoint webRtcEndpoint;
     private WebSocketSession webSocketSession;
+    private String username;
 
     public UserSession() {
     }
@@ -30,11 +31,19 @@ public class UserSession {
         this.webSocketSession = webSocketSession;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     public void addCandidate(IceCandidate candidate) {
         webRtcEndpoint.addIceCandidate(candidate);
     }
 
     public void release() {
-        //this.mediaPipeline.release();
+        this.webRtcEndpoint.release();
     }
 }

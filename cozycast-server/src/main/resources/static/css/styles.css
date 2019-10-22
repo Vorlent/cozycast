@@ -67,3 +67,29 @@
   width: 100%;
   border-radius: 5px;
 }
+
+.userlist {
+    display: flex;
+    justify-content: center;
+}
+
+.user {
+  position: relative;
+  text-align: center;
+  color: white;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.user img {
+    border-radius: 50%;
+    width: 60px;
+}
+
+/* Centered text */
+.user .centered {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

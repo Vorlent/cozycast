@@ -22,7 +22,6 @@ window.onload = function() {
 		$('#video').prop("volume", volume/100);
 	});
 
-
 	var video = document.getElementById('video');
 	$('#stop').attr('onclick', 'stop()');
 	$('#remote').click(remote);
@@ -42,6 +41,7 @@ window.onload = function() {
   	$("#chatbox-textarea").keypress(function (e) {
 		var enterKeycode = 13;
       	if(e.which == enterKeycode) {
+			e.originalEvent.preventDefault();
 			sendMessage({
 				action : 'chatmessage',
 				message: $(this).val(),
@@ -160,6 +160,18 @@ function chatmessage(parsedMessage) {
 	messages.scrollTop = messages.scrollHeight;
 }
 
+function join(parsedMessage) {
+	var message = $("<div class=\"user\"></div>").attr("data-id", parsedMessage.session)
+		.append($("<img alt=\"Avatar\" src=\"https://pepethefrog.ucoz.com/_nw/2/89605944.jpg\"></img>"))
+		.append($("<div class=\"centered\"></div>").text(parsedMessage.username))
+		.hide().fadeIn(800);
+	$('#userlist').append(message);
+}
+
+function leave(parsedMessage) {
+	$('#userlist div.user[data-id=\"' + parsedMessage.session + '\"]').fadeOut(800, function() { $(this).remove(); });
+}
+
 window.onbeforeunload = function() {
 	ws.close();
 }
@@ -176,6 +188,12 @@ ws.onmessage = function(message) {
 		break;
 	case 'receivemessage':
 		chatmessage(parsedMessage);
+		break;
+	case 'join':
+		join(parsedMessage);
+		break;
+	case 'leave':
+		leave(parsedMessage);
 		break;
 	case 'drop_remote':
 		if($('#remote').hasClass("btn-primary")) {
@@ -198,6 +216,10 @@ ws.onmessage = function(message) {
 }
 
 function start(video) {
+	sendMessage({
+		action : 'join',
+		username: username
+	});
 	jQuery.get("/turn/credential", function(iceServer) {
 		var options = {
 			remoteVideo : video,
