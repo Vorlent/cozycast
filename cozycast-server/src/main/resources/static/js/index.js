@@ -146,9 +146,13 @@ function paste(e) {
 
 function chatmessage(parsedMessage) {
 	var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
-	var message = $("<div class=\"message\"></div>")
-		.append($("<div class=\"username\"></div>").text(parsedMessage.username + " " + timestamp))
-		.append($("<div></div>").text(parsedMessage.message));
+	var message = $("<div class=\"message\"></div>").attr("data-username", parsedMessage.username);
+	if($("#messages .message").last().attr("data-username") != parsedMessage.username) {
+		message.append($("<div class=\"username\"></div>").text(parsedMessage.username + " " + timestamp))
+	} else {
+		message = $("#messages .message").last();
+	}
+	message.append($("<div></div>").text(parsedMessage.message));
 	$('#messages').append(message);
 	message.linkify();
 	var messages = document.getElementById("messages");
