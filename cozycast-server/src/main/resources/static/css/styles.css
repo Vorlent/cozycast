@@ -86,6 +86,13 @@
     width: 60px;
 }
 
+.remote {
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    background-color: #e4910a;
+}
+
 /* Centered text */
 .user .centered {
   position: absolute;

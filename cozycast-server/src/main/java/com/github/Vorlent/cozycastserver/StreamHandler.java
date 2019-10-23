@@ -346,16 +346,23 @@ public class StreamHandler extends TextWebSocketHandler {
 		data.put("remote", session.getId());
 		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
 			UserSession value = entry.getValue();
-			if(!value.getWebSocketSession().getId().equals(session.getId())) {
-				JsonObject response = new JsonObject();
-				response.addProperty("action", "drop_remote");
-				sendMessage(value.getWebSocketSession(), response.toString());
-			}
+			JsonObject response = new JsonObject();
+			response.addProperty("action", "pickup_remote");
+			response.addProperty("session", session.getId());
+			response.addProperty("has_remote", value.getWebSocketSession().getId().equals(session.getId()));
+			sendMessage(value.getWebSocketSession(), response.toString());
 		}
 	}
 
 	private void dropremote(final WebSocketSession session) {
 		data.remove("remote");
+		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+			UserSession value = entry.getValue();
+			JsonObject response = new JsonObject();
+			response.addProperty("action", "drop_remote");
+			response.addProperty("session", session.getId());
+			sendMessage(value.getWebSocketSession(), response.toString());
+		}
 	}
 
 	private void worker(final WebSocketSession session) {

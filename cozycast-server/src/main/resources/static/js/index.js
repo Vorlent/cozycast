@@ -54,14 +54,10 @@ function remote() {
 		sendMessage({
 			action : 'drop_remote'
 		});
-		$('#remote').removeClass("btn-primary")
-		$('#remote').addClass("btn-danger")
 	} else {
 		sendMessage({
 			action : 'pickup_remote'
 		});
-		$('#remote').removeClass("btn-danger")
-		$('#remote').addClass("btn-primary")
 	}
 }
 
@@ -162,6 +158,7 @@ function join(parsedMessage) {
 	var message = $("<div class=\"user\"></div>").attr("data-id", parsedMessage.session)
 		.append($("<img alt=\"Avatar\" src=\"https://pepethefrog.ucoz.com/_nw/2/89605944.jpg\"></img>"))
 		.append($("<div class=\"centered\"></div>").text(parsedMessage.username))
+		.append($("<i class=\"icon-keyboard remote\"></i>").hide())
 		.hide().fadeIn(800);
 	$('#userlist').append(message);
 }
@@ -196,10 +193,19 @@ function connect() {
 				leave(parsedMessage);
 				break;
 			case 'drop_remote':
-				if($('#remote').hasClass("btn-primary")) {
+				$('#userlist div.user[data-id=\"' + parsedMessage.session + '\"] i').hide()
+				$('#remote').removeClass("btn-primary");
+				$('#remote').addClass("btn-danger");
+				break;
+			case 'pickup_remote':
+				if(parsedMessage.has_remote) {
+					$('#remote').removeClass("btn-danger");
+					$('#remote').addClass("btn-primary");
+				} else {
 					$('#remote').removeClass("btn-primary");
 					$('#remote').addClass("btn-danger");
 				}
+				$('#userlist div.user[data-id=\"' + parsedMessage.session + '\"] i').show()
 				break;
 			case 'iceCandidate':
 				webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
