@@ -39,11 +39,13 @@ window.onload = function() {
 		var enterKeycode = 13;
       	if(e.which == enterKeycode) {
 			e.originalEvent.preventDefault();
-			sendMessage({
-				action : 'chatmessage',
-				message: $(this).val(),
-				username: username
-			});
+			if($(this).val().trim() != "") {
+				sendMessage({
+					action : 'chatmessage',
+					message: $(this).val(),
+					username: username
+				});
+			}
 			$(this).val("")
       	}
   	});
