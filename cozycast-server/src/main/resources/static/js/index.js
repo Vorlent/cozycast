@@ -1,4 +1,3 @@
-var ws = new WebSocket('ws://' + location.host + '/stream');
 var webRtcPeer;
 
 var lastMouseEvent = Date.now();
@@ -13,6 +12,7 @@ if(!username) {
 }
 
 window.onload = function() {
+	connect();
 	$('#volume').slider({
 		formatter: function(value) {
 			return value + '%';
@@ -34,9 +34,6 @@ window.onload = function() {
 	$('#video').on('wheel', (e) => videoScroll(e));
 	videoElement = $('#video')[0];
 	$('#video')[0].oncontextmenu = function() {return false;}
-	setTimeout(function() {
-		start(video);
-	}, 300);
 
   	$("#chatbox-textarea").keypress(function (e) {
 		var enterKeycode = 13;
@@ -161,6 +158,7 @@ function chatmessage(parsedMessage) {
 }
 
 function join(parsedMessage) {
+	console.log("join " + parsedMessage)
 	var message = $("<div class=\"user\"></div>").attr("data-id", parsedMessage.session)
 		.append($("<img alt=\"Avatar\" src=\"https://pepethefrog.ucoz.com/_nw/2/89605944.jpg\"></img>"))
 		.append($("<div class=\"centered\"></div>").text(parsedMessage.username))
@@ -173,46 +171,60 @@ function leave(parsedMessage) {
 }
 
 window.onbeforeunload = function() {
-	ws.close();
+	websocket.close();
 }
 
-ws.onmessage = function(message) {
-	var parsedMessage = JSON.parse(message.data);
+function connect() {
+	websocket = new WebSocket('ws://' + location.host + '/stream');
+	websocket.onmessage = function(message) {
+		var parsedMessage = JSON.parse(message.data);
 
-	switch (parsedMessage.action) {
-	case 'startResponse':
-		startResponse(parsedMessage);
-		break;
-	case 'error':
-		console.log('Error from server: ' + parsedMessage.message);
-		break;
-	case 'receivemessage':
-		chatmessage(parsedMessage);
-		break;
-	case 'join':
-		join(parsedMessage);
-		break;
-	case 'leave':
-		leave(parsedMessage);
-		break;
-	case 'drop_remote':
-		if($('#remote').hasClass("btn-primary")) {
-			$('#remote').removeClass("btn-primary");
-			$('#remote').addClass("btn-danger");
+		switch (parsedMessage.action) {
+			case 'startResponse':
+				startResponse(parsedMessage);
+				break;
+			case 'error':
+				console.log('Error from server: ' + parsedMessage.message);
+				break;
+			case 'receivemessage':
+				chatmessage(parsedMessage);
+				break;
+			case 'join':
+				join(parsedMessage);
+				break;
+			case 'leave':
+				leave(parsedMessage);
+				break;
+			case 'drop_remote':
+				if($('#remote').hasClass("btn-primary")) {
+					$('#remote').removeClass("btn-primary");
+					$('#remote').addClass("btn-danger");
+				}
+				break;
+			case 'iceCandidate':
+				webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
+					if (error) {
+						console.log(parsedMessage);
+						console.log('Error iceCandidate: ' + error);
+						return;
+					}
+				});
+				break;
+			default:
+				console.log('Unknown action: ', parsedMessage);
 		}
-		break;
-	case 'iceCandidate':
-		webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
-			if (error) {
-				console.log(parsedMessage);
-				console.log('Error iceCandidate: ' + error);
-				return;
-			}
-		});
-		break;
-	default:
-		console.log('Unknown action: ', parsedMessage);
 	}
+	websocket.onclose = function (event) {
+		console.log(event);
+		$('#userlist').empty();
+		connect();
+	}
+
+	websocket.onopen = function (event) {
+		setTimeout(function() {
+			start(video);
+		}, 300);
+	};
 }
 
 function start(video) {
@@ -285,5 +297,5 @@ function stop() {
 }
 
 function sendMessage(message) {
-	ws.send(JSON.stringify(message));
+	websocket.send(JSON.stringify(message));
 }
