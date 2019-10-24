@@ -25,12 +25,12 @@ window.onload = function() {
 	var video = document.getElementById('video');
 	$('#stop').attr('onclick', 'stop()');
 	$('#remote').click(remote);
-	$('#video').mousemove((e) => videoMousemove(e));
-	$('#video').mouseup((e) => videoMouseUp(e));
-	$('#video').mousedown((e) => videoMouseDown(e));
-	$("body").on("paste", (e) => paste(e));
-	$('#video').keyup((e) => videoKeyUp(e));
-	$('#video').keydown((e) => videoKeyDown(e));
+	$('#videocontrols').mousemove((e) => videoMousemove(e));
+	$('#videocontrols').mouseup((e) => videoMouseUp(e));
+	$('#videocontrols').mousedown((e) => videoMouseDown(e));
+	$("#videocontrols").on("paste", (e) => paste(e));
+	$('#videocontrols').keyup((e) => videoKeyUp(e));
+	$('#videocontrols').keydown((e) => videoKeyDown(e));
 	$('#video').on('wheel', (e) => videoScroll(e));
 	videoElement = $('#video')[0];
 	$('#video')[0].oncontextmenu = function() {return false;}
@@ -135,7 +135,6 @@ function videoMousemove(e) {
 }
 
 function paste(e) {
-	console.log(e);
 	e.originalEvent.preventDefault();
 	var pastedData = e.originalEvent.clipboardData.getData('text');
 	sendMessage({
@@ -160,7 +159,6 @@ function chatmessage(parsedMessage) {
 }
 
 function join(parsedMessage) {
-	console.log("join " + parsedMessage)
 	var message = $("<div class=\"user\"></div>").attr("data-id", parsedMessage.session)
 		.append($("<img alt=\"Avatar\" src=\"https://pepethefrog.ucoz.com/_nw/2/89605944.jpg\"></img>"))
 		.append($("<div class=\"centered\"></div>").text(parsedMessage.username))
