@@ -31,9 +31,9 @@ window.onload = function() {
 	$("#videocontrols").on("paste", (e) => paste(e));
 	$('#videocontrols').keyup((e) => videoKeyUp(e));
 	$('#videocontrols').keydown((e) => videoKeyDown(e));
-	$('#video').on('wheel', (e) => videoScroll(e));
+	$('#videocontrols').on('wheel', (e) => videoScroll(e));
 	videoElement = $('#video')[0];
-	$('#video')[0].oncontextmenu = function() {return false;}
+	$('#videocontrols')[0].oncontextmenu = function() {return false;}
 
   	$("#chatbox-textarea").keypress(function (e) {
 		var enterKeycode = 13;
@@ -79,6 +79,9 @@ function videoScroll(e) {
 }
 
 function videoKeyUp(e) {
+	if(e.originalEvent.ctrlKey && e.originalEvent.key.toLowerCase() == "v") {
+		return;
+	}
 	e.originalEvent.preventDefault();
 	sendMessage({
 		action : 'keyup',
@@ -87,6 +90,9 @@ function videoKeyUp(e) {
 }
 
 function videoKeyDown(e) {
+	if(e.originalEvent.ctrlKey && e.originalEvent.key.toLowerCase() == "v") {
+		return;
+	}
 	e.originalEvent.preventDefault();
 	sendMessage({
 		action : 'keydown',

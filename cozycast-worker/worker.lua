@@ -116,11 +116,13 @@ function start_server()
       end
 
       if data.action == "paste" then
-        print ("xdotool type --file - ")
+        print ("xclip")
         print (data.clipboard)
-        local xdotool = io.popen("xdotool type --file -", 'w')
+        local xdotool = io.popen("xclip -selection clipboard", 'w')
         xdotool:write(data.clipboard)
         xdotool:close()
+        print ("xdotool key ctrl+v")
+        os.execute ("xdotool key ctrl+v")
       end
 
       if data.action == "keyup" then
