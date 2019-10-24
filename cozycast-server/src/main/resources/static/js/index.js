@@ -153,7 +153,17 @@ function chatmessage(parsedMessage) {
 	}
 	message.append($("<div></div>").text(parsedMessage.message));
 	$('#messages').append(message);
-	message.linkify();
+	message.linkify({className: "linkified"}).find(".linkified").each(function (i, element) {
+		var url = $(element).attr("href");
+		if(url && (url.endsWith(".png") || url.endsWith(".jpg"))) {
+			$(element).replaceWith($("<img/>").attr("src", url).on("load", function () {
+				//scroll on image load
+				var messages = document.getElementById("messages");
+				messages.scrollTop = messages.scrollHeight;
+			}))
+		}
+	})
+
 	var messages = document.getElementById("messages");
 	messages.scrollTop = messages.scrollHeight;
 }
