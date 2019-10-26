@@ -35,6 +35,8 @@ window.onload = function() {
 	videoElement = $('#video')[0];
 	$('#videocontrols')[0].oncontextmenu = function() {return false;}
 
+	var typingTimer;
+
   	$("#chatbox-textarea").keypress(function (e) {
 		var enterKeycode = 13;
       	if(e.which == enterKeycode) {
@@ -47,7 +49,28 @@ window.onload = function() {
 				});
 			}
 			$(this).val("")
-      	}
+      	} else {
+			if(typingTimer) {
+				clearTimeout(typingTimer)
+				typingTimer = null;
+			} else {
+				sendMessage({
+					action : 'typing',
+					state: 'start',
+					username: username
+				});
+			}
+
+			typingTimer = setTimeout(function() {
+				sendMessage({
+					action : 'typing',
+					state: 'stop',
+					username: username
+				});
+				typingTimer = null;
+			}, 1000)
+
+		}
   	});
 }
 
@@ -149,6 +172,20 @@ function paste(e) {
 	});
 }
 
+function typing(parsedMessage) {
+	if(parsedMessage.state == "start") {
+		var indicator = $("<div class=\"typing\"></div>")
+			.attr("data-username", parsedMessage.username)
+			.text(parsedMessage.username + " is typing...")
+			.hide()
+			.fadeIn(800);
+		$('#typing').append(indicator);
+	} else if(parsedMessage.state == "stop"){
+		var indicator = $("#typing div[data-username=" + parsedMessage.username +"]").last();
+		indicator.fadeOut(800, function() { $(this).remove(); });
+	}
+}
+
 function chatmessage(parsedMessage) {
 	var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
 	var message = $("<div class=\"message\"></div>").attr("data-username", parsedMessage.username);
@@ -162,11 +199,11 @@ function chatmessage(parsedMessage) {
 	message.linkify({className: "linkified"}).find(".linkified").each(function (i, element) {
 		var url = $(element).attr("href");
 		if(url && (url.endsWith(".png") || url.endsWith(".jpg"))) {
-			$(element).replaceWith($("<img/>").attr("src", url).on("load", function () {
+			$(element).replaceWith($("<div class=\"chat-image\"></div>").append($("<img />").attr("src", url).on("load", function () {
 				//scroll on image load
 				var messages = document.getElementById("messages");
 				messages.scrollTop = messages.scrollHeight;
-			}))
+			})))
 		}
 	})
 
@@ -202,6 +239,9 @@ function connect() {
 				break;
 			case 'error':
 				console.log('Error from server: ' + parsedMessage.message);
+				break;
+			case 'typing':
+				typing(parsedMessage);
 				break;
 			case 'receivemessage':
 				chatmessage(parsedMessage);

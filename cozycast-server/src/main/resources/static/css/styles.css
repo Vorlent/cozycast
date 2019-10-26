@@ -58,7 +58,7 @@
 }
 
 #messages {
-  height: 92%;
+  flex-grow: 1;
   padding-left: 10px;
   padding-right: 10px;
   overflow-y: scroll;
@@ -68,11 +68,27 @@
 .chat {
   background-color: #344659;
   padding-right: 0px;
+  display: flex;
+  flex-direction: column;
 }
 
 .chatbox {
   padding-right: 10px;
-  padding-top: 5px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.chat-image {
+    display: block;
+    height: auto;
+    min-width: 100%;
+    width: 100%;
+}
+
+.chat-image img {
+    display: block;
+    height: 100%;
+    width: 100%;
 }
 
 #chatbox-textarea {

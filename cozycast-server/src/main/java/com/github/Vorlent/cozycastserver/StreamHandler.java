@@ -79,6 +79,9 @@ public class StreamHandler extends TextWebSocketHandler {
 	        	case "stop":
 	          		stop(sessionId);
 	          		break;
+				case "typing":
+					typing(session, jsonMessage);
+					break;
 				case "chatmessage":
 					chatmessage(session, jsonMessage);
 					break;
@@ -209,6 +212,19 @@ public class StreamHandler extends TextWebSocketHandler {
 		sendMessage(session, response.toString());
 
 		webRtcEndpoint.gatherCandidates();
+	}
+
+	private void typing(final WebSocketSession session, JsonObject jsonMessage) {
+		System.out.println(jsonMessage);
+		JsonObject response = new JsonObject();
+		response.addProperty("action", "typing");
+		response.add("state", jsonMessage.get("state"));
+		response.add("username", jsonMessage.get("username"));
+		String responseString = response.toString();
+		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+			UserSession value = entry.getValue();
+			sendMessage(value.getWebSocketSession(), responseString);
+		}
 	}
 
 	private void chatmessage(final WebSocketSession session, JsonObject jsonMessage) {
