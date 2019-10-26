@@ -223,7 +223,9 @@ public class StreamHandler extends TextWebSocketHandler {
 		String responseString = response.toString();
 		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
 			UserSession value = entry.getValue();
-			sendMessage(value.getWebSocketSession(), responseString);
+			if(session.getId() != value.getWebSocketSession().getId()) {
+				sendMessage(value.getWebSocketSession(), responseString);
+			}
 		}
 	}
 
@@ -367,6 +369,11 @@ public class StreamHandler extends TextWebSocketHandler {
 			response.addProperty("session", session.getId());
 			response.addProperty("has_remote", value.getWebSocketSession().getId().equals(session.getId()));
 			sendMessage(value.getWebSocketSession(), response.toString());
+		}
+		if(worker != null) {
+			JsonObject resetKeyboard = new JsonObject();
+			resetKeyboard.addProperty("action", "reset_keyboard");
+			sendMessage(worker, resetKeyboard.toString());
 		}
 	}
 

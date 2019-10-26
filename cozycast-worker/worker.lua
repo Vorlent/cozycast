@@ -57,6 +57,8 @@ local keyboard_web_to_xdo = {
   ["Backspace"] = "BackSpace",
 }
 
+local pressed_keys = {}
+
 function capture(data, ws)
     print ("/capture.sh "..data.ip.." "..data.videoPort.." "..data.audioPort)
     os.execute ("/capture.sh "..data.ip.." "..data.videoPort.." "..data.audioPort)
@@ -124,16 +126,24 @@ function start_server()
         print ("xdotool key ctrl+v")
         os.execute ("xdotool key ctrl+v")
       end
-
       if data.action == "keyup" then
         data.key = keyboard_web_to_xdo[data.key] or data.key
         print ("xdotool keyup "..data.key)
+        pressed_keys[data.key] = nil
         os.execute ("xdotool keyup "..data.key)
       end
       if data.action == "keydown" then
         data.key = keyboard_web_to_xdo[data.key] or data.key
         print ("xdotool keydown "..data.key)
+        pressed_keys[data.key] = true
         os.execute ("xdotool keydown "..data.key)
+      end
+      if data.action == "reset_keyboard" then
+          for key, pressed in pairs(pressed_keys) do
+              print ("xdotool keyup "..key)
+              os.execute ("xdotool keyup "..key)
+              pressed_keys[key] = nil
+          end
       end
       if data.action == "scroll" then
         if data.direction == "up" then
