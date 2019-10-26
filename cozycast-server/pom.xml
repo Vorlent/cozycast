@@ -116,7 +116,33 @@
 					<mainClass>com.github.vorlent.cozycastserver.CozycastServerApplication</mainClass>
 				</configuration>
 			</plugin>
-		</plugins>
+			<plugin>
+		  		<artifactId>maven-resources-plugin</artifactId>
+		  		<version>3.1.0</version>
+		  		<executions>
+					<execution>
+			  			<id>copy-resources</id>
+			  				<!-- here the phase you need -->
+					  	<phase>compile</phase>
+					  	<goals>
+							<goal>copy-resources</goal>
+					  	</goals>
+			  			<configuration>
+							<outputDirectory>${basedir}/target/classes</outputDirectory>
+							<resources>
+					  			<resource>
+									<directory>${basedir}/..</directory>
+									<filtering>true</filtering>
+									<includes>      <!--Only those files will be included-->
+										<include>LICENSE</include>
+									</includes>
+					  			</resource>
+							</resources>
+				  		</configuration>
+					</execution>
+	  			</executions>
+			</plugin>
+  		</plugins>
 	</build>
 
 </project>
