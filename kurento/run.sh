@@ -3,12 +3,12 @@ source ../.env
 
 sudo docker run \
   --rm \
-  -it \
+  -d \
   --network host \
-  --env EXTERNAL_IP=$EXTERNAL_IP \
-  --env KURENTO_USERNAME=$KURENTO_USERNAME \
-  --env KURENTO_PASSWORD=$KURENTO_PASSWORD \
-  --name kurento kurento
+  --env KMS_TURN_URL="$KURENTO_USERNAME:$KURENTO_PASSWORD@$EXTERNAL_IP:3478" \
+  --env GST_DEBUG="Kurento*:4,kms*:4,kmsremb:3" \
+  --name kurento \
+  kurento/kurento-media-server:6.12
 
 # Notes:
 # Ports:

@@ -33,13 +33,15 @@ export PRIVATE_IP=<private_ip>
 
 export KURENTO_USERNAME=2139323074:kurento
 export KURENTO_PASSWORD=$(echo -n "$KURENTO_USERNAME" | openssl dgst -sha1 -hmac "$TURN_SECRET" -binary | base64)
+export SOURCE_URL=<>
 ```
+
+If you have made modifications to the source code then it is recommended to set SOURCE_URL to point to the modified source code (e.g. git/github repository or downloadable zip file) to ensure compliance with the AGPL. If you have not made any modifications then you can simply set it to https://github.com/Vorlent/cozycast.
 
 Start coturn
 
 ```
 cd coturn
-./build.sh
 ./run.sh
 ```
 
@@ -47,7 +49,6 @@ Start kurento
 
 ```
 cd kurento
-./build.sh
 ./run.sh
 ```
 
