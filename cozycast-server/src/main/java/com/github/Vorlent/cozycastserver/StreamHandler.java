@@ -44,7 +44,6 @@ import java.util.regex.Matcher;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import org.kurento.client.DispatcherOneToMany;
 import org.kurento.client.HubPort;
 import java.util.TimeZone;
 import java.text.DateFormat;
@@ -174,16 +173,6 @@ public class StreamHandler extends TextWebSocketHandler {
 			}
 		}
 
-		if(workerSession.getDispatcher() == null) {
-			DispatcherOneToMany dispatcher = new DispatcherOneToMany.Builder(pipeline).build();
-			HubPort source = new HubPort.Builder(dispatcher).build();
-			dispatcher.setSource(source);
-			workerSession.setDispatcher(dispatcher);
-		}
-
-		if(workerSession.getDispatcher() != null) {
-			HubPort sink = new HubPort.Builder(workerSession.getDispatcher()).build();
-		}
 		workerSession.getRtpEndpoint().connect(webRtcEndpoint);
 
 		webRtcEndpoint.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
