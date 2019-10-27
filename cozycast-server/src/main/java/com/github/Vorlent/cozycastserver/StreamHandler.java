@@ -177,15 +177,14 @@ public class StreamHandler extends TextWebSocketHandler {
 		if(workerSession.getDispatcher() == null) {
 			DispatcherOneToMany dispatcher = new DispatcherOneToMany.Builder(pipeline).build();
 			HubPort source = new HubPort.Builder(dispatcher).build();
-			workerSession.getRtpEndpoint().connect(source);
 			dispatcher.setSource(source);
 			workerSession.setDispatcher(dispatcher);
 		}
 
 		if(workerSession.getDispatcher() != null) {
 			HubPort sink = new HubPort.Builder(workerSession.getDispatcher()).build();
-			sink.connect(webRtcEndpoint);
 		}
+		workerSession.getRtpEndpoint().connect(webRtcEndpoint);
 
 		webRtcEndpoint.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
 			@Override
