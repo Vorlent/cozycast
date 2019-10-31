@@ -19,6 +19,16 @@ class App extends Component {
   }
 
   scrollToBottom() {
+	  $("#messages").linkify({className: "linkified"}).find(".linkified").each(function (i, element) {
+		  var url = $(element).attr("href");
+		  if(url && (url.endsWith(".png") || url.endsWith(".jpg"))) {
+			  $(element).replaceWith($("<div class=\"chat-image\"></div>").append($("<img />").attr("src", url).on("load", function () {
+				  //scroll on image load
+				  var messages = document.getElementById("messages");
+				  messages.scrollTop = messages.scrollHeight;
+			  })))
+		  }
+	  })
 	  var messages = document.getElementById("messages");
 	  messages.scrollTop = messages.scrollHeight;
   }
@@ -39,7 +49,7 @@ class App extends Component {
 							  <span class="glyphicon glyphicon-stop"></span>
 							  Stop
 						  </a>
-						  <a id="remote" class="btn ${state.remote ? 'btn-': 'btn-danger'}">
+						  <a id="remote" class="btn ${state.remote ? 'btn-primary': 'btn-danger'}">
 							  Remote
 						  </a>
 						  <input id="volume" data-slider-id='volumeSlider' type="text"
@@ -296,16 +306,6 @@ function chatmessage(parsedMessage) {
 		})
 	}
 	globalVar.callback(state);
-	$("#messages").linkify({className: "linkified"}).find(".linkified").each(function (i, element) {
-		var url = $(element).attr("href");
-		if(url && (url.endsWith(".png") || url.endsWith(".jpg"))) {
-			$(element).replaceWith($("<div class=\"chat-image\"></div>").append($("<img />").attr("src", url).on("load", function () {
-				//scroll on image load
-				var messages = document.getElementById("messages");
-				messages.scrollTop = messages.scrollHeight;
-			})))
-		}
-	})
 }
 
 function join(parsedMessage) {
@@ -350,9 +350,19 @@ function connect() {
 				break;
 			case 'drop_remote':
 				state.remote = false;
+				state.userlist = state.userlist.map(function(user) {
+					if(user.session == parsedMessage.session) {
+						user.remote = false;
+					}
+					return user;
+				})
 				globalVar.callback(state);
 				break;
 			case 'pickup_remote':
+				state.userlist = state.userlist.map(function(user) {
+					user.remote = user.session == parsedMessage.session;
+					return user;
+				})
 				state.remote = parsedMessage.has_remote;
 				globalVar.callback(state);
 				break;
