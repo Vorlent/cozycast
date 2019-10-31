@@ -45,7 +45,7 @@
   height: 100%;
 }
 
-.chat-color, .linkified, .linkified:hover  {
+.chat-color, .chat-link, .chat-link:hover  {
   color: white;
 }
 

@@ -19,7 +19,8 @@ class App extends Component {
   }
 
   scrollToBottom() {
-	  $("#messages").linkify({className: "linkified"}).find(".linkified").each(function (i, element) {
+	  /*$("#messages").linkify({className: "linkified"}).find(".linkified").each(function (i, element) {
+		  console.log(element) });
 		  var url = $(element).attr("href");
 		  if(url && (url.endsWith(".png") || url.endsWith(".jpg"))) {
 			  $(element).replaceWith($("<div class=\"chat-image\"></div>").append($("<img />").attr("src", url).on("load", function () {
@@ -28,7 +29,7 @@ class App extends Component {
 				  messages.scrollTop = messages.scrollHeight;
 			  })))
 		  }
-	  })
+	  })*/
 	  var messages = document.getElementById("messages");
 	  messages.scrollTop = messages.scrollHeight;
   }
@@ -78,7 +79,12 @@ class App extends Component {
 						<div class="message">
 						  	<div class="username">${message.username + " " + message.timestamp}</div>
 						  	${message.messages.map(msg => html`
-							  	<div>${msg.message}</div>
+								${msg.type == "url" &&
+									html`<div><a class="chat-link" href="${msg.href}">${msg.href}</a></div>`}
+								${msg.type == "image" &&
+									html`<div class="chat-image"><img src="${msg.href}" /></div>`}
+								${msg.type == "text" &&
+									html`<div>${msg.message}</div>`}
 						  	`)}
 					  	</div>
 					  `)}
@@ -292,17 +298,36 @@ function typing(parsedMessage) {
 }
 
 function chatmessage(parsedMessage) {
+	var urls = linkify.find(parsedMessage.message);
+	var split = [];
+	var offset = 0;
+	var remaining = parsedMessage.message;
+	urls.forEach(function(element) {
+		var end = remaining.indexOf(element.value, offset);
+		split.push({ "type": "text", "message": remaining.substring(offset, end) });
+		if(element.value.endsWith(".png") || element.value.endsWith(".jpg") || element.value.endsWith(".gif")) {
+			split.push({ "type": "image", "href": element.value });
+		} else {
+			split.push({ "type": "url", "href": element.value });
+		}
+		offset = end + element.value.length;
+	});
+	if(offset < remaining.length) {
+		split.push({ "type": "text", "message": remaining.substring(offset, remaining.length) });
+	}
+	console.log(split)
+
 	var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
 	if(state.chatMessages.length > 0 && state.chatMessages[state.chatMessages.length-1].username == parsedMessage.username) {
 		var lastMessage = state.chatMessages[state.chatMessages.length-1];
-		lastMessage.messages.push({ message: parsedMessage.message })
+		split.forEach(function(message) {
+			lastMessage.messages.push(message)
+		})
 	} else {
 		state.chatMessages.push({
 			username: parsedMessage.username,
 			timestamp: moment(parsedMessage.timestamp).format('h:mm A'),
-			messages: [
-				{ message: parsedMessage.message }
-			]
+			messages: split
 		})
 	}
 	globalVar.callback(state);
