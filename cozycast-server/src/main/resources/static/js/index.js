@@ -68,7 +68,7 @@ window.onload = function() {
 					username: username
 				});
 				typingTimer = null;
-			}, 1000)
+			}, 2000)
 
 		}
   	});

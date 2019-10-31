@@ -186,7 +186,7 @@ public class StreamHandler extends TextWebSocketHandler {
 						session.sendMessage(new TextMessage(response.toString()));
 					}
 				} catch (IOException e) {
-					System.out.println(e.getMessage());
+					e.printStackTrace();
 				}
 			}
 		});
