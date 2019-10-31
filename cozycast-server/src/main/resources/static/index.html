@@ -20,48 +20,9 @@
 		<script src="js/linkify.min.js"></script>
 		<script src="js/linkify-jquery.min.js"></script>
 		<script src="js/kurento-utils.js"></script>
-		<script src="js/index.js"></script>
+		<script type="module" src="js/index.js"></script>
 		<title>CozyCast: Low latency screen capture via WebRTC</title>
 	</head>
 	<body class="background full-height">
-		<div class="container-fluid nogap full-height">
-			<div class="row nogap full-height">
-				<div class="col-md-10 nogap">
-					<div id="videoBig">
-						<div id="videocontrols" tabindex="0"></div>
-						<video id="video" autoplay class="full-width" tabindex="0"></video>
-					</div>
-					<div class="row">
-						<div class="col-md-3 controls">
-							<a id="stop" href="#" class="btn btn-danger">
-								<span class="glyphicon glyphicon-stop"></span>
-								Stop
-							</a>
-							<a id="remote" class="btn btn-danger">
-								Remote
-							</a>
-							<input id="volume" data-slider-id='volumeSlider' type="text"
-								data-slider-min="0" data-slider-max="100"
-								data-slider-step="1" data-slider-value="100"/>
-							<div class="row">
-								<div class="col-md-12">
-									<a href="/license" target="_blank">Copyright (C) 2019 Vorlent</a>
-								</div>
-							</div>
-						</div>
-						<div id="userlist" class="col-md-9 userlist">
-						</div>
-					</div>
-				</div>
-				<div class="col-md-2 chat-color full-height chat">
-					<div id="messages">
-					</div>
-					<div class="chatbox">
-						<div id="typing"></div>
-						<textarea id="chatbox-textarea"></textarea>
-					</div>
-				</div>
-			</div>
-		</div>
 	</body>
 </html>

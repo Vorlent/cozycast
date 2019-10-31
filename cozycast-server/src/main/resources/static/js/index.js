@@ -1,15 +1,113 @@
+import { html, Component, render } from 'https://unpkg.com/htm/preact/standalone.module.js'
+
+var globalVar = {};
+var state = { typingUsers: [], userlist: [], chatMessages: [], remote: false, username: "Nameless" };
+
+class App extends Component {
+  chatref = null;
+  setChatref = (dom) => this.chatref = dom;
+
+  componentDidMount(){
+ 	globalVar.callback = (data) => {
+		this.setState(data);
+	};
+	this.scrollToBottom();
+  }
+
+  componentDidUpdate() {
+  	this.scrollToBottom();
+  }
+
+  scrollToBottom() {
+	  var messages = document.getElementById("messages");
+	  messages.scrollTop = messages.scrollHeight;
+  }
+
+  render({ page }, { typingUsers = [], userlist = [] }) {
+	return html`
+	<body class="background full-height">
+	  <div class="container-fluid nogap full-height">
+		  <div class="row nogap full-height">
+			  <div class="col-md-10 nogap">
+				  <div id="videoBig">
+					  <div id="videocontrols" tabindex="0"></div>
+					  <video id="video" autoplay class="full-width" tabindex="0"></video>
+				  </div>
+				  <div class="row">
+					  <div class="col-md-3 controls">
+						  <a id="stop" href="#" class="btn btn-danger">
+							  <span class="glyphicon glyphicon-stop"></span>
+							  Stop
+						  </a>
+						  <a id="remote" class="btn ${state.remote ? 'btn-': 'btn-danger'}">
+							  Remote
+						  </a>
+						  <input id="volume" data-slider-id='volumeSlider' type="text"
+							  data-slider-min="0" data-slider-max="100"
+							  data-slider-step="1" data-slider-value="100"/>
+						  <div class="row">
+							  <div class="col-md-12">
+								  <a href="/license" target="_blank">Copyright (C) 2019 Vorlent</a>
+							  </div>
+						  </div>
+					  </div>
+					  <div id="userlist" class="col-md-9 userlist">
+							${userlist.map(user => html`
+								<div class="user">
+									<img alt="Avatar" src="https://pepethefrog.ucoz.com/_nw/2/89605944.jpg"></img>
+									<div class="centered">${user.username}</div>
+									<i class="icon-keyboard remote" style=${user.remote ? "" : "display: none;"}></i>
+								</div>
+							`)}
+					  </div>
+				  </div>
+			  </div>
+			  <div class="col-md-2 chat-color full-height chat">
+				  <div id="messages" ref=${this.setChatref}>
+					  ${state.chatMessages.map(message => html`
+						<div class="message">
+						  	<div class="username">${message.username + " " + message.timestamp}</div>
+						  	${message.messages.map(msg => html`
+							  	<div>${msg.message}</div>
+						  	`)}
+					  	</div>
+					  `)}
+				  </div>
+				  <div class="chatbox">
+					  <div id="typing">
+						  ${typingUsers.map(user => html`
+							  <div class="typing">${user.username} is typing...</div>
+						  `)}
+					  </div>
+					  <textarea id="chatbox-textarea">
+					  </textarea>
+				  </div>
+			  </div>
+		  </div>
+	  </div>
+  </body>
+	`;
+  }
+}
+
+var preactBody = render(html`<${App} page="All" />`, document.body);
+
+console.log(preactBody);
+
 var webRtcPeer;
+var websocket;
 
 var lastMouseEvent = Date.now();
 var videoElement;
 var resolutionX = 1280;
 var resolutionY = 720;
 
-var username = sessionStorage.getItem("username");
-if(!username) {
-	username = window.prompt("Enter your username:","Anonymous");
-	sessionStorage.setItem("username", username);
+state.username = sessionStorage.getItem("username");
+if(!state.username) {
+	state.username = window.prompt("Enter your username:","Anonymous");
+	sessionStorage.setItem("username", state.username);
 }
+globalVar.callback(state);
 
 window.onload = function() {
 	connect();
@@ -45,7 +143,7 @@ window.onload = function() {
 				sendMessage({
 					action : 'chatmessage',
 					message: $(this).val(),
-					username: username
+					username: state.username
 				});
 			}
 			$(this).val("")
@@ -57,7 +155,7 @@ window.onload = function() {
 				sendMessage({
 					action : 'typing',
 					state: 'start',
-					username: username
+					username: state.username
 				});
 			}
 
@@ -65,7 +163,7 @@ window.onload = function() {
 				sendMessage({
 					action : 'typing',
 					state: 'stop',
-					username: username
+					username: state.username
 				});
 				typingTimer = null;
 			}, 2000)
@@ -75,7 +173,7 @@ window.onload = function() {
 }
 
 function remote() {
-	if($('#remote').hasClass("btn-primary")) {
+	if(state.remote) {
 		sendMessage({
 			action : 'drop_remote'
 		});
@@ -174,29 +272,31 @@ function paste(e) {
 
 function typing(parsedMessage) {
 	if(parsedMessage.state == "start") {
-		var indicator = $("<div class=\"typing\"></div>")
-			.attr("data-username", parsedMessage.username)
-			.text(parsedMessage.username + " is typing...")
-			.hide()
-			.fadeIn(800);
-		$('#typing').append(indicator);
-	} else if(parsedMessage.state == "stop"){
-		var indicator = $("#typing div[data-username=" + parsedMessage.username +"]").last();
-		indicator.fadeOut(800, function() { $(this).remove(); });
+		state.typingUsers.push({ username: parsedMessage.username })
+	} else if(parsedMessage.state == "stop") {
+		state.typingUsers = state.typingUsers.filter(function(user) {
+			return user.username != parsedMessage.username;
+		});
+		globalVar.callback(state);
 	}
 }
 
 function chatmessage(parsedMessage) {
 	var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
-	var message = $("<div class=\"message\"></div>").attr("data-username", parsedMessage.username);
-	if($("#messages .message").last().attr("data-username") != parsedMessage.username) {
-		message.append($("<div class=\"username\"></div>").text(parsedMessage.username + " " + timestamp))
+	if(state.chatMessages.length > 0 && state.chatMessages[state.chatMessages.length-1].username == parsedMessage.username) {
+		var lastMessage = state.chatMessages[state.chatMessages.length-1];
+		lastMessage.messages.push({ message: parsedMessage.message })
 	} else {
-		message = $("#messages .message").last();
+		state.chatMessages.push({
+			username: parsedMessage.username,
+			timestamp: moment(parsedMessage.timestamp).format('h:mm A'),
+			messages: [
+				{ message: parsedMessage.message }
+			]
+		})
 	}
-	message.append($("<div></div>").text(parsedMessage.message));
-	$('#messages').append(message);
-	message.linkify({className: "linkified"}).find(".linkified").each(function (i, element) {
+	globalVar.callback(state);
+	$("#messages").linkify({className: "linkified"}).find(".linkified").each(function (i, element) {
 		var url = $(element).attr("href");
 		if(url && (url.endsWith(".png") || url.endsWith(".jpg"))) {
 			$(element).replaceWith($("<div class=\"chat-image\"></div>").append($("<img />").attr("src", url).on("load", function () {
@@ -206,22 +306,18 @@ function chatmessage(parsedMessage) {
 			})))
 		}
 	})
-
-	var messages = document.getElementById("messages");
-	messages.scrollTop = messages.scrollHeight;
 }
 
 function join(parsedMessage) {
-	var message = $("<div class=\"user\"></div>").attr("data-id", parsedMessage.session)
-		.append($("<img alt=\"Avatar\" src=\"https://pepethefrog.ucoz.com/_nw/2/89605944.jpg\"></img>"))
-		.append($("<div class=\"centered\"></div>").text(parsedMessage.username))
-		.append($("<i class=\"icon-keyboard remote\"></i>").hide())
-		.hide().fadeIn(800);
-	$('#userlist').append(message);
+	state.userlist.push({ username: parsedMessage.username, session: parsedMessage.session, remote: false })
+	globalVar.callback(state);
 }
 
 function leave(parsedMessage) {
-	$('#userlist div.user[data-id=\"' + parsedMessage.session + '\"]').fadeOut(800, function() { $(this).remove(); });
+	state.userlist = state.userlist.filter(function(element) {
+  		return element.session != parsedMessage.session;
+	});
+	globalVar.callback(state);
 }
 
 window.onbeforeunload = function() {
@@ -253,19 +349,12 @@ function connect() {
 				leave(parsedMessage);
 				break;
 			case 'drop_remote':
-				$('#userlist div.user[data-id=\"' + parsedMessage.session + '\"] i').hide()
-				$('#remote').removeClass("btn-primary");
-				$('#remote').addClass("btn-danger");
+				state.remote = false;
+				globalVar.callback(state);
 				break;
 			case 'pickup_remote':
-				if(parsedMessage.has_remote) {
-					$('#remote').removeClass("btn-danger");
-					$('#remote').addClass("btn-primary");
-				} else {
-					$('#remote').removeClass("btn-primary");
-					$('#remote').addClass("btn-danger");
-				}
-				$('#userlist div.user[data-id=\"' + parsedMessage.session + '\"] i').show()
+				state.remote = parsedMessage.has_remote;
+				globalVar.callback(state);
 				break;
 			case 'iceCandidate':
 				webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
@@ -282,7 +371,8 @@ function connect() {
 	}
 	websocket.onclose = function (event) {
 		console.log(event);
-		$('#userlist').empty();
+		state.userlist = [];
+		globalVar.callback(state);
 		connect();
 	}
 
@@ -296,7 +386,7 @@ function connect() {
 function start(video) {
 	sendMessage({
 		action : 'join',
-		username: username
+		username: state.username
 	});
 	jQuery.get("/turn/credential", function(iceServer) {
 		var options = {
