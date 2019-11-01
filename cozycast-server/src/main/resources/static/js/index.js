@@ -3,6 +3,11 @@ import { html, Component, render } from 'https://unpkg.com/htm/preact/standalone
 var globalVar = {};
 var state = { typingUsers: [], userlist: [], chatMessages: [], remote: false, username: "Nameless" };
 
+function updateState(fun) {
+    fun()
+    globalVar.callback(state);
+}
+
 class App extends Component {
   chatref = null;
   setChatref = (dom) => this.chatref = dom;
@@ -19,20 +24,10 @@ class App extends Component {
   }
 
   scrollToBottom() {
-	  /*$("#messages").linkify({className: "linkified"}).find(".linkified").each(function (i, element) {
-		  console.log(element) });
-		  var url = $(element).attr("href");
-		  if(url && (url.endsWith(".png") || url.endsWith(".jpg"))) {
-			  $(element).replaceWith($("<div class=\"chat-image\"></div>").append($("<img />").attr("src", url).on("load", function () {
-				  //scroll on image load
-				  var messages = document.getElementById("messages");
-				  messages.scrollTop = messages.scrollHeight;
-			  })))
-		  }
-	  })*/
 	  var messages = document.getElementById("messages");
 	  messages.scrollTop = messages.scrollHeight;
   }
+
 
   render({ page }, { typingUsers = [], userlist = [] }) {
 	return html`
@@ -41,16 +36,26 @@ class App extends Component {
 		  <div class="row nogap full-height">
 			  <div class="col-md-10 nogap">
 				  <div id="videoBig">
-					  <div id="videocontrols" tabindex="0"></div>
+					  <div id="videocontrols" tabindex="0"
+                        oncontextmenu=${(e) => false}
+                        onmousemove=${videoMousemove}
+                        onmouseup=${videoMouseUp}
+                        onmousedown=${videoMouseDown}
+                        onpaste=${paste}
+                        onkeyup=${videoKeyUp}
+                        onkeydown=${videoKeyDown}
+                        onwheel=${videoScroll}
+                      ></div>
 					  <video id="video" autoplay class="full-width" tabindex="0"></video>
 				  </div>
 				  <div class="row">
 					  <div class="col-md-3 controls">
-						  <a id="stop" href="#" class="btn btn-danger">
+						  <a id="stop" href="#" class="btn btn-danger" onclick=${stop}>
 							  <span class="glyphicon glyphicon-stop"></span>
 							  Stop
 						  </a>
-						  <a id="remote" class="btn ${state.remote ? 'btn-primary': 'btn-danger'}">
+						  <a id="remote" class="btn ${state.remote ? 'btn-primary': 'btn-danger'}"
+                              onclick=${remote}>
 							  Remote
 						  </a>
 						  <input id="volume" data-slider-id='volumeSlider' type="text"
@@ -80,9 +85,11 @@ class App extends Component {
 						  	<div class="username">${message.username + " " + message.timestamp}</div>
 						  	${message.messages.map(msg => html`
 								${msg.type == "url" &&
-									html`<div><a class="chat-link" href="${msg.href}">${msg.href}</a></div>`}
+									html`<div><a class="chat-link" target="_blank" href="${msg.href}">${msg.href}</a></div>`}
 								${msg.type == "image" &&
-									html`<div class="chat-image"><img src="${msg.href}" /></div>`}
+									html`<div class="chat-image">
+										<a class="chat-link" target="_blank" href="${msg.href}"><img src="${msg.href}" /></a>
+									</div>`}
 								${msg.type == "text" &&
 									html`<div>${msg.message}</div>`}
 						  	`)}
@@ -118,12 +125,13 @@ var videoElement;
 var resolutionX = 1280;
 var resolutionY = 720;
 
-state.username = sessionStorage.getItem("username");
-if(!state.username) {
-	state.username = window.prompt("Enter your username:","Anonymous");
-	sessionStorage.setItem("username", state.username);
-}
-globalVar.callback(state);
+updateState(function () {
+    state.username = sessionStorage.getItem("username");
+    if(!state.username) {
+        state.username = window.prompt("Enter your username:","Anonymous");
+        sessionStorage.setItem("username", state.username);
+    }
+})
 
 window.onload = function() {
 	connect();
@@ -136,18 +144,7 @@ window.onload = function() {
 		$('#video').prop("volume", volume/100);
 	});
 
-	var video = document.getElementById('video');
-	$('#stop').attr('onclick', 'stop()');
-	$('#remote').click(remote);
-	$('#videocontrols').mousemove((e) => videoMousemove(e));
-	$('#videocontrols').mouseup((e) => videoMouseUp(e));
-	$('#videocontrols').mousedown((e) => videoMouseDown(e));
-	$("#videocontrols").on("paste", (e) => paste(e));
-	$('#videocontrols').keyup((e) => videoKeyUp(e));
-	$('#videocontrols').keydown((e) => videoKeyDown(e));
-	$('#videocontrols').on('wheel', (e) => videoScroll(e));
-	videoElement = $('#video')[0];
-	$('#videocontrols')[0].oncontextmenu = function() {return false;}
+	videoElement = document.getElementById('video');
 
 	var typingTimer;
 
@@ -201,13 +198,13 @@ function remote() {
 }
 
 function videoScroll(e) {
-	if(e.originalEvent.deltaY < 0) {
+	if(e.deltaY < 0) {
 		sendMessage({
 			action : 'scroll',
 			direction: "up"
 		});
 	}
-	if(e.originalEvent.deltaY > 0) {
+	if(e.deltaY > 0) {
 		sendMessage({
 			action : 'scroll',
 			direction: "down"
@@ -216,31 +213,31 @@ function videoScroll(e) {
 }
 
 function videoKeyUp(e) {
-	if(e.originalEvent.ctrlKey && e.originalEvent.key.toLowerCase() == "v") {
+	if(e.ctrlKey && e.key.toLowerCase() == "v") {
 		return;
 	}
-	e.originalEvent.preventDefault();
+	e.preventDefault();
 	sendMessage({
 		action : 'keyup',
-		key: e.originalEvent.key
+		key: e.key
 	});
 }
 
 function videoKeyDown(e) {
-	if(e.originalEvent.ctrlKey && e.originalEvent.key.toLowerCase() == "v") {
+	if(e.ctrlKey && e.key.toLowerCase() == "v") {
 		return;
 	}
-	e.originalEvent.preventDefault();
+	e.preventDefault();
 	sendMessage({
 		action : 'keydown',
-		key: e.originalEvent.key
+		key: e.key
 	});
 }
 
 function getRemotePosition(e) {
 	var videoRect = videoElement.getBoundingClientRect();
-	var x = (e.originalEvent.clientX - videoRect.left) / (videoRect.right - videoRect.left) * resolutionX;
-	var y = (e.originalEvent.clientY - videoRect.top) / (videoRect.bottom - videoRect.top) * resolutionY;
+	var x = (e.clientX - videoRect.left) / (videoRect.right - videoRect.left) * resolutionX;
+	var y = (e.clientY - videoRect.top) / (videoRect.bottom - videoRect.top) * resolutionY;
 	return { x: x, y: y }
 }
 
@@ -250,7 +247,7 @@ function videoMouseUp(e) {
 			action : 'mouseup',
 			mouseX: pos.x,
 			mouseY: pos.y,
-			button: e.originalEvent.button
+			button: e.button
 		});
 }
 
@@ -260,7 +257,7 @@ function videoMouseDown(e) {
 			action : 'mousedown',
 			mouseX: pos.x,
 			mouseY: pos.y,
-			button: e.originalEvent.button
+			button: e.button
 		});
 }
 
@@ -278,8 +275,8 @@ function videoMousemove(e) {
 }
 
 function paste(e) {
-	e.originalEvent.preventDefault();
-	var pastedData = e.originalEvent.clipboardData.getData('text');
+	e.preventDefault();
+	var pastedData = e.clipboardData.getData('text');
 	sendMessage({
 		action : 'paste',
 		clipboard: pastedData
@@ -287,14 +284,15 @@ function paste(e) {
 }
 
 function typing(parsedMessage) {
-	if(parsedMessage.state == "start") {
-		state.typingUsers.push({ username: parsedMessage.username })
-	} else if(parsedMessage.state == "stop") {
-		state.typingUsers = state.typingUsers.filter(function(user) {
-			return user.username != parsedMessage.username;
-		});
-		globalVar.callback(state);
-	}
+    updateState(function () {
+        if(parsedMessage.state == "start") {
+            state.typingUsers.push({ username: parsedMessage.username })
+        } else if(parsedMessage.state == "stop") {
+            state.typingUsers = state.typingUsers.filter(function(user) {
+                return user.username != parsedMessage.username;
+            });
+        }
+    })
 }
 
 function chatmessage(parsedMessage) {
@@ -315,34 +313,36 @@ function chatmessage(parsedMessage) {
 	if(offset < remaining.length) {
 		split.push({ "type": "text", "message": remaining.substring(offset, remaining.length) });
 	}
-	console.log(split)
 
-	var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
-	if(state.chatMessages.length > 0 && state.chatMessages[state.chatMessages.length-1].username == parsedMessage.username) {
-		var lastMessage = state.chatMessages[state.chatMessages.length-1];
-		split.forEach(function(message) {
-			lastMessage.messages.push(message)
-		})
-	} else {
-		state.chatMessages.push({
-			username: parsedMessage.username,
-			timestamp: moment(parsedMessage.timestamp).format('h:mm A'),
-			messages: split
-		})
-	}
-	globalVar.callback(state);
+    updateState(function () {
+        var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
+        if(state.chatMessages.length > 0 && state.chatMessages[state.chatMessages.length-1].username == parsedMessage.username) {
+            var lastMessage = state.chatMessages[state.chatMessages.length-1];
+            split.forEach(function(message) {
+                lastMessage.messages.push(message)
+            })
+        } else {
+            state.chatMessages.push({
+                username: parsedMessage.username,
+                timestamp: moment(parsedMessage.timestamp).format('h:mm A'),
+                messages: split
+            })
+        }
+    })
 }
 
 function join(parsedMessage) {
-	state.userlist.push({ username: parsedMessage.username, session: parsedMessage.session, remote: false })
-	globalVar.callback(state);
+    updateState(function () {
+        state.userlist.push({ username: parsedMessage.username, session: parsedMessage.session, remote: false })
+    })
 }
 
 function leave(parsedMessage) {
-	state.userlist = state.userlist.filter(function(element) {
-  		return element.session != parsedMessage.session;
-	});
-	globalVar.callback(state);
+    updateState(function () {
+        state.userlist = state.userlist.filter(function(element) {
+            return element.session != parsedMessage.session;
+        });
+    })
 }
 
 window.onbeforeunload = function() {
@@ -374,22 +374,24 @@ function connect() {
 				leave(parsedMessage);
 				break;
 			case 'drop_remote':
-				state.remote = false;
-				state.userlist = state.userlist.map(function(user) {
-					if(user.session == parsedMessage.session) {
-						user.remote = false;
-					}
-					return user;
-				})
-				globalVar.callback(state);
+                updateState(function () {
+                    state.remote = false;
+                    state.userlist = state.userlist.map(function(user) {
+                        if(user.session == parsedMessage.session) {
+                            user.remote = false;
+                        }
+                        return user;
+                    })
+                })
 				break;
 			case 'pickup_remote':
-				state.userlist = state.userlist.map(function(user) {
-					user.remote = user.session == parsedMessage.session;
-					return user;
-				})
-				state.remote = parsedMessage.has_remote;
-				globalVar.callback(state);
+                updateState(function () {
+                    state.userlist = state.userlist.map(function(user) {
+                        user.remote = user.session == parsedMessage.session;
+                        return user;
+                    })
+                    state.remote = parsedMessage.has_remote;
+                })
 				break;
 			case 'iceCandidate':
 				webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
@@ -406,8 +408,9 @@ function connect() {
 	}
 	websocket.onclose = function (event) {
 		console.log(event);
-		state.userlist = [];
-		globalVar.callback(state);
+        updateState(function () {
+            state.userlist = [];
+        })
 		connect();
 	}
 
