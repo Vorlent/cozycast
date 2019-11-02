@@ -1,7 +1,15 @@
 import { html, Component, render } from 'https://unpkg.com/htm/preact/standalone.module.js'
 
 var globalVar = {};
-var state = { typingUsers: [], userlist: [], chatMessages: [], remote: false, username: "Nameless", volume: 100 };
+var state = {
+    typingUsers: [],
+    userlist: [],
+    chatMessages: [],
+    chatBox: "",
+    remote: false,
+    username: "Nameless",
+    volume: 100
+};
 
 function updateState(fun) {
     fun()
@@ -110,7 +118,8 @@ class App extends Component {
 							  <div class="typing">${user.username} is typing...</div>
 						  `)}
 					  </div>
-					  <textarea id="chatbox-textarea">
+					  <textarea id="chatbox-textarea" onkeypress=${chatKeypress}>
+                        ${state.chatBox}
 					  </textarea>
 				  </div>
 			  </div>
@@ -150,46 +159,48 @@ function changeVolume(e) {
 
 window.onload = function() {
 	connect();
-
 	videoElement = document.getElementById('video');
+}
 
-	var typingTimer;
+var typingTimer;
+function chatKeypress(e) {
+    updateState(function() {
+        var enterKeycode = 13;
+        console.log(e);
+        state.chatBox = e.target.value;
+        if(e.which == enterKeycode) {
+            e.preventDefault();
+            if(state.chatBox.trim() != "") {
+                sendMessage({
+                    action : 'chatmessage',
+                    message: state.chatBox,
+                    username: state.username
+                });
+            }
+            e.target.value = ""; // hack
+            state.chatBox = "";
+        } else {
+            if(typingTimer) {
+                clearTimeout(typingTimer)
+                typingTimer = null;
+            } else {
+                sendMessage({
+                    action : 'typing',
+                    state: 'start',
+                    username: state.username
+                });
+            }
 
-  	$("#chatbox-textarea").keypress(function (e) {
-		var enterKeycode = 13;
-      	if(e.which == enterKeycode) {
-			e.originalEvent.preventDefault();
-			if($(this).val().trim() != "") {
-				sendMessage({
-					action : 'chatmessage',
-					message: $(this).val(),
-					username: state.username
-				});
-			}
-			$(this).val("")
-      	} else {
-			if(typingTimer) {
-				clearTimeout(typingTimer)
-				typingTimer = null;
-			} else {
-				sendMessage({
-					action : 'typing',
-					state: 'start',
-					username: state.username
-				});
-			}
-
-			typingTimer = setTimeout(function() {
-				sendMessage({
-					action : 'typing',
-					state: 'stop',
-					username: state.username
-				});
-				typingTimer = null;
-			}, 2000)
-
-		}
-  	});
+            typingTimer = setTimeout(function() {
+                sendMessage({
+                    action : 'typing',
+                    state: 'stop',
+                    username: state.username
+                });
+                typingTimer = null;
+            }, 2000)
+        }
+    })
 }
 
 function remote() {
