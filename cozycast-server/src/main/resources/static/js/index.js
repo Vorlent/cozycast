@@ -1,7 +1,7 @@
 import { html, Component, render } from 'https://unpkg.com/htm/preact/standalone.module.js'
 
 var globalVar = {};
-var state = { typingUsers: [], userlist: [], chatMessages: [], remote: false, username: "Nameless" };
+var state = { typingUsers: [], userlist: [], chatMessages: [], remote: false, username: "Nameless", volume: 100 };
 
 function updateState(fun) {
     fun()
@@ -26,6 +26,7 @@ class App extends Component {
   scrollToBottom() {
 	  var messages = document.getElementById("messages");
 	  messages.scrollTop = messages.scrollHeight;
+      document.getElementById('video').volume = state.volume/100;
   }
 
 
@@ -46,21 +47,28 @@ class App extends Component {
                         onkeydown=${videoKeyDown}
                         onwheel=${videoScroll}
                       ></div>
+
 					  <video id="video" autoplay class="full-width" tabindex="0"></video>
 				  </div>
 				  <div class="row">
 					  <div class="col-md-3 controls">
-						  <a id="stop" href="#" class="btn btn-danger" onclick=${stop}>
-							  <span class="glyphicon glyphicon-stop"></span>
-							  Stop
-						  </a>
-						  <a id="remote" class="btn ${state.remote ? 'btn-primary': 'btn-danger'}"
-                              onclick=${remote}>
-							  Remote
-						  </a>
-						  <input id="volume" data-slider-id='volumeSlider' type="text"
-							  data-slider-min="0" data-slider-max="100"
-							  data-slider-step="1" data-slider-value="100"/>
+                          <div class="row">
+                              <div class="col-md-3">
+                                  <a id="stop" href="#" class="btn btn-danger" onclick=${stop}>
+                                    <span class="glyphicon glyphicon-stop"></span>
+                                    Stop
+                                  </a>
+                              </div>
+                              <div class="col-md-3">
+        						  <a id="remote" class="btn ${state.remote ? 'btn-primary': 'btn-danger'}"
+                                      onclick=${remote}>
+        							  Remote
+        						  </a>
+                              </div>
+                              <div class="col-md-3">
+                                <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider" oninput=${changeVolume}/>
+                              </div>
+                          </div>
 						  <div class="row">
 							  <div class="col-md-12">
 								  <a href="/license" target="_blank">Copyright (C) 2019 Vorlent</a>
@@ -133,16 +141,15 @@ updateState(function () {
     }
 })
 
+function changeVolume(e) {
+    console.log(e.target.value);
+    updateState(function() {
+        state.volume = e.target.value;
+    })
+}
+
 window.onload = function() {
 	connect();
-	$('#volume').slider({
-		formatter: function(value) {
-			return value + '%';
-		}
-	}).on('slide', function() {
-		var volume = $('#volume').data('slider').getValue();
-		$('#video').prop("volume", volume/100);
-	});
 
 	videoElement = document.getElementById('video');
 

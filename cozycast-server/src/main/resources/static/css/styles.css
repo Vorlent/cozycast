@@ -130,3 +130,26 @@
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+.volumeSlider {
+  margin-top: 15px;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100px;
+  height: 5px;
+  background: #fff;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.volumeSlider::-moz-range-thumb, .volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  background: #1d7fac;
+  cursor: pointer;
+  border-radius: 50%;
+}
