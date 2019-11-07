@@ -37,7 +37,7 @@ class App extends Component {
       document.getElementById('video').volume = state.volume/100;
   }
 
-  render({ page }, { typingUsers = [], userlist = [] }) {
+  render({ page }, { xyz = [] }) {
 	return html`
 	<body class="background full-height">
 	  <div class="container-fluid nogap full-height">
@@ -83,7 +83,7 @@ class App extends Component {
 						  </div>
 					  </div>
 					  <div id="userlist" class="col-md-9 userlist">
-							${userlist.map(user => html`
+							${state.userlist.map(user => html`
 								<div class="user">
 									<img alt="Avatar" src="https://pepethefrog.ucoz.com/_nw/2/89605944.jpg"></img>
 									<div class="centered">${user.username}</div>
@@ -113,9 +113,11 @@ class App extends Component {
 				  </div>
 				  <div class="chatbox">
 					  <div id="typing">
-						  ${typingUsers.map(user => html`
-							  <div class="typing">${user.username} is typing...</div>
-						  `)}
+                          ${state.typingUsers.length > 0 && html`
+                              ${state.typingUsers.map((user, i) => html`
+                                  ${user.username}${(state.typingUsers.length - 1 != i) && ', '}
+                              `)} ${state.typingUsers.length > 1 ? 'are' : 'is'} typing...
+						  `}
 					  </div>
 					  <textarea id="chatbox-textarea" onkeypress=${chatKeypress}>
                         ${state.chatBox}
@@ -174,6 +176,14 @@ function chatKeypress(e) {
             }
             e.target.value = ""; // hack
             state.chatBox = "";
+
+            clearTimeout(typingTimer)
+            typingTimer = null;
+            sendMessage({
+                action : 'typing',
+                state: 'stop',
+                username: state.username
+            });
         } else {
             if(typingTimer) {
                 clearTimeout(typingTimer)
@@ -309,10 +319,13 @@ function paste(e) {
 function typing(parsedMessage) {
     updateState(function () {
         if(parsedMessage.state == "start") {
-            state.typingUsers.push({ username: parsedMessage.username })
+            state.typingUsers.push({
+                username: parsedMessage.username,
+                session: parsedMessage.session
+            })
         } else if(parsedMessage.state == "stop") {
             state.typingUsers = state.typingUsers.filter(function(user) {
-                return user.username != parsedMessage.username;
+                return user.session != parsedMessage.session;
             });
         }
     })

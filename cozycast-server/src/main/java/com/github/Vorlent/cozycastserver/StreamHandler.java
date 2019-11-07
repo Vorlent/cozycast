@@ -204,6 +204,7 @@ public class StreamHandler extends TextWebSocketHandler {
 		System.out.println(jsonMessage);
 		JsonObject response = new JsonObject();
 		response.addProperty("action", "typing");
+		response.addProperty("session", session.getId());
 		response.add("state", jsonMessage.get("state"));
 		response.add("username", jsonMessage.get("username"));
 		String responseString = response.toString();
