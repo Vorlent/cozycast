@@ -37,7 +37,6 @@ class App extends Component {
       document.getElementById('video').volume = state.volume/100;
   }
 
-
   render({ page }, { typingUsers = [], userlist = [] }) {
 	return html`
 	<body class="background full-height">
@@ -46,7 +45,7 @@ class App extends Component {
 			  <div class="col-md-10 nogap">
 				  <div id="videoBig">
 					  <div id="videocontrols" tabindex="0"
-                        oncontextmenu=${(e) => false}
+                        oncontextmenu=${disableContextmenu}
                         onmousemove=${videoMousemove}
                         onmouseup=${videoMouseUp}
                         onmousedown=${videoMouseDown}
@@ -132,8 +131,6 @@ class App extends Component {
 
 var preactBody = render(html`<${App} page="All" />`, document.body);
 
-console.log(preactBody);
-
 var webRtcPeer;
 var websocket;
 
@@ -151,7 +148,6 @@ updateState(function () {
 })
 
 function changeVolume(e) {
-    console.log(e.target.value);
     updateState(function() {
         state.volume = e.target.value;
     })
@@ -166,7 +162,6 @@ var typingTimer;
 function chatKeypress(e) {
     updateState(function() {
         var enterKeycode = 13;
-        console.log(e);
         state.chatBox = e.target.value;
         if(e.which == enterKeycode) {
             e.preventDefault();
@@ -201,6 +196,11 @@ function chatKeypress(e) {
             }, 2000)
         }
     })
+}
+
+function disableContextmenu(e) {
+    e.preventDefault();
+    return false;
 }
 
 function remote() {
@@ -260,23 +260,28 @@ function getRemotePosition(e) {
 }
 
 function videoMouseUp(e) {
-		var pos = getRemotePosition(e);
-		sendMessage({
-			action : 'mouseup',
-			mouseX: pos.x,
-			mouseY: pos.y,
-			button: e.button
-		});
+	var pos = getRemotePosition(e);
+	sendMessage({
+		action : 'mouseup',
+		mouseX: pos.x,
+		mouseY: pos.y,
+		button: e.button
+	});
 }
 
 function videoMouseDown(e) {
-		var pos = getRemotePosition(e);
-		sendMessage({
-			action : 'mousedown',
-			mouseX: pos.x,
-			mouseY: pos.y,
-			button: e.button
-		});
+    var videoElement = document.getElementById('video');
+    if(videoElement.paused) {
+        videoElement.play();
+    }
+
+	var pos = getRemotePosition(e);
+	sendMessage({
+		action : 'mousedown',
+		mouseX: pos.x,
+		mouseY: pos.y,
+		button: e.button
+	});
 }
 
 function videoMousemove(e) {
@@ -414,7 +419,6 @@ function connect() {
 			case 'iceCandidate':
 				webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
 					if (error) {
-						console.log(parsedMessage);
 						console.log('Error iceCandidate: ' + error);
 						return;
 					}
@@ -425,7 +429,6 @@ function connect() {
 		}
 	}
 	websocket.onclose = function (event) {
-		console.log(event);
         updateState(function () {
             state.userlist = [];
         })
@@ -444,7 +447,7 @@ function start(video) {
 		action : 'join',
 		username: state.username
 	});
-	jQuery.get("/turn/credential", function(iceServer) {
+	fetch("/turn/credential").then((e) => e.json()).then(function(iceServer) {
 		var options = {
 			remoteVideo : video,
 			mediaConstraints : {
@@ -470,7 +473,6 @@ function start(video) {
 
 function onOffer(error, sdpOffer) {
 	if (error) {
-		console.log('Error onOffer');
 		console.log(error);
 		return;
 	}
