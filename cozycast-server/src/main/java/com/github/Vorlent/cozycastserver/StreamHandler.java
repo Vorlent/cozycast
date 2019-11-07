@@ -139,11 +139,9 @@ public class StreamHandler extends TextWebSocketHandler {
 		if(pipeline == null) {
 			pipeline = kurento.createMediaPipeline();
 			workerSession.setMediaPipeline(pipeline);
-			System.out.println("ADD createMediaPipeline");
 		}
 		WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build();
 		user.setWebRtcEndpoint(webRtcEndpoint);
-		user.setWebSocketSession(session);
 
 		if(workerSession.getRtpEndpoint() == null) {
 			RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
@@ -242,17 +240,21 @@ public class StreamHandler extends TextWebSocketHandler {
 		response.addProperty("session", session.getId());
 		response.add("username", jsonMessage.get("username"));
 		String responseString = response.toString();
-		sendMessage(session, responseString);
 
 		final UserSession user = new UserSession();
+		user.setWebSocketSession(session);
 		user.setUsername(jsonMessage.get("username").getAsString());
 		users.put(session.getId(), user);
 
 		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
 			UserSession value = entry.getValue();
-			sendMessage(value.getWebSocketSession(), responseString);
 
-			System.out.println("get username for " + entry.getKey());
+			// send existing users to new user
+			if(value.getWebSocketSession() != session) {
+				sendMessage(value.getWebSocketSession(), responseString);
+			}
+
+			// send new user to existing users
 			if (value.getUsername() != null) {
 				JsonObject existingUserResponse = new JsonObject();
 				existingUserResponse.addProperty("action", "join");
@@ -397,7 +399,9 @@ public class StreamHandler extends TextWebSocketHandler {
 				sendMessage(value.getWebSocketSession(), existingUserResponse.toString());
 			}
 		}
-		user.release();
+		if(user != null) {
+			user.release();
+		}
 	}
 
 	private void sdpAnswer(String sessionId, JsonObject jsonMessage) {
