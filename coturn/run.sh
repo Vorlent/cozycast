@@ -7,7 +7,7 @@ sudo docker run \
   --mount type=tmpfs,destination=/var/lib/coturn \
   --name coturn \
   instrumentisto/coturn:4.5.1 \
-  -n --external-ip="$EXTERNAL_IP/$PRIVATE_IP" \
+  -n --external-ip="$TURN_IP/$PRIVATE_IP" \
   --min-port=49160 --max-port=49200 \
   --lt-cred-mech --fingerprint \
   --realm=my.realm.org \

@@ -27,9 +27,13 @@ Make sure you have overlay or overlay2 as storage driver. overlay2 usually is th
 Create the .env file:
 
 ```
-export EXTERNAL_IP=$(curl ifconfig.me)
+export PUBLIC_IP=$(curl ifconfig.me)
 export TURN_SECRET=<arbitrary_secret_value>
 export PRIVATE_IP=<private_ip>
+
+export TURN_IP=$PUBLIC_IP
+export KURENTO_IP=$PRIVATE_IP
+export COZYCAST_IP=$PRIVATE_IP
 
 export KURENTO_USERNAME=2139323074:kurento
 export KURENTO_PASSWORD=$(echo -n "$KURENTO_USERNAME" | openssl dgst -sha1 -hmac "$TURN_SECRET" -binary | base64)

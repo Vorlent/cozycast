@@ -91,7 +91,7 @@ function validate_mouse(x,y)
 end
 
 function start_server()
-    local ws = websocket.new_from_uri("ws://localhost:8080/stream")
+    local ws = websocket.new_from_uri("ws://"..os.getenv("COZYCAST_IP")..":8080/stream")
     ws:connect()
     ws:send(lunajson.encode{ action = "worker"})
     while true do
