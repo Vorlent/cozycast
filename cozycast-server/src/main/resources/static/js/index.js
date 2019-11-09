@@ -8,7 +8,9 @@ var state = {
     chatBox: "",
     remote: false,
     username: "Nameless",
-    volume: 100
+    volume: 100,
+    videoPaused: true,
+    videoLoading: false
 };
 
 function updateState(fun) {
@@ -39,7 +41,6 @@ class App extends Component {
 
   render({ page }, { xyz = [] }) {
 	return html`
-	<body class="background full-height">
 	  <div class="container-fluid nogap full-height">
 		  <div class="row nogap full-height">
 			  <div class="col-md-10 nogap">
@@ -53,9 +54,24 @@ class App extends Component {
                         onkeyup=${videoKeyUp}
                         onkeydown=${videoKeyDown}
                         onwheel=${videoScroll}
-                      ></div>
+                      >
+                        ${state.videoPaused &&
+                          html`<div class="paused-screen">
+                            <div class="play-button">Play</div>
+                        </div>`}
+                        ${state.videoLoading &&
+                            html`<div class="paused-screen">
+                            <div class="loading-screen">
+                                <img class="loading-animation" src="svg/loading.svg"/>
+                                LOADING...
+                            </div>
+                        </div>`}
+                      </div>
 
-					  <video id="video" autoplay class="full-width" tabindex="0"></video>
+					  <video id="video" autoplay class="full-width" tabindex="0"
+                        onplay=${e => videoLoadingScreen(false)}
+                        onloadstart=${e => videoLoadingScreen(true)}
+                      ></video>
 				  </div>
 				  <div class="row">
 					  <div class="col-md-3 controls">
@@ -126,7 +142,6 @@ class App extends Component {
 			  </div>
 		  </div>
 	  </div>
-  </body>
 	`;
   }
 }
@@ -213,6 +228,13 @@ function disableContextmenu(e) {
     return false;
 }
 
+function videoLoadingScreen(loadingState) {
+    updateState(function () {
+        state.videoPaused = false;
+        state.videoLoading = loadingState;
+    })
+}
+
 function remote() {
 	if(state.remote) {
 		sendMessage({
@@ -283,6 +305,7 @@ function videoMouseDown(e) {
     var videoElement = document.getElementById('video');
     if(videoElement.paused) {
         videoElement.play();
+        videoLoadingScreen(true)
     }
 
 	var pos = getRemotePosition(e);

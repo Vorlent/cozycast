@@ -158,3 +158,38 @@
   min-height: 1.25em;
   line-height: 1.25;
 }
+
+.paused-screen {
+    background: black none repeat scroll 0% 0%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.play-button {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.loading-screen {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.loading-animation {
+    animation-name: spin;
+    animation-duration: 1000ms;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease;
+}
+
+@keyframes spin {
+    from {
+        transform:rotate(360deg);
+    }
+    to {
+        transform:rotate(0deg);
+    }
+}
