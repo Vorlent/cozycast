@@ -164,7 +164,7 @@ public class StreamHandler extends TextWebSocketHandler {
 			if(worker != null) {
 				JsonObject response = new JsonObject();
 				response.addProperty("type", "sdpOffer");
-				response.addProperty("ip", "127.0.0.1");
+				response.addProperty("ip", System.getenv("KURENTO_IP"));
 				response.addProperty("videoPort", videoPort);
 				response.addProperty("audioPort", audioPort);
 				sendMessage(worker, response.toString());

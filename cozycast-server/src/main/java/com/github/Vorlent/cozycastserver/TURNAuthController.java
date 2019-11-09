@@ -21,7 +21,7 @@ public class TURNAuthController {
         String secret = System.getenv("TURN_SECRET");
         byte[] hmac = HmacUtils.hmacSha1(secret, temporaryUsername);
         String credential = new String(Base64.encodeBase64(hmac));
-        String turnIP = System.getenv("EXTERNAL_IP");
+        String turnIP = System.getenv("TURN_IP");
         return new TURNCredential("turn:" + turnIP + ":3478", temporaryUsername, credential);
     }
 }
