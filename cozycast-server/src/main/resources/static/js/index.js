@@ -68,7 +68,7 @@ class App extends Component {
                         </div>`}
                       </div>
 
-					  <video id="video" autoplay class="full-width" tabindex="0"
+					  <video id="video" autoplay class="full-width full-height" tabindex="0"
                         onplay=${e => videoLoadingScreen(false)}
                         onloadstart=${e => videoLoadingScreen(true)}
                       ></video>
