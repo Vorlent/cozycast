@@ -59,7 +59,22 @@ local keyboard_web_to_xdo = {
 
 local pressed_keys = {}
 
+function wait_for_pulseaudio()
+    while true do
+        local pgrep = io.popen('pgrep "pulseaudio" -c', 'r')
+        local stdout = pgrep:read("*a")
+        local count = tonumber(stdout)
+        if count ~= 0 then
+            return true
+        end
+        pgrep:close()
+        os.execute("sleep 1")
+    end
+end
+
 function capture(data, ws)
+    wait_for_pulseaudio()
+
     print ("/capture.sh "..data.ip.." "..data.videoPort.." "..data.audioPort)
     os.execute ("/capture.sh "..data.ip.." "..data.videoPort.." "..data.audioPort)
     repeat
