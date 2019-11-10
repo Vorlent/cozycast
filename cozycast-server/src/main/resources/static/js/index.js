@@ -476,7 +476,12 @@ function connect() {
 	websocket.onclose = function (event) {
         updateState(function () {
             state.userlist = [];
+            state.typingUsers = [];
         })
+        if (webRtcPeer) {
+    		webRtcPeer.dispose();
+    		webRtcPeer = null;
+    	}
 		connect();
 	}
 
