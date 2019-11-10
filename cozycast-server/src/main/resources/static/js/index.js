@@ -7,7 +7,7 @@ var state = {
     chatMessages: [],
     chatBox: "",
     remote: false,
-    username: "Nameless",
+    username: "Anonymous",
     volume: 100,
     videoPaused: true,
     videoLoading: false
@@ -77,13 +77,13 @@ class App extends Component {
 					  <div class="col-md-3 controls">
                           <div class="row">
                               <div class="col-md-3">
-                                  <a id="stop" href="#" class="btn btn-danger" onclick=${stop}>
-                                    <span class="glyphicon glyphicon-stop"></span>
-                                    Stop
+                                  <a href="#" class="btn btn-primary" onclick=${openProfile}>
+                                    <span class="glyphicon glyphicon-cog"></span>
+                                    Profile
                                   </a>
                               </div>
                               <div class="col-md-3">
-        						  <a id="remote" class="btn ${state.remote ? 'btn-primary': 'btn-danger'}"
+        						  <a class="btn ${state.remote ? 'btn-primary': 'btn-danger'}"
                                       onclick=${remote}>
         							  Remote
         						  </a>
@@ -101,7 +101,7 @@ class App extends Component {
 					  <div id="userlist" class="col-md-9 userlist">
 							${state.userlist.map(user => html`
 								<div class="user">
-									<img alt="Avatar" src="https://pepethefrog.ucoz.com/_nw/2/89605944.jpg"></img>
+									<img class="avatar" src="https://pepethefrog.ucoz.com/_nw/2/89605944.jpg"></img>
 									<div class="centered">${user.username}</div>
 									<i class="icon-keyboard remote" style=${user.remote ? "" : "display: none;"}></i>
 								</div>
@@ -141,6 +141,37 @@ class App extends Component {
 				  </div>
 			  </div>
 		  </div>
+          ${state.profileModal && html`
+              <div class="profile-modal-background">
+                <div class="profile-modal">
+                    <div class="row title">
+                        <div class="col-md-2"></div>
+                        <div class="col-md-8">
+                          Profile
+                        </div>
+                        <div class="col-md-2 profile-modal-close">
+                            <a href="#" onclick=${closeProfile}>X</a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <img class="avatar big" alt="Avatar"
+                            src="https://pepethefrog.ucoz.com/_nw/2/89605944.jpg"></img>
+                    </div>
+                    <div class="row">
+                        Username
+                    </div>
+                    <div class="row">
+                        <input class="profile-modal-username" type="text"
+                            onInput=${e => updateProfileUsername(e.target.value)}
+                            name="username" value="${state.profileModal.username}"/>
+                    </div>
+                    <div class="row">
+                        <a href="#" class="btn btn-primary" onclick=${saveProfile}>
+                          <span class="glyphicon glyphicon-ok"></span> Save
+                        </a>
+                    </div>
+                </div>
+              </div>`}
 	  </div>
 	`;
   }
@@ -157,10 +188,9 @@ var resolutionX = 1280;
 var resolutionY = 720;
 
 updateState(function () {
-    state.username = sessionStorage.getItem("username");
+    state.username = localStorage.getItem("username");
     if(!state.username) {
-        state.username = window.prompt("Enter your username:","Anonymous");
-        sessionStorage.setItem("username", state.username);
+        state.username = "Anonymous"
     }
 })
 
@@ -405,6 +435,17 @@ function join(parsedMessage) {
     })
 }
 
+function changeusername(parsedMessage) {
+    updateState(function () {
+        state.userlist = state.userlist.map(function(element) {
+            if(element.session == parsedMessage.session) {
+                element.username = parsedMessage.username;
+            }
+            return element;
+        });
+    })
+}
+
 function leave(parsedMessage) {
     updateState(function () {
         state.userlist = state.userlist.filter(function(element) {
@@ -435,6 +476,9 @@ function connect() {
 			case 'receivemessage':
 				chatmessage(parsedMessage);
 				break;
+            case 'changeusername':
+                changeusername(parsedMessage);
+                break;
 			case 'join':
 				join(parsedMessage);
 				break;
@@ -549,15 +593,38 @@ function startResponse(message) {
 	});
 }
 
-function stop() {
-	if (webRtcPeer) {
-		webRtcPeer.dispose();
-		webRtcPeer = null;
+function openProfile() {
+    updateState(function () {
+        state.profileModal = {
+            username: state.username
+        };
+    })
+}
 
-		sendMessage({
-			action : 'stop'
-		});
-	}
+function closeProfile() {
+    updateState(function () {
+        delete state.profileModal;
+    })
+}
+
+function updateProfileUsername(username) {
+    updateState(function () {
+        state.profileModal.username = username;
+    })
+}
+
+function saveProfile() {
+    updateState(function () {
+        if(state.profileModal.username) {
+            localStorage.setItem("username", state.profileModal.username);
+            state.username = state.profileModal.username;
+            sendMessage({
+                action : 'changeusername',
+                username : state.username
+            });
+        }
+    })
+    closeProfile()
 }
 
 function sendMessage(message) {

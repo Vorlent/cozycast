@@ -84,6 +84,9 @@ public class StreamHandler extends TextWebSocketHandler {
 				case "chatmessage":
 					chatmessage(session, jsonMessage);
 					break;
+				case "changeusername":
+	          		changeusername(session, jsonMessage);
+	          		break;
 				case "join":
 					join(session, jsonMessage);
 					break;
@@ -199,6 +202,19 @@ public class StreamHandler extends TextWebSocketHandler {
 		String responseString = response.toString();
 		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
     		UserSession value = entry.getValue();
+			sendMessage(value.getWebSocketSession(), responseString);
+		}
+	}
+
+	private void changeusername(final WebSocketSession session, JsonObject jsonMessage) {
+		System.out.println(jsonMessage);
+		JsonObject response = new JsonObject();
+		response.addProperty("action", "changeusername");
+		response.addProperty("session", session.getId());
+		response.add("username", jsonMessage.get("username"));
+		String responseString = response.toString();
+		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+			UserSession value = entry.getValue();
 			sendMessage(value.getWebSocketSession(), responseString);
 		}
 	}
