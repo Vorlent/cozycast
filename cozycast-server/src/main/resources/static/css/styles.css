@@ -31,7 +31,7 @@
     padding-left: 25px;
 }
 
-#volumeSlider {
+input[type="range"].volumeSlider {
     width: 100px;
     margin-left: 10px;
     margin-right: 10px;

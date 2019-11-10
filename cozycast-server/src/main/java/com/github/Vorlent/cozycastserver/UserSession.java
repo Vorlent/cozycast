@@ -44,6 +44,8 @@ public class UserSession {
     }
 
     public void release() {
-        this.webRtcEndpoint.release();
+        if(this.webRtcEndpoint != null) {
+            this.webRtcEndpoint.release();
+        }
     }
 }

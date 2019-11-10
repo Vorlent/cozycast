@@ -44,7 +44,6 @@ import java.util.regex.Matcher;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import org.kurento.client.HubPort;
 import java.util.TimeZone;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -135,41 +134,10 @@ public class StreamHandler extends TextWebSocketHandler {
 
 	private void start(final WebSocketSession session, JsonObject jsonMessage) {
 		final UserSession user = users.get(session.getId());
-		MediaPipeline pipeline = workerSession.getMediaPipeline();
-		if(pipeline == null) {
-			pipeline = kurento.createMediaPipeline();
-			workerSession.setMediaPipeline(pipeline);
-		}
+		user.release();
+		MediaPipeline pipeline = workerSession.getMediaPipeline(kurento);
 		WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build();
 		user.setWebRtcEndpoint(webRtcEndpoint);
-
-		if(workerSession.getRtpEndpoint() == null) {
-			RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
-			workerSession.setRtpEndpoint(rtpEndpoint);
-			String workerSDPOffer = rtpEndpoint.generateOffer();
-
-			String videoPort = null;
-			Matcher videoMatcher = Pattern.compile("m=video (\\d+)").matcher(workerSDPOffer);
-			if(videoMatcher.find()) {
-				videoPort = videoMatcher.group(1);
-			}
-
-			String audioPort = null;
-			Matcher audioMatcher = Pattern.compile("m=audio (\\d+)").matcher(workerSDPOffer);
-			if(audioMatcher.find()) {
-				audioPort = audioMatcher.group(1);
-			}
-			System.out.println(workerSDPOffer);
-
-			if(worker != null) {
-				JsonObject response = new JsonObject();
-				response.addProperty("type", "sdpOffer");
-				response.addProperty("ip", System.getenv("KURENTO_IP"));
-				response.addProperty("videoPort", videoPort);
-				response.addProperty("audioPort", audioPort);
-				sendMessage(worker, response.toString());
-			}
-		}
 
 		workerSession.getRtpEndpoint().connect(webRtcEndpoint);
 
@@ -386,6 +354,32 @@ public class StreamHandler extends TextWebSocketHandler {
 			workerSession.release();
 		}
 		workerSession = new WorkerSession();
+		MediaPipeline pipeline = workerSession.getMediaPipeline(kurento);
+		RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
+		workerSession.setRtpEndpoint(rtpEndpoint);
+		String workerSDPOffer = rtpEndpoint.generateOffer();
+
+		String videoPort = null;
+		Matcher videoMatcher = Pattern.compile("m=video (\\d+)").matcher(workerSDPOffer);
+		if(videoMatcher.find()) {
+			videoPort = videoMatcher.group(1);
+		}
+
+		String audioPort = null;
+		Matcher audioMatcher = Pattern.compile("m=audio (\\d+)").matcher(workerSDPOffer);
+		if(audioMatcher.find()) {
+			audioPort = audioMatcher.group(1);
+		}
+		System.out.println(workerSDPOffer);
+
+		if(worker != null) {
+			JsonObject response = new JsonObject();
+			response.addProperty("type", "sdpOffer");
+			response.addProperty("ip", System.getenv("KURENTO_IP"));
+			response.addProperty("videoPort", videoPort);
+			response.addProperty("audioPort", audioPort);
+			sendMessage(worker, response.toString());
+		}
 	}
 
 	private void stop(String sessionId) {
