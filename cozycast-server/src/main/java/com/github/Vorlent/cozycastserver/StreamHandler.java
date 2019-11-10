@@ -48,6 +48,7 @@ import java.util.TimeZone;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import org.springframework.web.socket.CloseStatus;
 
 
 @Component
@@ -334,6 +335,7 @@ public class StreamHandler extends TextWebSocketHandler {
 			resetKeyboard.addProperty("action", "reset_keyboard");
 			sendMessage(worker, resetKeyboard.toString());
 		}
+
 	}
 
 	private void dropremote(final WebSocketSession session) {
@@ -379,6 +381,20 @@ public class StreamHandler extends TextWebSocketHandler {
 			response.addProperty("videoPort", videoPort);
 			response.addProperty("audioPort", audioPort);
 			sendMessage(worker, response.toString());
+		}
+
+		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+    		UserSession user = entry.getValue();
+			if(user != null) {
+				user.release();
+				if(user.getWebSocketSession() != null) {
+					try {
+						user.getWebSocketSession().close(CloseStatus.SERVICE_RESTARTED);
+					} catch(IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
 		}
 	}
 
