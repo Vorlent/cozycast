@@ -8,7 +8,6 @@ RUN apt-get update && apt install -y curl wget nano openjdk-8-jdk maven git
 COPY . /root/cozycast/cozycast-server
 WORKDIR /root/cozycast/cozycast-server
 
-WORKDIR /root/cozycast/cozycast-server
-
 ENV MAVEN_OPTS="-Xmx100m -Xms50m"
-CMD /bin/bash #mvn compile exec:java
+RUN mvn compile
+CMD /bin/bash # exec:java
