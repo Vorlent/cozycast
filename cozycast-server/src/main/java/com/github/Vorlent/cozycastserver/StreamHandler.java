@@ -87,6 +87,9 @@ public class StreamHandler extends TextWebSocketHandler {
 				case "changeusername":
 	          		changeusername(session, jsonMessage);
 	          		break;
+				case "changeprofilepicture":
+	          		changeprofilepicture(session, jsonMessage);
+	          		break;
 				case "join":
 					join(session, jsonMessage);
 					break;
@@ -208,10 +211,27 @@ public class StreamHandler extends TextWebSocketHandler {
 
 	private void changeusername(final WebSocketSession session, JsonObject jsonMessage) {
 		System.out.println(jsonMessage);
+		UserSession user = users.get(session.getId());
+		user.setUsername(jsonMessage.get("username").getAsString());
 		JsonObject response = new JsonObject();
 		response.addProperty("action", "changeusername");
 		response.addProperty("session", session.getId());
 		response.add("username", jsonMessage.get("username"));
+		String responseString = response.toString();
+		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+			UserSession value = entry.getValue();
+			sendMessage(value.getWebSocketSession(), responseString);
+		}
+	}
+
+	private void changeprofilepicture(final WebSocketSession session, JsonObject jsonMessage) {
+		System.out.println(jsonMessage);
+		UserSession user = users.get(session.getId());
+		user.setAvatarUrl(jsonMessage.get("url").getAsString());
+		JsonObject response = new JsonObject();
+		response.addProperty("action", "changeprofilepicture");
+		response.addProperty("session", session.getId());
+		response.add("url", jsonMessage.get("url"));
 		String responseString = response.toString();
 		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
 			UserSession value = entry.getValue();
@@ -225,11 +245,18 @@ public class StreamHandler extends TextWebSocketHandler {
 		response.addProperty("action", "join");
 		response.addProperty("session", session.getId());
 		response.add("username", jsonMessage.get("username"));
+		response.add("url", jsonMessage.get("url"));
 		String responseString = response.toString();
 
 		final UserSession user = new UserSession();
 		user.setWebSocketSession(session);
 		user.setUsername(jsonMessage.get("username").getAsString());
+		System.out.println(jsonMessage.get("url"));
+		if(jsonMessage.get("url") == null) {
+			user.setAvatarUrl("https://pepethefrog.ucoz.com/_nw/2/89605944.jpg");
+		} else {
+			user.setAvatarUrl(jsonMessage.get("url").getAsString());
+		}
 		users.put(session.getId(), user);
 
 		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
@@ -246,6 +273,7 @@ public class StreamHandler extends TextWebSocketHandler {
 				existingUserResponse.addProperty("action", "join");
 				existingUserResponse.addProperty("username", value.getUsername());
 				existingUserResponse.addProperty("session", entry.getKey());
+				existingUserResponse.addProperty("url", value.getAvatarUrl());
 				sendMessage(session, existingUserResponse.toString());
 			}
 		}

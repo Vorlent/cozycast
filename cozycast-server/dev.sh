@@ -11,6 +11,7 @@ sudo docker run \
   --network host \
   -v $(realpath .):/root/cozycast/cozycast-server \
   -v $(realpath cache/.m2):/root/.m2/repository \
+  -v $(realpath cache/avatar):/var/cozycast/avatar/ \
   --name cozycast-server cozycast-server \
   mvn compile exec:java
 

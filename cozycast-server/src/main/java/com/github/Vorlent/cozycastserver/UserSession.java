@@ -11,6 +11,7 @@ public class UserSession {
     private WebRtcEndpoint webRtcEndpoint;
     private WebSocketSession webSocketSession;
     private String username;
+    private String avatarUrl;
 
     public UserSession() {
     }
@@ -37,6 +38,14 @@ public class UserSession {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 
     public void addCandidate(IceCandidate candidate) {

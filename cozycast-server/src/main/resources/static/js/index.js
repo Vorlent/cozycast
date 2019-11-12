@@ -101,7 +101,7 @@ class App extends Component {
 					  <div id="userlist" class="col-md-9 userlist">
 							${state.userlist.map(user => html`
 								<div class="user">
-									<img class="avatar" src="https://pepethefrog.ucoz.com/_nw/2/89605944.jpg"></img>
+									<img class="avatar" src="${user.url}"></img>
 									<div class="centered">${user.username}</div>
 									<i class="icon-keyboard remote" style=${user.remote ? "" : "display: none;"}></i>
 								</div>
@@ -154,8 +154,12 @@ class App extends Component {
                         </div>
                     </div>
                     <div class="row">
-                        <img class="avatar big" alt="Avatar"
-                            src="https://pepethefrog.ucoz.com/_nw/2/89605944.jpg"></img>
+                        <div class="image avatar big" style="background-image: url('${state.profileModal.avatarUrl}');">
+                            <div class="uploader-overlay" onclick=${openAvatarUpload}>
+                                <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg" onchange=${avatarSelected}/>
+                                <div class="center">Upload</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="row">
                         Username
@@ -191,6 +195,10 @@ updateState(function () {
     state.username = localStorage.getItem("username");
     if(!state.username) {
         state.username = "Anonymous"
+    }
+    state.avatarUrl = localStorage.getItem("avatarUrl");
+    if(!state.avatarUrl) {
+        state.avatarUrl = 'https://pepethefrog.ucoz.com/_nw/2/89605944.jpg'
     }
 })
 
@@ -431,7 +439,12 @@ function chatmessage(parsedMessage) {
 
 function join(parsedMessage) {
     updateState(function () {
-        state.userlist.push({ username: parsedMessage.username, session: parsedMessage.session, remote: false })
+        state.userlist.push({
+            username: parsedMessage.username,
+            url: parsedMessage.url,
+            session: parsedMessage.session,
+            remote: false
+        })
     })
 }
 
@@ -444,6 +457,32 @@ function changeusername(parsedMessage) {
             return element;
         });
     })
+}
+
+function changeprofilepicture(parsedMessage) {
+    updateState(function () {
+        state.userlist = state.userlist.map(function(element) {
+            if(element.session == parsedMessage.session) {
+                element.url = parsedMessage.url;
+            }
+            return element;
+        });
+    })
+}
+
+function openAvatarUpload() {
+    document.getElementById('avatar-uploader').click();
+}
+
+function avatarSelected(e) {
+    let formData = new FormData();
+    formData.append("avatar", e.target.files[0]);
+    fetch('/avatar/upload', {method: "POST", body: formData}).then((e) => e.json()).then(function (e) {
+        updateState(function () {
+            console.log(e.url);
+            state.profileModal.avatarUrl = e.url;
+        })
+    });
 }
 
 function leave(parsedMessage) {
@@ -478,6 +517,9 @@ function connect() {
 				break;
             case 'changeusername':
                 changeusername(parsedMessage);
+                break;
+            case 'changeprofilepicture':
+                changeprofilepicture(parsedMessage);
                 break;
 			case 'join':
 				join(parsedMessage);
@@ -539,7 +581,8 @@ function connect() {
 function start(video) {
 	sendMessage({
 		action : 'join',
-		username: state.username
+		username: state.username,
+        url: state.avatarUrl
 	});
 	fetch("/turn/credential").then((e) => e.json()).then(function(iceServer) {
 		var options = {
@@ -596,7 +639,8 @@ function startResponse(message) {
 function openProfile() {
     updateState(function () {
         state.profileModal = {
-            username: state.username
+            username: state.username,
+            avatarUrl: state.avatarUrl
         };
     })
 }
@@ -615,12 +659,18 @@ function updateProfileUsername(username) {
 
 function saveProfile() {
     updateState(function () {
-        if(state.profileModal.username) {
+        if(state.profileModal) {
             localStorage.setItem("username", state.profileModal.username);
+            localStorage.setItem("avatarUrl", state.profileModal.avatarUrl);
             state.username = state.profileModal.username;
+            state.avatarUrl = state.profileModal.avatarUrl;
             sendMessage({
                 action : 'changeusername',
                 username : state.username
+            });
+            sendMessage({
+                action : 'changeprofilepicture',
+                url : state.avatarUrl
             });
         }
     })
