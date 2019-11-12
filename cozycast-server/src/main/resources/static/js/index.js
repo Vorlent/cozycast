@@ -41,139 +41,113 @@ class App extends Component {
 
   render({ page }, { xyz = [] }) {
 	return html`
-	  <div class="container-fluid nogap full-height">
-		  <div class="row nogap full-height">
-			  <div class="col-md-10 nogap">
-				  <div id="videoBig">
-					  <div id="videocontrols" tabindex="0"
-                        oncontextmenu=${disableContextmenu}
-                        onmousemove=${videoMousemove}
-                        onmouseup=${videoMouseUp}
-                        onmousedown=${videoMouseDown}
-                        onpaste=${paste}
-                        onkeyup=${videoKeyUp}
-                        onkeydown=${videoKeyDown}
-                        onwheel=${videoScroll}
-                      >
-                        ${state.videoPaused &&
-                          html`<div class="paused-screen">
-                            <div class="play-button">Play</div>
-                        </div>`}
-                        ${state.videoLoading &&
-                            html`<div class="paused-screen">
-                            <div class="loading-screen">
-                                <img class="loading-animation" src="svg/loading.svg"/>
-                                LOADING...
-                            </div>
-                        </div>`}
-                      </div>
+	  <div id="pagecontent">
+          <div id="videoBig">
+              <div id="videocontrols" tabindex="0"
+                oncontextmenu=${disableContextmenu}
+                onmousemove=${videoMousemove}
+                onmouseup=${videoMouseUp}
+                onmousedown=${videoMouseDown}
+                onpaste=${paste}
+                onkeyup=${videoKeyUp}
+                onkeydown=${videoKeyDown}
+                onwheel=${videoScroll}
+              >
+                ${state.videoPaused &&
+                  html`<div class="paused-screen">
+                    <div class="play-button">Play</div>
+                </div>`}
+                ${state.videoLoading &&
+                    html`<div class="paused-screen">
+                    <div class="loading-screen">
+                        <img class="loading-animation" src="svg/loading.svg"/>
+                        LOADING...
+                    </div>
+                </div>`}
+              </div>
+              <div id="videosizer">
+                <video id="video" autoplay tabindex="0"
+                    onplay=${e => videoLoadingScreen(false)}
+                    onloadstart=${e => videoLoadingScreen(true)}
+                ></video>
+              </div>
+          </div>
+          <div id="pagetoolbar">
+              <div id="controls">
+                <button type="button" class="btn btn-primary" onclick=${openProfile}>
+                  Profile
+                </button>
+                <button type="button" class="btn ${state.remote ? 'btn-primary': 'btn-danger'}"
+                    onclick=${remote}>
+                  Remote
+                </button>
+                <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider" oninput=${changeVolume}/>
+                <a id="copyright" href="/license" target="_blank">Copyright (C) 2019 Vorlent</a>
+              </div>
+              <div id="userlist" class="userlist">
+                    ${state.userlist.map(user => html`
+                        <div class="user">
+                            <img class="avatar" src="${user.url}"></img>
+                            <div class="centered">${user.username}</div>
+                            <i class="icon-keyboard remote" style=${user.remote ? "" : "display: none;"}></i>
+                        </div>
+                    `)}
+              </div>
+          </div>
+          <div id="chat">
+             <div id="messages" ref=${this.setChatref}>
+                ${state.chatMessages.map(message => html`
+                  <div class="message">
+                      <div class="username">${message.username + " " + message.timestamp}</div>
+                      ${message.messages.map(msg => html`
+                          ${msg.type == "url" &&
+                              html`<div><a class="chat-link" target="_blank" href="${msg.href}">${msg.href}</a></div>`}
+                          ${msg.type == "image" &&
+                              html`<div class="chat-image">
+                                  <a class="chat-link" target="_blank" href="${msg.href}"><img src="${msg.href}" /></a>
+                              </div>`}
+                          ${msg.type == "text" &&
+                              html`<div>${msg.message}</div>`}
+                      `)}
+                  </div>
+                `)}
+            </div>
+            <div id="chatbox">
+              <div id="typing">
+                ${state.typingUsers.length > 0 && html`
+                    ${state.typingUsers.map((user, i) => html`
+                        ${user.username}${(state.typingUsers.length - 1 != i) && ', '}
+                    `)} ${state.typingUsers.length > 1 ? 'are' : 'is'} typing...
+                `}
+              </div>
+              <textarea id="chatbox-textarea" onkeypress=${chatKeypress}>
+                ${state.chatBox}
+              </textarea>
+            </div>
+          </div>
 
-					  <video id="video" autoplay class="full-width full-height" tabindex="0"
-                        onplay=${e => videoLoadingScreen(false)}
-                        onloadstart=${e => videoLoadingScreen(true)}
-                      ></video>
-				  </div>
-				  <div class="row">
-					  <div class="col-md-3 controls">
-                          <div class="row">
-                              <div class="col-md-3">
-                                  <a href="#" class="btn btn-primary" onclick=${openProfile}>
-                                    <span class="glyphicon glyphicon-cog"></span>
-                                    Profile
-                                  </a>
-                              </div>
-                              <div class="col-md-3">
-        						  <a class="btn ${state.remote ? 'btn-primary': 'btn-danger'}"
-                                      onclick=${remote}>
-        							  Remote
-        						  </a>
-                              </div>
-                              <div class="col-md-3">
-                                <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider" oninput=${changeVolume}/>
-                              </div>
-                          </div>
-						  <div class="row">
-							  <div class="col-md-12">
-								  <a href="/license" target="_blank">Copyright (C) 2019 Vorlent</a>
-							  </div>
-						  </div>
-					  </div>
-					  <div id="userlist" class="col-md-9 userlist">
-							${state.userlist.map(user => html`
-								<div class="user">
-									<img class="avatar" src="${user.url}"></img>
-									<div class="centered">${user.username}</div>
-									<i class="icon-keyboard remote" style=${user.remote ? "" : "display: none;"}></i>
-								</div>
-							`)}
-					  </div>
-				  </div>
-			  </div>
-			  <div class="col-md-2 chat-color full-height chat">
-				  <div id="messages" ref=${this.setChatref}>
-					  ${state.chatMessages.map(message => html`
-						<div class="message">
-						  	<div class="username">${message.username + " " + message.timestamp}</div>
-						  	${message.messages.map(msg => html`
-								${msg.type == "url" &&
-									html`<div><a class="chat-link" target="_blank" href="${msg.href}">${msg.href}</a></div>`}
-								${msg.type == "image" &&
-									html`<div class="chat-image">
-										<a class="chat-link" target="_blank" href="${msg.href}"><img src="${msg.href}" /></a>
-									</div>`}
-								${msg.type == "text" &&
-									html`<div>${msg.message}</div>`}
-						  	`)}
-					  	</div>
-					  `)}
-				  </div>
-				  <div class="chatbox">
-					  <div id="typing">
-                          ${state.typingUsers.length > 0 && html`
-                              ${state.typingUsers.map((user, i) => html`
-                                  ${user.username}${(state.typingUsers.length - 1 != i) && ', '}
-                              `)} ${state.typingUsers.length > 1 ? 'are' : 'is'} typing...
-						  `}
-					  </div>
-					  <textarea id="chatbox-textarea" onkeypress=${chatKeypress}>
-                        ${state.chatBox}
-					  </textarea>
-				  </div>
-			  </div>
-		  </div>
           ${state.profileModal && html`
-              <div class="profile-modal-background">
-                <div class="profile-modal">
-                    <div class="row title">
-                        <div class="col-md-2"></div>
-                        <div class="col-md-8">
-                          Profile
-                        </div>
-                        <div class="col-md-2 profile-modal-close">
-                            <a href="#" onclick=${closeProfile}>X</a>
-                        </div>
+              <div id="profile-modal-background">
+                <div id="profile-modal">
+                  <div class="title">
+                    <div>
+                      Profile
                     </div>
-                    <div class="row">
-                        <div class="image avatar big" style="background-image: url('${state.profileModal.avatarUrl}');">
-                            <div class="uploader-overlay" onclick=${openAvatarUpload}>
-                                <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg" onchange=${avatarSelected}/>
-                                <div class="center">Upload</div>
-                            </div>
-                        </div>
+                    <button type="button" id="profile-modal-close" onclick=${closeProfile}>X</button>
+                  </div>
+                  <div class="image avatar big" style="background-image: url('${state.profileModal.avatarUrl}');">
+                    <div class="uploader-overlay" onclick=${openAvatarUpload}>
+                      <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg" onchange=${avatarSelected}/>
+                        <div class="center">Upload</div>
+                      </div>
                     </div>
-                    <div class="row">
-                        Username
-                    </div>
-                    <div class="row">
-                        <input class="profile-modal-username" type="text"
-                            onInput=${e => updateProfileUsername(e.target.value)}
-                            name="username" value="${state.profileModal.username}"/>
-                    </div>
-                    <div class="row">
-                        <a href="#" class="btn btn-primary" onclick=${saveProfile}>
-                          <span class="glyphicon glyphicon-ok"></span> Save
-                        </a>
-                    </div>
+                  <div>
+                    Username
+                  </div>
+                  <input class="profile-modal-username" type="text"
+                    onInput=${e => updateProfileUsername(e.target.value)}
+                    name="username" value="${state.profileModal.username}"/>
+                  <button class="btn btn-primary" onclick=${saveProfile}>Save</a>
                 </div>
               </div>`}
 	  </div>
@@ -323,10 +297,21 @@ function videoKeyDown(e) {
 }
 
 function getRemotePosition(e) {
-	var videoRect = videoElement.getBoundingClientRect();
-	var x = (e.clientX - videoRect.left) / (videoRect.right - videoRect.left) * resolutionX;
-	var y = (e.clientY - videoRect.top) / (videoRect.bottom - videoRect.top) * resolutionY;
-	return { x: x, y: y }
+  var videoRect = videoElement.getBoundingClientRect();
+  var ratioDistortion = (videoRect.width / videoRect.height) / (videoElement.videoWidth / videoElement.videoHeight);
+  var wider = (ratioDistortion > 1);
+  // assume centered
+  var padVt = wider ? 0 : (videoRect.height * (1 - ratioDistortion) / 2);
+  var padHz = wider ? (videoRect.width * (1 - 1 / ratioDistortion)) / 2 : 0;
+  var correctedRect = { // video rectangle with corrections for black lines
+    top: videoRect.top + padVt,
+    right: videoRect.right - padHz,
+    bottom: videoRect.bottom - padVt,
+    left: videoRect.left + padHz
+  };
+  var x = (e.clientX - correctedRect.left) / (correctedRect.right - correctedRect.left) * resolutionX;
+  var y = (e.clientY - correctedRect.top) / (correctedRect.bottom - correctedRect.top) * resolutionY;
+  return { x: x, y: y }
 }
 
 function videoMouseUp(e) {
@@ -680,3 +665,4 @@ function saveProfile() {
 function sendMessage(message) {
 	websocket.send(JSON.stringify(message));
 }
+
