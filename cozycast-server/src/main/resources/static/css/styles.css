@@ -95,21 +95,22 @@ html, body, #pagecontent, #videosizer {
 }
 
 .btn-primary {
-    background-color: #f90;
-    border-color: #b60;
-}
 
-.btn-primary:hover {
-    background-color: #b60;
-}
-
-.btn-danger {
     background-color: #17c;
     border-color: #048;
 }
 
-.btn-danger:hover {
+.btn-primary:hover {
     background-color: #048;
+}
+
+.btn-danger {
+    background-color: #f90;
+    border-color: #b60;
+}
+
+.btn-danger:hover {
+    background-color: #b60;
 }
 
 #copyright {

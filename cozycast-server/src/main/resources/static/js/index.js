@@ -77,7 +77,7 @@ class App extends Component {
                 <button type="button" class="btn btn-primary" onclick=${openProfile}>
                   Profile
                 </button>
-                <button type="button" class="btn ${state.remote ? 'btn-primary': 'btn-danger'}"
+                <button type="button" class="btn ${state.remote ? 'btn-danger' : 'btn-primary'}"
                     onclick=${remote}>
                   Remote
                 </button>
