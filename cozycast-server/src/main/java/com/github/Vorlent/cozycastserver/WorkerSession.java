@@ -25,8 +25,8 @@ public class WorkerSession {
 
     public MediaPipeline getMediaPipeline(KurentoClient kurento) {
         if(mediaPipeline == null) {
-			mediaPipeline = kurento.createMediaPipeline();
-		}
+            mediaPipeline = kurento.createMediaPipeline();
+        }
         return mediaPipeline;
     }
 

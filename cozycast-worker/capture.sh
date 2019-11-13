@@ -11,26 +11,26 @@ if [ -f "/home/cozycast/ffmpeg.pid" ]; then
 fi
 
 ffmpeg \
-  -thread_queue_size 512 \
-  -f alsa \
-  -ac 2 \
-  -channel_layout stereo \
-  -i pulse \
-  -s 1280x720 \
-  -r 25 \
-  -f x11grab \
-  -i $DISPLAY.0+0,0 \
-  -vsync 1 -async 1 \
-  -c:v libvpx \
-  -quality realtime \
-  -crf 10 \
-  -b:v 1M \
-  -pix_fmt yuv420p \
-  -sdp_file /home/cozycast/sdp_answer \
-  -an -f rtp rtp://$IP:$AUDIO_PORT \
-  -c:a libopus \
-  -b:a 192k \
-  -vn -sdp_file /home/cozycast/sdp_answer -f rtp rtp://$IP:$VIDEO_PORT &
+    -thread_queue_size 512 \
+    -f alsa \
+    -ac 2 \
+    -channel_layout stereo \
+    -i pulse \
+    -s 1280x720 \
+    -r 25 \
+    -f x11grab \
+    -i $DISPLAY.0+0,0 \
+    -vsync 1 -async 1 \
+    -c:v libvpx \
+    -quality realtime \
+    -crf 10 \
+    -b:v 1M \
+    -pix_fmt yuv420p \
+    -sdp_file /home/cozycast/sdp_answer \
+    -an -f rtp rtp://$IP:$AUDIO_PORT \
+    -c:a libopus \
+    -b:a 192k \
+    -vn -sdp_file /home/cozycast/sdp_answer -f rtp rtp://$IP:$VIDEO_PORT &
 
 FFMPEG_PID=$!
 echo "$FFMPEG_PID" >> /home/cozycast/ffmpeg.pid

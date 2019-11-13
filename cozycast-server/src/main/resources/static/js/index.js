@@ -19,29 +19,29 @@ function updateState(fun) {
 }
 
 class App extends Component {
-  chatref = null;
-  setChatref = (dom) => this.chatref = dom;
+    chatref = null;
+    setChatref = (dom) => this.chatref = dom;
 
-  componentDidMount(){
- 	globalVar.callback = (data) => {
-		this.setState(data);
-	};
-	this.scrollToBottom();
-  }
+    componentDidMount(){
+    	globalVar.callback = (data) => {
+        	this.setState(data);
+        };
+        this.scrollToBottom();
+    }
 
-  componentDidUpdate() {
-  	this.scrollToBottom();
-  }
+    componentDidUpdate() {
+    	this.scrollToBottom();
+    }
 
-  scrollToBottom() {
-	  var messages = document.getElementById("messages");
-	  messages.scrollTop = messages.scrollHeight;
-      document.getElementById('video').volume = state.volume/100;
-  }
+    scrollToBottom() {
+        var messages = document.getElementById("messages");
+        messages.scrollTop = messages.scrollHeight;
+        document.getElementById('video').volume = state.volume/100;
+    }
 
-  render({ page }, { xyz = [] }) {
-	return html`
-	  <div id="pagecontent">
+    render({ page }, { xyz = [] }) {
+    return html`
+      <div id="pagecontent">
           <div id="videoBig">
               <div id="videocontrols" tabindex="0"
                 oncontextmenu=${disableContextmenu}
@@ -150,9 +150,9 @@ class App extends Component {
                   <button class="btn btn-primary" onclick=${saveProfile}>Save</a>
                 </div>
               </div>`}
-	  </div>
-	`;
-  }
+      </div>
+    `;
+    }
 }
 
 var preactBody = render(html`<${App} page="All" />`, document.body);
@@ -183,8 +183,8 @@ function changeVolume(e) {
 }
 
 window.onload = function() {
-	connect();
-	videoElement = document.getElementById('video');
+    connect();
+    videoElement = document.getElementById('video');
 }
 
 var typingTimer;
@@ -248,80 +248,80 @@ function videoLoadingScreen(loadingState) {
 }
 
 function remote() {
-	if(state.remote) {
-		sendMessage({
-			action : 'drop_remote'
-		});
-	} else {
-		sendMessage({
-			action : 'pickup_remote'
-		});
-	}
+    if(state.remote) {
+    	sendMessage({
+    		action : 'drop_remote'
+    	});
+    } else {
+    	sendMessage({
+    		action : 'pickup_remote'
+    	});
+    }
 }
 
 function videoScroll(e) {
-	if(e.deltaY < 0) {
-		sendMessage({
-			action : 'scroll',
-			direction: "up"
-		});
-	}
-	if(e.deltaY > 0) {
-		sendMessage({
-			action : 'scroll',
-			direction: "down"
-		});
-	}
+    if(e.deltaY < 0) {
+    	sendMessage({
+    		action : 'scroll',
+    		direction: "up"
+    	});
+    }
+    if(e.deltaY > 0) {
+    	sendMessage({
+    		action : 'scroll',
+    		direction: "down"
+    	});
+    }
 }
 
 function videoKeyUp(e) {
-	if(e.ctrlKey && e.key.toLowerCase() == "v") {
-		return;
-	}
-	e.preventDefault();
-	sendMessage({
-		action : 'keyup',
-		key: e.key
-	});
+    if(e.ctrlKey && e.key.toLowerCase() == "v") {
+    	return;
+    }
+    e.preventDefault();
+    sendMessage({
+    	action : 'keyup',
+    	key: e.key
+    });
 }
 
 function videoKeyDown(e) {
-	if(e.ctrlKey && e.key.toLowerCase() == "v") {
-		return;
-	}
-	e.preventDefault();
-	sendMessage({
-		action : 'keydown',
-		key: e.key
-	});
+    if(e.ctrlKey && e.key.toLowerCase() == "v") {
+    	return;
+    }
+    e.preventDefault();
+    sendMessage({
+    	action : 'keydown',
+    	key: e.key
+    });
 }
 
 function getRemotePosition(e) {
-  var videoRect = videoElement.getBoundingClientRect();
-  var ratioDistortion = (videoRect.width / videoRect.height) / (videoElement.videoWidth / videoElement.videoHeight);
-  var wider = (ratioDistortion > 1);
-  // assume centered
-  var padVt = wider ? 0 : (videoRect.height * (1 - ratioDistortion) / 2);
-  var padHz = wider ? (videoRect.width * (1 - 1 / ratioDistortion)) / 2 : 0;
-  var correctedRect = { // video rectangle with corrections for black lines
-    top: videoRect.top + padVt,
-    right: videoRect.right - padHz,
-    bottom: videoRect.bottom - padVt,
-    left: videoRect.left + padHz
-  };
-  var x = (e.clientX - correctedRect.left) / (correctedRect.right - correctedRect.left) * resolutionX;
-  var y = (e.clientY - correctedRect.top) / (correctedRect.bottom - correctedRect.top) * resolutionY;
-  return { x: x, y: y }
+    var videoRect = videoElement.getBoundingClientRect();
+    var ratioDistortion = (videoRect.width / videoRect.height) / (videoElement.videoWidth / videoElement.videoHeight);
+    var wider = (ratioDistortion > 1);
+    // assume centered
+    var padVt = wider ? 0 : (videoRect.height * (1 - ratioDistortion) / 2);
+    var padHz = wider ? (videoRect.width * (1 - 1 / ratioDistortion)) / 2 : 0;
+    var correctedRect = { // video rectangle with corrections for black lines
+        top: videoRect.top + padVt,
+        right: videoRect.right - padHz,
+        bottom: videoRect.bottom - padVt,
+        left: videoRect.left + padHz
+    };
+    var x = (e.clientX - correctedRect.left) / (correctedRect.right - correctedRect.left) * resolutionX;
+    var y = (e.clientY - correctedRect.top) / (correctedRect.bottom - correctedRect.top) * resolutionY;
+    return { x: x, y: y }
 }
 
 function videoMouseUp(e) {
-	var pos = getRemotePosition(e);
-	sendMessage({
-		action : 'mouseup',
-		mouseX: pos.x,
-		mouseY: pos.y,
-		button: e.button
-	});
+    var pos = getRemotePosition(e);
+    sendMessage({
+    	action : 'mouseup',
+    	mouseX: pos.x,
+    	mouseY: pos.y,
+    	button: e.button
+    });
 }
 
 function videoMouseDown(e) {
@@ -331,35 +331,35 @@ function videoMouseDown(e) {
         videoLoadingScreen(true)
     }
 
-	var pos = getRemotePosition(e);
-	sendMessage({
-		action : 'mousedown',
-		mouseX: pos.x,
-		mouseY: pos.y,
-		button: e.button
-	});
+    var pos = getRemotePosition(e);
+    sendMessage({
+    	action : 'mousedown',
+    	mouseX: pos.x,
+    	mouseY: pos.y,
+    	button: e.button
+    });
 }
 
 function videoMousemove(e) {
-	var now = Date.now();
-	if(now - lastMouseEvent > 10) {
-		var pos = getRemotePosition(e);
-		sendMessage({
-			action : 'mousemove',
-			mouseX: pos.x,
-			mouseY: pos.y
-		});
-		lastMouseEvent = now;
-	}
+    var now = Date.now();
+    if(now - lastMouseEvent > 10) {
+    	var pos = getRemotePosition(e);
+    	sendMessage({
+    		action : 'mousemove',
+    		mouseX: pos.x,
+    		mouseY: pos.y
+    	});
+    	lastMouseEvent = now;
+    }
 }
 
 function paste(e) {
-	e.preventDefault();
-	var pastedData = e.clipboardData.getData('text');
-	sendMessage({
-		action : 'paste',
-		clipboard: pastedData
-	});
+    e.preventDefault();
+    var pastedData = e.clipboardData.getData('text');
+    sendMessage({
+    	action : 'paste',
+    	clipboard: pastedData
+    });
 }
 
 function typing(parsedMessage) {
@@ -387,23 +387,23 @@ function isImageUrl(url) {
 }
 
 function chatmessage(parsedMessage) {
-	var urls = linkify.find(parsedMessage.message);
-	var split = [];
-	var offset = 0;
-	var remaining = parsedMessage.message;
-	urls.forEach(function(element) {
-		var end = remaining.indexOf(element.value, offset);
-		split.push({ "type": "text", "message": remaining.substring(offset, end) });
-		if(isImageUrl(element.value)) {
-			split.push({ "type": "image", "href": element.value });
-		} else {
-			split.push({ "type": "url", "href": element.value });
-		}
-		offset = end + element.value.length;
-	});
-	if(offset < remaining.length) {
-		split.push({ "type": "text", "message": remaining.substring(offset, remaining.length) });
-	}
+    var urls = linkify.find(parsedMessage.message);
+    var split = [];
+    var offset = 0;
+    var remaining = parsedMessage.message;
+    urls.forEach(function(element) {
+    	var end = remaining.indexOf(element.value, offset);
+    	split.push({ "type": "text", "message": remaining.substring(offset, end) });
+    	if(isImageUrl(element.value)) {
+    		split.push({ "type": "image", "href": element.value });
+    	} else {
+    		split.push({ "type": "url", "href": element.value });
+    	}
+    	offset = end + element.value.length;
+    });
+    if(offset < remaining.length) {
+    	split.push({ "type": "text", "message": remaining.substring(offset, remaining.length) });
+    }
 
     updateState(function () {
         var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
@@ -479,40 +479,40 @@ function leave(parsedMessage) {
 }
 
 window.onbeforeunload = function() {
-	websocket.close();
+    websocket.close();
 }
 
 function connect() {
-	websocket = new WebSocket('ws://' + location.host + '/stream');
-	websocket.onmessage = function(message) {
-		var parsedMessage = JSON.parse(message.data);
+    websocket = new WebSocket('ws://' + location.host + '/stream');
+    websocket.onmessage = function(message) {
+    	var parsedMessage = JSON.parse(message.data);
 
-		switch (parsedMessage.action) {
-			case 'startResponse':
-				startResponse(parsedMessage);
-				break;
-			case 'error':
-				console.log('Error from server: ' + parsedMessage.message);
-				break;
-			case 'typing':
-				typing(parsedMessage);
-				break;
-			case 'receivemessage':
-				chatmessage(parsedMessage);
-				break;
+    	switch (parsedMessage.action) {
+    		case 'startResponse':
+    			startResponse(parsedMessage);
+    			break;
+    		case 'error':
+    			console.log('Error from server: ' + parsedMessage.message);
+    			break;
+    		case 'typing':
+    			typing(parsedMessage);
+    			break;
+    		case 'receivemessage':
+    			chatmessage(parsedMessage);
+    			break;
             case 'changeusername':
                 changeusername(parsedMessage);
                 break;
             case 'changeprofilepicture':
                 changeprofilepicture(parsedMessage);
                 break;
-			case 'join':
-				join(parsedMessage);
-				break;
-			case 'leave':
-				leave(parsedMessage);
-				break;
-			case 'drop_remote':
+    		case 'join':
+    			join(parsedMessage);
+    			break;
+    		case 'leave':
+    			leave(parsedMessage);
+    			break;
+    		case 'drop_remote':
                 updateState(function () {
                     state.remote = false;
                     state.userlist = state.userlist.map(function(user) {
@@ -522,8 +522,8 @@ function connect() {
                         return user;
                     })
                 })
-				break;
-			case 'pickup_remote':
+    			break;
+    		case 'pickup_remote':
                 updateState(function () {
                     state.userlist = state.userlist.map(function(user) {
                         user.remote = user.session == parsedMessage.session;
@@ -531,20 +531,20 @@ function connect() {
                     })
                     state.remote = parsedMessage.has_remote;
                 })
-				break;
-			case 'iceCandidate':
-				webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
-					if (error) {
-						console.log('Error iceCandidate: ' + error);
-						return;
-					}
-				});
-				break;
-			default:
-				console.log('Unknown action: ', parsedMessage);
-		}
-	}
-	websocket.onclose = function (event) {
+    			break;
+    		case 'iceCandidate':
+    			webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
+    				if (error) {
+    					console.log('Error iceCandidate: ' + error);
+    					return;
+    				}
+    			});
+    			break;
+    		default:
+    			console.log('Unknown action: ', parsedMessage);
+    	}
+    }
+    websocket.onclose = function (event) {
         updateState(function () {
             state.userlist = [];
             state.typingUsers = [];
@@ -553,72 +553,72 @@ function connect() {
     		webRtcPeer.dispose();
     		webRtcPeer = null;
     	}
-		connect();
-	}
+    	connect();
+    }
 
-	websocket.onopen = function (event) {
-		setTimeout(function() {
-			start(video);
-		}, 300);
-	};
+    websocket.onopen = function (event) {
+    	setTimeout(function() {
+    		start(video);
+    	}, 300);
+    };
 }
 
 function start(video) {
-	sendMessage({
-		action : 'join',
-		username: state.username,
+    sendMessage({
+    	action : 'join',
+    	username: state.username,
         url: state.avatarUrl
-	});
-	fetch("/turn/credential").then((e) => e.json()).then(function(iceServer) {
-		var options = {
-			remoteVideo : video,
-			mediaConstraints : {
-				audio : true,
-				video : true
-			},
-			onicecandidate : onIceCandidate,
-			configuration: {
-				iceServers: [iceServer]
-			}
-		}
+    });
+    fetch("/turn/credential").then((e) => e.json()).then(function(iceServer) {
+    	var options = {
+    		remoteVideo : video,
+    		mediaConstraints : {
+    			audio : true,
+    			video : true
+    		},
+    		onicecandidate : onIceCandidate,
+    		configuration: {
+    			iceServers: [iceServer]
+    		}
+    	}
 
-		webRtcPeer = new kurentoUtils.WebRtcPeer.WebRtcPeerRecvonly(options,
-			function(error) {
-				if (error) {
-					console.log(error);
-					return;
-				}
-				webRtcPeer.generateOffer(onOffer);
-			});
-	});
+    	webRtcPeer = new kurentoUtils.WebRtcPeer.WebRtcPeerRecvonly(options,
+    		function(error) {
+    			if (error) {
+    				console.log(error);
+    				return;
+    			}
+    			webRtcPeer.generateOffer(onOffer);
+    		});
+    });
 }
 
 function onOffer(error, sdpOffer) {
-	if (error) {
-		console.log(error);
-		return;
-	}
+    if (error) {
+    	console.log(error);
+    	return;
+    }
 
-	sendMessage({
-		action : 'start',
-		sdpOffer : sdpOffer
-	});
+    sendMessage({
+    	action : 'start',
+    	sdpOffer : sdpOffer
+    });
 }
 
 function onIceCandidate(candidate) {
-	sendMessage({
-		action : 'onIceCandidate',
-		candidate : candidate
-	});
+    sendMessage({
+    	action : 'onIceCandidate',
+    	candidate : candidate
+    });
 }
 
 function startResponse(message) {
-	webRtcPeer.processAnswer(message.sdpAnswer, function(error) {
-		if (error) {
-			console.log(error);
-			return;
-		}
-	});
+    webRtcPeer.processAnswer(message.sdpAnswer, function(error) {
+    	if (error) {
+    		console.log(error);
+    		return;
+    	}
+    });
 }
 
 function openProfile() {
@@ -663,6 +663,5 @@ function saveProfile() {
 }
 
 function sendMessage(message) {
-	websocket.send(JSON.stringify(message));
+    websocket.send(JSON.stringify(message));
 }
-

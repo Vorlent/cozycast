@@ -15,21 +15,21 @@ import org.kurento.client.KurentoClient;
 @SpringBootApplication
 public class CozycastServerApplication implements WebSocketConfigurer {
 
-	@Bean
-	public KurentoClient kurentoClient() {
-		return KurentoClient.create();
-	}
+    @Bean
+    public KurentoClient kurentoClient() {
+        return KurentoClient.create();
+    }
 
-	@Bean
-  	public StreamHandler streamHandler() {
-      	return new StreamHandler();
-  	}
+    @Bean
+    public StreamHandler streamHandler() {
+        return new StreamHandler();
+    }
 
-	public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-		registry.addHandler(streamHandler(), "/stream");
-	}
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        registry.addHandler(streamHandler(), "/stream");
+    }
 
-	public static void main(String[] args) {
-		SpringApplication.run(CozycastServerApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(CozycastServerApplication.class, args);
+    }
 }

@@ -1,134 +1,134 @@
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 :root {
-  --cozycast-noise: url("/png/noise_128.png");
-  --cozycast-dpr: 1;
-  font-family: sans-serif;
+    --cozycast-noise: url("/png/noise_128.png");
+    --cozycast-dpr: 1;
+    font-family: sans-serif;
 }
 
 html, body, #pagecontent, #videosizer {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 #pagecontent {
-  display: grid;
-  grid:
+    display: grid;
+    grid:
     "video chat" 1fr
     "toolbar chat" 5em
     / 1fr 15em;
 }
 
 @media (max-width: 780px) {
-  #pagecontent {
-    grid:
-      "video" 40%
-      "toolbar" 4em
-      "chat" 1fr;
-  }
+    #pagecontent {
+        grid:
+        "video" 40%
+        "toolbar" 4em
+        "chat" 1fr;
+    }
 
-  #messages {
-    scrollbar-width: thin;
-  }
+    #messages {
+        scrollbar-width: thin;
+    }
 }
 
 #usrlist, #messages {
-  scrollbar-color: #235 #346;
+    scrollbar-color: #235 #346;
 }
 
 #pagecontent > * {
-  background: fixed repeat top left var(--cozycast-noise);
-  background-size: calc(128px / var(--cozycast-dpr));
+    background: fixed repeat top left var(--cozycast-noise);
+    background-size: calc(128px / var(--cozycast-dpr));
 }
 
 #videoBig, #video {
-  min-width: 0;
-  min-height: 0;
+    min-width: 0;
+    min-height: 0;
 }
 
 #videoBig {
-  grid-area: video;
-  position: relative;
-  background-color: #181828;
+    grid-area: video;
+    position: relative;
+    background-color: #181828;
 }
 
 #videosizer {
-  display: flex;
+    display: flex;
 }
 
 #video {
-  flex-grow: 1;
+    flex-grow: 1;
 }
 
 #chat {
-  grid-area: chat;
-  display: flex;
-  flex-direction: column;
-  background-color: #123;
-  min-height: 0;
+    grid-area: chat;
+    display: flex;
+    flex-direction: column;
+    background-color: #123;
+    min-height: 0;
 }
 
 #chatbox {
-  padding: 10px;
+    padding: 10px;
 }
 
 #pagetoolbar {
-  grid-area: toolbar;
-  display: flex;
-  background-color: #123;
+    grid-area: toolbar;
+    display: flex;
+    background-color: #123;
 }
 
 #controls {
-  display: grid;
-  grid-gap: .5em;
-  padding: .5em;
+    display: grid;
+    grid-gap: .5em;
+    padding: .5em;
 }
 
 .btn {
-  color: white;
-  border-radius: 0.2em;
-  transition: background-color 0.2s;
+    color: white;
+    border-radius: 0.2em;
+    transition: background-color 0.2s;
 }
 
 .btn-primary {
-  background-color: #f90;
-  border-color: #b60;
+    background-color: #f90;
+    border-color: #b60;
 }
 
 .btn-primary:hover {
-  background-color: #b60;
+    background-color: #b60;
 }
 
 .btn-danger {
-  background-color: #17c;
-  border-color: #048;
+    background-color: #17c;
+    border-color: #048;
 }
 
 .btn-danger:hover {
-  background-color: #048;
+    background-color: #048;
 }
 
 #copyright {
-  grid-column: span 3;
-  color: lightgray;
-  font-size: .5em;
+    grid-column: span 3;
+    color: lightgray;
+    font-size: .5em;
 }
 
 .message {
-  background-color: rgba(0, 0, 0, 0.3);
-  margin-top: 10px;
-  padding: .5em;
-  border-radius: .2em;
-  box-shadow: 0 0 4px black inset;
+    background-color: rgba(0, 0, 0, 0.3);
+    margin-top: 10px;
+    padding: .5em;
+    border-radius: .2em;
+    box-shadow: 0 0 4px black inset;
 }
 
 .message > div:not(.username) {
-  margin-left: .5em;
-  font-size: .8em;
+    margin-left: .5em;
+    font-size: .8em;
 }
 
 #videocontrols {
@@ -141,19 +141,19 @@ html, body, #pagecontent, #videosizer {
 }
 
 #chat, .chat-link, .chat-link:hover  {
-  color: white;
+    color: white;
 }
 
 .username {
-  font-weight: 600;
+    font-weight: 600;
 }
 
 #messages {
-  flex-grow: 1;
-  padding-left: 10px;
-  padding-right: 10px;
-  overflow-y: scroll;
-  word-break: break-word;
+    flex-grow: 1;
+    padding-left: 10px;
+    padding-right: 10px;
+    overflow-y: scroll;
+    word-break: break-word;
 }
 
 .chat-image {
@@ -170,76 +170,76 @@ html, body, #pagecontent, #videosizer {
 }
 
 #chatbox-textarea {
-  color: white;
-  background: #235 var(--cozycast-noise);
-  resize: none;
-  width: 100%;
-  border-radius: 5px;
-  border-color: #124;
-  font: .8em sans-serif;
-  padding: .3em;
-  height: 5em;
+    color: white;
+    background: #235 var(--cozycast-noise);
+    resize: none;
+    width: 100%;
+    border-radius: 5px;
+    border-color: #124;
+    font: .8em sans-serif;
+    padding: .3em;
+    height: 5em;
 }
 
 #userlist {
-  flex-grow: 1;
-  display: flex;
-  justify-content: center;
-  min-width: 0;
-  overflow: auto hidden;
-  scrollbar-color: #235 #346;
-  scrollbar-width: thin;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+    overflow: auto hidden;
+    scrollbar-color: #235 #346;
+    scrollbar-width: thin;
 }
 
 .user {
-  position: relative;
-  text-align: center;
-  color: white;
-  margin-left: 5px;
-  margin-right: 5px;
+    position: relative;
+    text-align: center;
+    color: white;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 .remote {
     position: absolute;
-    bottom: 0px;
+    bottom: 20px;
     right: 0px;
     background-color: #e4910a;
 }
 
 /* Centered text */
 .user .centered {
-  position: absolute;
-  padding-top: 10px;
-  left: 50%;
-  transform: translate(-50%, -50%);
+    position: absolute;
+    padding-top: 10px;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .volumeSlider {
-  align-self: center;
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100px;
-  height: 5px;
-  background: #346;
-  outline: none;
-  opacity: 0.7;
-  -webkit-transition: .2s;
-  transition: opacity .2s;
+    align-self: center;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100px;
+    height: 5px;
+    background: #346;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
 }
 
 .volumeSlider::-moz-range-thumb, .volumeSlider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 15px;
-  height: 15px;
-  background: #235;
-  cursor: pointer;
-  border-radius: 50%;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    background: #235;
+    cursor: pointer;
+    border-radius: 50%;
 }
 
 #typing {
-  min-height: 1.25em;
-  line-height: 1.25;
+    min-height: 1.25em;
+    line-height: 1.25;
 }
 
 .paused-screen {
@@ -278,51 +278,51 @@ html, body, #pagecontent, #videosizer {
 }
 
 #profile-modal-background {
-  position: fixed;
-  z-index: 3;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.7)
+    position: fixed;
+    z-index: 3;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.7)
 }
 
 #profile-modal {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: #123 var(--cozycast-noise);
-  margin: 15% auto; /* 15% from the top and centered */
-  padding: 10px;
-  border: 1px solid black;
-  border-radius: 1em;
-  box-shadow: 0 0 1em black;
-  width: 30%;
-  color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #123 var(--cozycast-noise);
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 10px;
+    border: 1px solid black;
+    border-radius: 1em;
+    box-shadow: 0 0 1em black;
+    width: 30%;
+    color: #fff;
 }
 
 #profile-modal > .title {
-  display: flex;
-  align-self: stretch;
+    display: flex;
+    align-self: stretch;
 }
 
 #profile-modal > .title > div {
-  text-align: center;
-  flex-grow: 1;
+    text-align: center;
+    flex-grow: 1;
 }
 
 #profile-modal-close {
-  width: 1.5em; height: 1.5em;
-  color: #fff;
-  font-weight: bold;
-  border: none;
-  background-color: rgba(0, 0, 0, 0.3);
-  border-radius: 50%;
-  box-shadow: 0 0 3px black inset;
+    width: 1.5em; height: 1.5em;
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    box-shadow: 0 0 3px black inset;
 }
 
 #profile-modal-close:hover {
-  color: #337ab7;
+    color: #337ab7;
 }
 
 #profile-modal-username {
@@ -332,12 +332,12 @@ html, body, #pagecontent, #videosizer {
 }
 
 #profile-modal .title{
-  display: flex;
-  font-size: 2em;
+    display: flex;
+    font-size: 2em;
 }
 
 #profile-modal .btn {
-  margin-top: .5em;
+    margin-top: .5em;
 }
 
 .image {
@@ -354,10 +354,10 @@ html, body, #pagecontent, #videosizer {
 }
 
 .avatar.big {
-  border-width: 3px;
-  box-shadow: 0 0 1em black inset;
-  width: 180px;
-  height: 180px;
+    border-width: 3px;
+    box-shadow: 0 0 1em black inset;
+    width: 180px;
+    height: 180px;
 }
 
 .uploader-overlay {

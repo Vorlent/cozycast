@@ -34,7 +34,7 @@ public class AvatarController {
 
             md.update(array);
             byte[] digest = md.digest();
-
+            
             return String.format("%064x", new BigInteger(1, digest));
         } catch(NoSuchAlgorithmException e) {
             throw new RuntimeException("Error failed to generate filename");

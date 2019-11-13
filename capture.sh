@@ -1,18 +1,18 @@
 ffmpeg \
-  -thread_queue_size 512 \
-  -f alsa \
-  -ac 2 \
-  -channel_layout stereo \
-  -i pulse \
-  -s 1280x720 \
-  -r 25 \
-  -f x11grab \
-  -i :0.0+0,0 \
-  -b:v 2M \
-  -pix_fmt yuv420p \
-  -c:a libopus \
-  -b:a 192k \
-  -f rtsp rtsp://localhost:5545/abc4
+    -thread_queue_size 512 \
+    -f alsa \
+    -ac 2 \
+    -channel_layout stereo \
+    -i pulse \
+    -s 1280x720 \
+    -r 25 \
+    -f x11grab \
+    -i :0.0+0,0 \
+    -b:v 2M \
+    -pix_fmt yuv420p \
+    -c:a libopus \
+    -b:a 192k \
+    -f rtsp rtsp://localhost:5545/abc4
 
 # Notes:
 # -f alsa -ac 2 -i pulse

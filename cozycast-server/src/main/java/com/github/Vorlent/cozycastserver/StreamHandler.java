@@ -54,461 +54,461 @@ import org.springframework.web.socket.CloseStatus;
 @Component
 public class StreamHandler extends TextWebSocketHandler {
 
-	@Autowired
-  	private KurentoClient kurento;
+    @Autowired
+    private KurentoClient kurento;
 
-  	private final Gson gson = new GsonBuilder().create();
-  	private final ConcurrentHashMap<String, UserSession> users = new ConcurrentHashMap<>();
+    private final Gson gson = new GsonBuilder().create();
+    private final ConcurrentHashMap<String, UserSession> users = new ConcurrentHashMap<>();
 
-	private final ConcurrentHashMap<String, String> data = new ConcurrentHashMap<>();
-	private WorkerSession workerSession = new WorkerSession();
+    private final ConcurrentHashMap<String, String> data = new ConcurrentHashMap<>();
+    private WorkerSession workerSession = new WorkerSession();
 
-	public WebSocketSession worker;
+    public WebSocketSession worker;
 
-  	@Override
-  	public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-    	JsonObject jsonMessage = gson.fromJson(message.getPayload(), JsonObject.class);
-    	String sessionId = session.getId();
+    @Override
+    public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        JsonObject jsonMessage = gson.fromJson(message.getPayload(), JsonObject.class);
+        String sessionId = session.getId();
 
-    	try {
-	      	switch (jsonMessage.get("action").getAsString()) {
-	        	case "start":
-	          		start(session, jsonMessage);
-	          		break;
-	        	case "stop":
-	          		stop(sessionId);
-	          		break;
-				case "typing":
-					typing(session, jsonMessage);
-					break;
-				case "chatmessage":
-					chatmessage(session, jsonMessage);
-					break;
-				case "changeusername":
-	          		changeusername(session, jsonMessage);
-	          		break;
-				case "changeprofilepicture":
-	          		changeprofilepicture(session, jsonMessage);
-	          		break;
-				case "join":
-					join(session, jsonMessage);
-					break;
-				case "scroll":
-					scroll(session, jsonMessage);
-					break;
-				case "mousemove":
-					mousemove(session, jsonMessage);
-					break;
-				case "mouseup":
-					mouseup(session, jsonMessage);
-					break;
-				case "mousedown":
-					mousedown(session, jsonMessage);
-					break;
-				case "paste":
-					paste(session, jsonMessage);
-					break;
-				case "keyup":
-					keyup(session, jsonMessage);
-					break;
-				case "keydown":
-					keydown(session, jsonMessage);
-					break;
-				case "pickup_remote":
-					pickupremote(session);
-					break;
-				case "drop_remote":
-					dropremote(session);
-					break;
-				case "worker":
-					worker(session);
-					break;
-				case "sdpAnswer":
-					sdpAnswer(sessionId, jsonMessage);
-					break;
-	        	case "onIceCandidate":
-	          		onIceCandidate(sessionId, jsonMessage);
-	          		break;
-	        	default:
-	          		sendError(session, "Invalid message with action " + jsonMessage.get("action").getAsString());
-	          		break;
-	  		}
-    	} catch (Throwable t) {
-			t.printStackTrace();
-      		sendError(session, t.getMessage());
-    	}
-  	}
+        try {
+            switch (jsonMessage.get("action").getAsString()) {
+                case "start":
+                start(session, jsonMessage);
+                break;
+                case "stop":
+                stop(sessionId);
+                break;
+                case "typing":
+                typing(session, jsonMessage);
+                break;
+                case "chatmessage":
+                chatmessage(session, jsonMessage);
+                break;
+                case "changeusername":
+                changeusername(session, jsonMessage);
+                break;
+                case "changeprofilepicture":
+                changeprofilepicture(session, jsonMessage);
+                break;
+                case "join":
+                join(session, jsonMessage);
+                break;
+                case "scroll":
+                scroll(session, jsonMessage);
+                break;
+                case "mousemove":
+                mousemove(session, jsonMessage);
+                break;
+                case "mouseup":
+                mouseup(session, jsonMessage);
+                break;
+                case "mousedown":
+                mousedown(session, jsonMessage);
+                break;
+                case "paste":
+                paste(session, jsonMessage);
+                break;
+                case "keyup":
+                keyup(session, jsonMessage);
+                break;
+                case "keydown":
+                keydown(session, jsonMessage);
+                break;
+                case "pickup_remote":
+                pickupremote(session);
+                break;
+                case "drop_remote":
+                dropremote(session);
+                break;
+                case "worker":
+                worker(session);
+                break;
+                case "sdpAnswer":
+                sdpAnswer(sessionId, jsonMessage);
+                break;
+                case "onIceCandidate":
+                onIceCandidate(sessionId, jsonMessage);
+                break;
+                default:
+                sendError(session, "Invalid message with action " + jsonMessage.get("action").getAsString());
+                break;
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+            sendError(session, t.getMessage());
+        }
+    }
 
-	private void start(final WebSocketSession session, JsonObject jsonMessage) {
-		final UserSession user = users.get(session.getId());
-		user.release();
-		MediaPipeline pipeline = workerSession.getMediaPipeline(kurento);
-		WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build();
-		user.setWebRtcEndpoint(webRtcEndpoint);
+    private void start(final WebSocketSession session, JsonObject jsonMessage) {
+        final UserSession user = users.get(session.getId());
+        user.release();
+        MediaPipeline pipeline = workerSession.getMediaPipeline(kurento);
+        WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build();
+        user.setWebRtcEndpoint(webRtcEndpoint);
 
-		workerSession.getRtpEndpoint().connect(webRtcEndpoint);
+        workerSession.getRtpEndpoint().connect(webRtcEndpoint);
 
-		webRtcEndpoint.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
-			@Override
-			public void onEvent(IceCandidateFoundEvent event) {
-				JsonObject response = new JsonObject();
-				response.addProperty("action", "iceCandidate");
-				response.add("candidate", JsonUtils.toJsonObject(event.getCandidate()));
-				try {
-					synchronized (session) {
-						session.sendMessage(new TextMessage(response.toString()));
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		});
+        webRtcEndpoint.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
+            @Override
+            public void onEvent(IceCandidateFoundEvent event) {
+                JsonObject response = new JsonObject();
+                response.addProperty("action", "iceCandidate");
+                response.add("candidate", JsonUtils.toJsonObject(event.getCandidate()));
+                try {
+                    synchronized (session) {
+                        session.sendMessage(new TextMessage(response.toString()));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
-		String sdpOffer = jsonMessage.get("sdpOffer").getAsString();
-		String sdpAnswer = webRtcEndpoint.processOffer(sdpOffer);
+        String sdpOffer = jsonMessage.get("sdpOffer").getAsString();
+        String sdpAnswer = webRtcEndpoint.processOffer(sdpOffer);
 
-		JsonObject response = new JsonObject();
-		response.addProperty("action", "startResponse");
-		response.addProperty("sdpAnswer", sdpAnswer);
-		sendMessage(session, response.toString());
+        JsonObject response = new JsonObject();
+        response.addProperty("action", "startResponse");
+        response.addProperty("sdpAnswer", sdpAnswer);
+        sendMessage(session, response.toString());
 
-		webRtcEndpoint.gatherCandidates();
-	}
+        webRtcEndpoint.gatherCandidates();
+    }
 
-	private void typing(final WebSocketSession session, JsonObject jsonMessage) {
-		System.out.println(jsonMessage);
-		JsonObject response = new JsonObject();
-		response.addProperty("action", "typing");
-		response.addProperty("session", session.getId());
-		response.add("state", jsonMessage.get("state"));
-		response.add("username", jsonMessage.get("username"));
-		String responseString = response.toString();
-		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
-			UserSession value = entry.getValue();
-			if(session.getId() != value.getWebSocketSession().getId()) {
-				sendMessage(value.getWebSocketSession(), responseString);
-			}
-		}
-	}
+    private void typing(final WebSocketSession session, JsonObject jsonMessage) {
+        System.out.println(jsonMessage);
+        JsonObject response = new JsonObject();
+        response.addProperty("action", "typing");
+        response.addProperty("session", session.getId());
+        response.add("state", jsonMessage.get("state"));
+        response.add("username", jsonMessage.get("username"));
+        String responseString = response.toString();
+        for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+            UserSession value = entry.getValue();
+            if(session.getId() != value.getWebSocketSession().getId()) {
+                sendMessage(value.getWebSocketSession(), responseString);
+            }
+        }
+    }
 
-	private void chatmessage(final WebSocketSession session, JsonObject jsonMessage) {
-		System.out.println(jsonMessage);
-		TimeZone tz = TimeZone.getTimeZone("UTC");
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-		df.setTimeZone(tz);
-		String nowAsISO = df.format(new Date());
-		JsonObject response = new JsonObject();
-		response.addProperty("action", "receivemessage");
-		response.add("message", jsonMessage.get("message"));
-		response.add("username", jsonMessage.get("username"));
-		response.addProperty("timestamp", nowAsISO);
-		String responseString = response.toString();
-		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
-    		UserSession value = entry.getValue();
-			sendMessage(value.getWebSocketSession(), responseString);
-		}
-	}
+    private void chatmessage(final WebSocketSession session, JsonObject jsonMessage) {
+        System.out.println(jsonMessage);
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+        df.setTimeZone(tz);
+        String nowAsISO = df.format(new Date());
+        JsonObject response = new JsonObject();
+        response.addProperty("action", "receivemessage");
+        response.add("message", jsonMessage.get("message"));
+        response.add("username", jsonMessage.get("username"));
+        response.addProperty("timestamp", nowAsISO);
+        String responseString = response.toString();
+        for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+            UserSession value = entry.getValue();
+            sendMessage(value.getWebSocketSession(), responseString);
+        }
+    }
 
-	private void changeusername(final WebSocketSession session, JsonObject jsonMessage) {
-		System.out.println(jsonMessage);
-		UserSession user = users.get(session.getId());
-		user.setUsername(jsonMessage.get("username").getAsString());
-		JsonObject response = new JsonObject();
-		response.addProperty("action", "changeusername");
-		response.addProperty("session", session.getId());
-		response.add("username", jsonMessage.get("username"));
-		String responseString = response.toString();
-		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
-			UserSession value = entry.getValue();
-			sendMessage(value.getWebSocketSession(), responseString);
-		}
-	}
+    private void changeusername(final WebSocketSession session, JsonObject jsonMessage) {
+        System.out.println(jsonMessage);
+        UserSession user = users.get(session.getId());
+        user.setUsername(jsonMessage.get("username").getAsString());
+        JsonObject response = new JsonObject();
+        response.addProperty("action", "changeusername");
+        response.addProperty("session", session.getId());
+        response.add("username", jsonMessage.get("username"));
+        String responseString = response.toString();
+        for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+            UserSession value = entry.getValue();
+            sendMessage(value.getWebSocketSession(), responseString);
+        }
+    }
 
-	private void changeprofilepicture(final WebSocketSession session, JsonObject jsonMessage) {
-		System.out.println(jsonMessage);
-		UserSession user = users.get(session.getId());
-		user.setAvatarUrl(jsonMessage.get("url").getAsString());
-		JsonObject response = new JsonObject();
-		response.addProperty("action", "changeprofilepicture");
-		response.addProperty("session", session.getId());
-		response.add("url", jsonMessage.get("url"));
-		String responseString = response.toString();
-		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
-			UserSession value = entry.getValue();
-			sendMessage(value.getWebSocketSession(), responseString);
-		}
-	}
+    private void changeprofilepicture(final WebSocketSession session, JsonObject jsonMessage) {
+        System.out.println(jsonMessage);
+        UserSession user = users.get(session.getId());
+        user.setAvatarUrl(jsonMessage.get("url").getAsString());
+        JsonObject response = new JsonObject();
+        response.addProperty("action", "changeprofilepicture");
+        response.addProperty("session", session.getId());
+        response.add("url", jsonMessage.get("url"));
+        String responseString = response.toString();
+        for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+            UserSession value = entry.getValue();
+            sendMessage(value.getWebSocketSession(), responseString);
+        }
+    }
 
-	private void join(final WebSocketSession session, JsonObject jsonMessage) {
-		System.out.println(jsonMessage);
-		JsonObject response = new JsonObject();
-		response.addProperty("action", "join");
-		response.addProperty("session", session.getId());
-		response.add("username", jsonMessage.get("username"));
-		response.add("url", jsonMessage.get("url"));
-		String responseString = response.toString();
+    private void join(final WebSocketSession session, JsonObject jsonMessage) {
+        System.out.println(jsonMessage);
+        JsonObject response = new JsonObject();
+        response.addProperty("action", "join");
+        response.addProperty("session", session.getId());
+        response.add("username", jsonMessage.get("username"));
+        response.add("url", jsonMessage.get("url"));
+        String responseString = response.toString();
 
-		final UserSession user = new UserSession();
-		user.setWebSocketSession(session);
-		user.setUsername(jsonMessage.get("username").getAsString());
-		System.out.println(jsonMessage.get("url"));
-		if(jsonMessage.get("url") == null) {
-			user.setAvatarUrl("https://pepethefrog.ucoz.com/_nw/2/89605944.jpg");
-		} else {
-			user.setAvatarUrl(jsonMessage.get("url").getAsString());
-		}
-		users.put(session.getId(), user);
+        final UserSession user = new UserSession();
+        user.setWebSocketSession(session);
+        user.setUsername(jsonMessage.get("username").getAsString());
+        System.out.println(jsonMessage.get("url"));
+        if(jsonMessage.get("url") == null) {
+            user.setAvatarUrl("https://pepethefrog.ucoz.com/_nw/2/89605944.jpg");
+        } else {
+            user.setAvatarUrl(jsonMessage.get("url").getAsString());
+        }
+        users.put(session.getId(), user);
 
-		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
-			UserSession value = entry.getValue();
+        for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+            UserSession value = entry.getValue();
 
-			// send existing users to new user
-			if(value.getWebSocketSession() != session) {
-				sendMessage(value.getWebSocketSession(), responseString);
-			}
+            // send existing users to new user
+            if(value.getWebSocketSession() != session) {
+                sendMessage(value.getWebSocketSession(), responseString);
+            }
 
-			// send new user to existing users
-			if (value.getUsername() != null) {
-				JsonObject existingUserResponse = new JsonObject();
-				existingUserResponse.addProperty("action", "join");
-				existingUserResponse.addProperty("username", value.getUsername());
-				existingUserResponse.addProperty("session", entry.getKey());
-				existingUserResponse.addProperty("url", value.getAvatarUrl());
-				sendMessage(session, existingUserResponse.toString());
-			}
-		}
-	}
+            // send new user to existing users
+            if (value.getUsername() != null) {
+                JsonObject existingUserResponse = new JsonObject();
+                existingUserResponse.addProperty("action", "join");
+                existingUserResponse.addProperty("username", value.getUsername());
+                existingUserResponse.addProperty("session", entry.getKey());
+                existingUserResponse.addProperty("url", value.getAvatarUrl());
+                sendMessage(session, existingUserResponse.toString());
+            }
+        }
+    }
 
-	private void scroll(final WebSocketSession session, JsonObject jsonMessage) {
-		if(session.getId().equals(data.get("remote"))) {
-			System.out.println(jsonMessage);
-			if(worker != null) {
-				JsonObject response = new JsonObject();
-				response.addProperty("action", "scroll");
-				response.add("direction", jsonMessage.get("direction"));
-				sendMessage(worker, response.toString());
-			}
-		}
-	}
+    private void scroll(final WebSocketSession session, JsonObject jsonMessage) {
+        if(session.getId().equals(data.get("remote"))) {
+            System.out.println(jsonMessage);
+            if(worker != null) {
+                JsonObject response = new JsonObject();
+                response.addProperty("action", "scroll");
+                response.add("direction", jsonMessage.get("direction"));
+                sendMessage(worker, response.toString());
+            }
+        }
+    }
 
-	private void paste(final WebSocketSession session, JsonObject jsonMessage) {
-		if(session.getId().equals(data.get("remote"))) {
-			System.out.println(jsonMessage);
-			if(worker != null) {
-				JsonObject response = new JsonObject();
-				response.addProperty("action", "paste");
-				response.add("clipboard", jsonMessage.get("clipboard"));
-				sendMessage(worker, response.toString());
-			}
-		}
-	}
+    private void paste(final WebSocketSession session, JsonObject jsonMessage) {
+        if(session.getId().equals(data.get("remote"))) {
+            System.out.println(jsonMessage);
+            if(worker != null) {
+                JsonObject response = new JsonObject();
+                response.addProperty("action", "paste");
+                response.add("clipboard", jsonMessage.get("clipboard"));
+                sendMessage(worker, response.toString());
+            }
+        }
+    }
 
-	private void keyup(final WebSocketSession session, JsonObject jsonMessage) {
-		if(session.getId().equals(data.get("remote"))) {
-			System.out.println(jsonMessage);
-			if(worker != null) {
-				JsonObject response = new JsonObject();
-				response.addProperty("action", "keyup");
-				response.add("key", jsonMessage.get("key"));
-				sendMessage(worker, response.toString());
-			}
-		}
-	}
+    private void keyup(final WebSocketSession session, JsonObject jsonMessage) {
+        if(session.getId().equals(data.get("remote"))) {
+            System.out.println(jsonMessage);
+            if(worker != null) {
+                JsonObject response = new JsonObject();
+                response.addProperty("action", "keyup");
+                response.add("key", jsonMessage.get("key"));
+                sendMessage(worker, response.toString());
+            }
+        }
+    }
 
-	private void keydown(final WebSocketSession session, JsonObject jsonMessage) {
-		if(session.getId().equals(data.get("remote"))) {
-			if(worker != null) {
-				JsonObject response = new JsonObject();
-				response.addProperty("action", "keydown");
-				response.add("key", jsonMessage.get("key"));
-				sendMessage(worker, response.toString());
-			}
-		}
-	}
+    private void keydown(final WebSocketSession session, JsonObject jsonMessage) {
+        if(session.getId().equals(data.get("remote"))) {
+            if(worker != null) {
+                JsonObject response = new JsonObject();
+                response.addProperty("action", "keydown");
+                response.add("key", jsonMessage.get("key"));
+                sendMessage(worker, response.toString());
+            }
+        }
+    }
 
-	private void mousemove(final WebSocketSession session, JsonObject jsonMessage) {
-		if(session.getId().equals(data.get("remote"))) {
-			if(worker != null) {
-				JsonObject response = new JsonObject();
-				response.addProperty("action", "mousemove");
-				response.add("mouseX", jsonMessage.get("mouseX"));
-				response.add("mouseY", jsonMessage.get("mouseY"));
-				sendMessage(worker, response.toString());
-			}
-		}
-	}
+    private void mousemove(final WebSocketSession session, JsonObject jsonMessage) {
+        if(session.getId().equals(data.get("remote"))) {
+            if(worker != null) {
+                JsonObject response = new JsonObject();
+                response.addProperty("action", "mousemove");
+                response.add("mouseX", jsonMessage.get("mouseX"));
+                response.add("mouseY", jsonMessage.get("mouseY"));
+                sendMessage(worker, response.toString());
+            }
+        }
+    }
 
-	private void mouseup(final WebSocketSession session, JsonObject jsonMessage) {
-		if(session.getId().equals(data.get("remote"))) {
-			if(worker != null) {
-				JsonObject response = new JsonObject();
-				response.addProperty("action", "mouseup");
-				response.add("mouseX", jsonMessage.get("mouseX"));
-				response.add("mouseY", jsonMessage.get("mouseY"));
-				response.add("button", jsonMessage.get("button"));
-				sendMessage(worker, response.toString());
-			}
-		}
-	}
+    private void mouseup(final WebSocketSession session, JsonObject jsonMessage) {
+        if(session.getId().equals(data.get("remote"))) {
+            if(worker != null) {
+                JsonObject response = new JsonObject();
+                response.addProperty("action", "mouseup");
+                response.add("mouseX", jsonMessage.get("mouseX"));
+                response.add("mouseY", jsonMessage.get("mouseY"));
+                response.add("button", jsonMessage.get("button"));
+                sendMessage(worker, response.toString());
+            }
+        }
+    }
 
-	private void mousedown(final WebSocketSession session, JsonObject jsonMessage) {
-		if(session.getId().equals(data.get("remote"))) {
-			if(worker != null) {
-				JsonObject response = new JsonObject();
-				response.addProperty("action", "mousedown");
-				response.add("mouseX", jsonMessage.get("mouseX"));
-				response.add("mouseY", jsonMessage.get("mouseY"));
-				response.add("button", jsonMessage.get("button"));
-				sendMessage(worker, response.toString());
-			}
-		}
-	}
+    private void mousedown(final WebSocketSession session, JsonObject jsonMessage) {
+        if(session.getId().equals(data.get("remote"))) {
+            if(worker != null) {
+                JsonObject response = new JsonObject();
+                response.addProperty("action", "mousedown");
+                response.add("mouseX", jsonMessage.get("mouseX"));
+                response.add("mouseY", jsonMessage.get("mouseY"));
+                response.add("button", jsonMessage.get("button"));
+                sendMessage(worker, response.toString());
+            }
+        }
+    }
 
-	private void pickupremote(final WebSocketSession session) {
-		data.put("remote", session.getId());
-		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
-			UserSession value = entry.getValue();
-			JsonObject response = new JsonObject();
-			response.addProperty("action", "pickup_remote");
-			response.addProperty("session", session.getId());
-			response.addProperty("has_remote", value.getWebSocketSession().getId().equals(session.getId()));
-			sendMessage(value.getWebSocketSession(), response.toString());
-		}
-		if(worker != null) {
-			JsonObject resetKeyboard = new JsonObject();
-			resetKeyboard.addProperty("action", "reset_keyboard");
-			sendMessage(worker, resetKeyboard.toString());
-		}
+    private void pickupremote(final WebSocketSession session) {
+        data.put("remote", session.getId());
+        for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+            UserSession value = entry.getValue();
+            JsonObject response = new JsonObject();
+            response.addProperty("action", "pickup_remote");
+            response.addProperty("session", session.getId());
+            response.addProperty("has_remote", value.getWebSocketSession().getId().equals(session.getId()));
+            sendMessage(value.getWebSocketSession(), response.toString());
+        }
+        if(worker != null) {
+            JsonObject resetKeyboard = new JsonObject();
+            resetKeyboard.addProperty("action", "reset_keyboard");
+            sendMessage(worker, resetKeyboard.toString());
+        }
 
-	}
+    }
 
-	private void dropremote(final WebSocketSession session) {
-		data.remove("remote");
-		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
-			UserSession value = entry.getValue();
-			JsonObject response = new JsonObject();
-			response.addProperty("action", "drop_remote");
-			response.addProperty("session", session.getId());
-			sendMessage(value.getWebSocketSession(), response.toString());
-		}
-	}
+    private void dropremote(final WebSocketSession session) {
+        data.remove("remote");
+        for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+            UserSession value = entry.getValue();
+            JsonObject response = new JsonObject();
+            response.addProperty("action", "drop_remote");
+            response.addProperty("session", session.getId());
+            sendMessage(value.getWebSocketSession(), response.toString());
+        }
+    }
 
-	private void worker(final WebSocketSession session) {
-		System.out.println("WORKER FOUND");
-		worker = session;
-		if(workerSession != null) {
-			workerSession.release();
-		}
-		workerSession = new WorkerSession();
-		MediaPipeline pipeline = workerSession.getMediaPipeline(kurento);
-		RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
-		workerSession.setRtpEndpoint(rtpEndpoint);
-		String workerSDPOffer = rtpEndpoint.generateOffer();
+    private void worker(final WebSocketSession session) {
+        System.out.println("WORKER FOUND");
+        worker = session;
+        if(workerSession != null) {
+            workerSession.release();
+        }
+        workerSession = new WorkerSession();
+        MediaPipeline pipeline = workerSession.getMediaPipeline(kurento);
+        RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
+        workerSession.setRtpEndpoint(rtpEndpoint);
+        String workerSDPOffer = rtpEndpoint.generateOffer();
 
-		String videoPort = null;
-		Matcher videoMatcher = Pattern.compile("m=video (\\d+)").matcher(workerSDPOffer);
-		if(videoMatcher.find()) {
-			videoPort = videoMatcher.group(1);
-		}
+        String videoPort = null;
+        Matcher videoMatcher = Pattern.compile("m=video (\\d+)").matcher(workerSDPOffer);
+        if(videoMatcher.find()) {
+            videoPort = videoMatcher.group(1);
+        }
 
-		String audioPort = null;
-		Matcher audioMatcher = Pattern.compile("m=audio (\\d+)").matcher(workerSDPOffer);
-		if(audioMatcher.find()) {
-			audioPort = audioMatcher.group(1);
-		}
-		System.out.println(workerSDPOffer);
+        String audioPort = null;
+        Matcher audioMatcher = Pattern.compile("m=audio (\\d+)").matcher(workerSDPOffer);
+        if(audioMatcher.find()) {
+            audioPort = audioMatcher.group(1);
+        }
+        System.out.println(workerSDPOffer);
 
-		if(worker != null) {
-			JsonObject response = new JsonObject();
-			response.addProperty("type", "sdpOffer");
-			response.addProperty("ip", System.getenv("KURENTO_IP"));
-			response.addProperty("videoPort", videoPort);
-			response.addProperty("audioPort", audioPort);
-			sendMessage(worker, response.toString());
-		}
+        if(worker != null) {
+            JsonObject response = new JsonObject();
+            response.addProperty("type", "sdpOffer");
+            response.addProperty("ip", System.getenv("KURENTO_IP"));
+            response.addProperty("videoPort", videoPort);
+            response.addProperty("audioPort", audioPort);
+            sendMessage(worker, response.toString());
+        }
 
-		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
-    		UserSession user = entry.getValue();
-			if(user != null) {
-				user.release();
-				if(user.getWebSocketSession() != null) {
-					try {
-						user.getWebSocketSession().close(CloseStatus.SERVICE_RESTARTED);
-					} catch(IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}
-	}
+        for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+            UserSession user = entry.getValue();
+            if(user != null) {
+                user.release();
+                if(user.getWebSocketSession() != null) {
+                    try {
+                        user.getWebSocketSession().close(CloseStatus.SERVICE_RESTARTED);
+                    } catch(IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
 
-	private void stop(String sessionId) {
-		UserSession user = users.remove(sessionId);
-		for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
-			UserSession value = entry.getValue();
-			if (value.getUsername() != null) {
-				JsonObject existingUserResponse = new JsonObject();
-				existingUserResponse.addProperty("action", "leave");
-				existingUserResponse.addProperty("username", value.getUsername());
-				existingUserResponse.addProperty("session", sessionId);
-				sendMessage(value.getWebSocketSession(), existingUserResponse.toString());
-			}
-		}
-		if(user != null) {
-			user.release();
-		}
-	}
+    private void stop(String sessionId) {
+        UserSession user = users.remove(sessionId);
+        for(ConcurrentHashMap.Entry<String, UserSession> entry : users.entrySet()) {
+            UserSession value = entry.getValue();
+            if (value.getUsername() != null) {
+                JsonObject existingUserResponse = new JsonObject();
+                existingUserResponse.addProperty("action", "leave");
+                existingUserResponse.addProperty("username", value.getUsername());
+                existingUserResponse.addProperty("session", sessionId);
+                sendMessage(value.getWebSocketSession(), existingUserResponse.toString());
+            }
+        }
+        if(user != null) {
+            user.release();
+        }
+    }
 
-	private void sdpAnswer(String sessionId, JsonObject jsonMessage) {
-		if (workerSession.getRtpEndpoint() != null) {
-			String sdpAnswer = jsonMessage.get("content").getAsString();
-			sdpAnswer = sdpAnswer.replace("sprop-stereo:1", "sprop-stereo=1");
-			System.out.println(sdpAnswer);
-			workerSession.getRtpEndpoint().processAnswer(sdpAnswer);
-		}
-	}
+    private void sdpAnswer(String sessionId, JsonObject jsonMessage) {
+        if (workerSession.getRtpEndpoint() != null) {
+            String sdpAnswer = jsonMessage.get("content").getAsString();
+            sdpAnswer = sdpAnswer.replace("sprop-stereo:1", "sprop-stereo=1");
+            System.out.println(sdpAnswer);
+            workerSession.getRtpEndpoint().processAnswer(sdpAnswer);
+        }
+    }
 
-	private void onIceCandidate(String sessionId, JsonObject jsonMessage) {
-		UserSession user = users.get(sessionId);
+    private void onIceCandidate(String sessionId, JsonObject jsonMessage) {
+        UserSession user = users.get(sessionId);
 
-		if (user != null) {
-			JsonObject jsonCandidate = jsonMessage.get("candidate").getAsJsonObject();
-			System.out.println(jsonCandidate);
-			IceCandidate candidate = new IceCandidate(
-				jsonCandidate.get("candidate").getAsString(),
-				jsonCandidate.get("sdpMid").getAsString(),
-				jsonCandidate.get("sdpMLineIndex").getAsInt());
-			user.getWebRtcEndpoint().addIceCandidate(candidate);
-		}
-	}
+        if (user != null) {
+            JsonObject jsonCandidate = jsonMessage.get("candidate").getAsJsonObject();
+            System.out.println(jsonCandidate);
+            IceCandidate candidate = new IceCandidate(
+            jsonCandidate.get("candidate").getAsString(),
+            jsonCandidate.get("sdpMid").getAsString(),
+            jsonCandidate.get("sdpMLineIndex").getAsInt());
+            user.getWebRtcEndpoint().addIceCandidate(candidate);
+        }
+    }
 
-	public void sendPlayEnd(WebSocketSession session) {
-		if (users.containsKey(session.getId())) {
-			JsonObject response = new JsonObject();
-			response.addProperty("action", "playEnd");
-			sendMessage(session, response.toString());
-		}
-	}
+    public void sendPlayEnd(WebSocketSession session) {
+        if (users.containsKey(session.getId())) {
+            JsonObject response = new JsonObject();
+            response.addProperty("action", "playEnd");
+            sendMessage(session, response.toString());
+        }
+    }
 
-	private void sendError(WebSocketSession session, String message) {
-		if (users.containsKey(session.getId())) {
-			JsonObject response = new JsonObject();
-			response.addProperty("action", "error");
-			response.addProperty("message", message);
-			sendMessage(session, response.toString());
-		}
-	}
+    private void sendError(WebSocketSession session, String message) {
+        if (users.containsKey(session.getId())) {
+            JsonObject response = new JsonObject();
+            response.addProperty("action", "error");
+            response.addProperty("message", message);
+            sendMessage(session, response.toString());
+        }
+    }
 
-	private synchronized void sendMessage(WebSocketSession session, String message) {
-		try {
-			session.sendMessage(new TextMessage(message));
-		} catch (IOException e) {
-			System.out.println("Exception sending message " + e.getMessage());
-		}
-	}
+    private synchronized void sendMessage(WebSocketSession session, String message) {
+        try {
+            session.sendMessage(new TextMessage(message));
+        } catch (IOException e) {
+            System.out.println("Exception sending message " + e.getMessage());
+        }
+    }
 
-	@Override
-	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-		stop(session.getId());
-	}
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        stop(session.getId());
+    }
 }
