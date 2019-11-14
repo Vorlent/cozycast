@@ -1,4 +1,4 @@
-import { html, Component, render } from 'https://unpkg.com/htm/preact/standalone.module.js'
+import { html, Component, render } from '/js/preact.standalone.module.js'
 
 var globalVar = {};
 var state = {
