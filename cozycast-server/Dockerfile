@@ -1,13 +1,14 @@
-FROM ubuntu:16.04
-ENV REPO="xenial"
+FROM adoptopenjdk/openjdk11-openj9:jdk-11.0.1.13-alpine-slim
 
-RUN apt-get update && apt install -y curl wget nano openjdk-8-jdk maven git
+EXPOSE 8080
 
-# Install cozycast-server
+RUN mkdir -p /root/cozycast/cozycast-server
+COPY gradle /root/cozycast/cozycast-server/gradle
+COPY gradlew /root/cozycast/cozycast-server/gradlew
+WORKDIR /root/cozycast/cozycast-server
+RUN ./gradlew
 
 COPY . /root/cozycast/cozycast-server
-WORKDIR /root/cozycast/cozycast-server
+RUN ./gradlew assemble
 
-ENV MAVEN_OPTS="-Xmx100m -Xms50m"
-RUN mkdir -p /var/cozycast/avatar/ && mvn compile
-CMD /bin/bash # exec:java
+CMD java -Dcom.sun.management.jmxremote -noverify ${JAVA_OPTS} -jar build/libs/cozycast-server-*-all.jar

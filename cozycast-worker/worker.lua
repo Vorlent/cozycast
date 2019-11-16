@@ -106,13 +106,15 @@ function validate_mouse(x,y)
 end
 
 function start_server()
-    local ws = websocket.new_from_uri("ws://"..os.getenv("COZYCAST_IP")..":8080/stream")
+    local server = os.getenv("COZYCAST_IP")
+    local room = os.getenv("COZYCAST_ROOM") or "default"
+    local ws = websocket.new_from_uri("ws://"..server..":8080/worker/"..room)
     ws:connect()
-    ws:send(lunajson.encode{ action = "worker"})
     while true do
         local msg = ws:receive()
         local data = lunajson.decode(msg)
         if data.type == "sdpOffer" then
+            print("sdpOffer")
             capture(data, ws)
         end
         if data.action == "mousemove" and validate_mouse(data.mouseX, data.mouseY) then

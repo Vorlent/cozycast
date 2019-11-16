@@ -11,10 +11,10 @@ sudo docker run \
     --env SOURCE_URL=$(git remote get-url origin) \
     --network host \
     -v $(realpath .):/root/cozycast/cozycast-server \
-    -v $(realpath cache/.m2):/root/.m2/repository \
-    -v $(realpath cache/avatar):/var/cozycast/avatar/ \
-    --name cozycast-server cozycast-server \
-    mvn compile exec:java
+    -v $(realpath cache/.gradle):/root/.gradle/repository \
+    -v $(realpath cache/build):/rootcozycast/cozycast-server/build \
+    -v $(realpath cache/avatar):/tmp/var/cozycast/avatar/ \
+    --name cozycast-server cozycast-server echo "./gradlew run" && sh
 
 # Ports required:
 # TCP 8443 Webserver

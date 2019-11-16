@@ -1,3 +1,5 @@
 .mvn
 Dockerfile
 cache
+build
+.gradle

@@ -260,6 +260,7 @@ function remote() {
 }
 
 function videoScroll(e) {
+    if(!remote) { return }
     if(e.deltaY < 0) {
     	sendMessage({
     		action : 'scroll',
@@ -275,6 +276,7 @@ function videoScroll(e) {
 }
 
 function videoKeyUp(e) {
+    if(!remote) { return }
     if(e.ctrlKey && e.key.toLowerCase() == "v") {
     	return;
     }
@@ -286,6 +288,7 @@ function videoKeyUp(e) {
 }
 
 function videoKeyDown(e) {
+    if(!remote) { return }
     if(e.ctrlKey && e.key.toLowerCase() == "v") {
     	return;
     }
@@ -297,6 +300,9 @@ function videoKeyDown(e) {
 }
 
 function getRemotePosition(e) {
+    if(!videoElement) {
+        return { x: 0, y: 0 }
+    }
     var videoRect = videoElement.getBoundingClientRect();
     var ratioDistortion = (videoRect.width / videoRect.height) / (videoElement.videoWidth / videoElement.videoHeight);
     var wider = (ratioDistortion > 1);
@@ -315,6 +321,7 @@ function getRemotePosition(e) {
 }
 
 function videoMouseUp(e) {
+    if(!remote) { return }
     var pos = getRemotePosition(e);
     sendMessage({
     	action : 'mouseup',
@@ -325,6 +332,7 @@ function videoMouseUp(e) {
 }
 
 function videoMouseDown(e) {
+    if(!remote) { return }
     var videoElement = document.getElementById('video');
     if(videoElement.paused) {
         videoElement.play();
@@ -341,6 +349,7 @@ function videoMouseDown(e) {
 }
 
 function videoMousemove(e) {
+    if(!remote) { return }
     var now = Date.now();
     if(now - lastMouseEvent > 10) {
     	var pos = getRemotePosition(e);
@@ -354,6 +363,7 @@ function videoMousemove(e) {
 }
 
 function paste(e) {
+    if(!remote) { return }
     e.preventDefault();
     var pastedData = e.clipboardData.getData('text');
     sendMessage({
@@ -464,7 +474,6 @@ function avatarSelected(e) {
     formData.append("avatar", e.target.files[0]);
     fetch('/avatar/upload', {method: "POST", body: formData}).then((e) => e.json()).then(function (e) {
         updateState(function () {
-            console.log(e.url);
             state.profileModal.avatarUrl = e.url;
         })
     });
@@ -483,10 +492,10 @@ window.onbeforeunload = function() {
 }
 
 function connect() {
-    websocket = new WebSocket('ws://' + location.host + '/stream');
+    websocket = new WebSocket('ws://' + location.host + '/player/default');
     websocket.onmessage = function(message) {
     	var parsedMessage = JSON.parse(message.data);
-
+        console.log(parsedMessage)
     	switch (parsedMessage.action) {
     		case 'startResponse':
     			startResponse(parsedMessage);
@@ -548,6 +557,7 @@ function connect() {
         updateState(function () {
             state.userlist = [];
             state.typingUsers = [];
+            state.remote = false;
         })
         if (webRtcPeer) {
     		webRtcPeer.dispose();
