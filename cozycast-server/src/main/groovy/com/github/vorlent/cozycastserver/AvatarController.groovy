@@ -34,7 +34,7 @@ class AvatarUploadResponse {
 @Controller("/avatar")
 class AvatarController {
 
-    String avatarDirectory = "/tmp/var/cozycast/avatar"
+    String avatarDirectory = "/var/cozycast/avatar"
 
     private String generateFilename() {
         try {

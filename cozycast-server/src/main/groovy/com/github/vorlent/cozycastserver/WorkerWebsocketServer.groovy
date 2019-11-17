@@ -91,14 +91,22 @@ class WorkerWebsocketServer {
     }
 
     @OnMessage
-    void onMessage(String room, SDPAnswer answer) {
-        String content = answer.content.replace("sprop-stereo:1", "sprop-stereo=1")
-        log.info "SDP Answer for room ${room}:\n${content}"
-        roomRegistry.getRoom(room).worker?.rtpEndpoint?.processAnswer(content)
+    void onMessage(String room, Map answer, WebSocketSession session) {
+        if(answer.action == "sdpAnswer") {
+            String content = answer.content.replace("sprop-stereo:1", "sprop-stereo=1")
+            log.info "SDP Answer for room ${room}:\n${content}"
+            roomRegistry.getRoom(room).worker?.rtpEndpoint?.processAnswer(content)
+        }
+        if(answer.action == "keepalive") {
+            session.sendSync([
+                action: "keepalive"
+            ])
+        }
     }
 
     @OnClose
     void onClose(String room, WebSocketSession session) {
+        log.info "Closed websocket session to worker of ${room}"
         WorkerSession worker = roomRegistry.getRoom(room).worker
         worker?.close()
         roomRegistry.getRoom(room).worker = null

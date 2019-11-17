@@ -109,69 +109,85 @@ end
 function start_server()
     local server = os.getenv("COZYCAST_IP")
     local room = os.getenv("COZYCAST_ROOM") or "default"
-    local ws = websocket.new_from_uri("ws://"..server..":8080/worker/"..room)
+    local url = "ws://"..server..":8080/worker/"..room
+    local ws = websocket.new_from_uri(url)
     ws:connect()
     while true do
-        local msg = ws:receive()
-        print(msg)
-        local data = lunajson.decode(msg)
-        if data.type == "sdpOffer" then
-            print("sdpOffer")
-            capture(data, ws)
+        local msg, error, errno = ws:receive(5)
+        if errno == 107 or errno == 32 or (not msg and not error and not errno) then
+            print("Could not connect to "..url)
+            return
         end
-        if data.action == "mousemove" and validate_mouse(data.mouseX, data.mouseY) then
-            -- print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
-            os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
-        end
-        if data.action == "mouseup" and validate_mouse(data.mouseX, data.mouseY) then
-            print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
-            os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
-            print ("xdotool mouseup "..(mouse_web_to_xdo[data.button]))
-            os.execute ("xdotool mouseup "..(mouse_web_to_xdo[data.button]))
-        end
-        if data.action == "mousedown" and validate_mouse(data.mouseX, data.mouseY) then
-            print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
-            os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
-            print ("xdotool mousedown "..(mouse_web_to_xdo[data.button]))
-            os.execute ("xdotool mousedown "..(mouse_web_to_xdo[data.button]))
-        end
+        if errno == 110 then -- timeout
+            ws:send(lunajson.encode{
+                action = "keepalive"
+            })
+            print("keepalive")
+        else
+            print(msg)
+            print(error)
+            print(errno)
+            if error == "text" then
+                local data = lunajson.decode(msg)
+                if data.type == "sdpOffer" then
+                    print("sdpOffer")
+                    capture(data, ws)
+                end
+                if data.action == "mousemove" and validate_mouse(data.mouseX, data.mouseY) then
+                    -- print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
+                    os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
+                end
+                if data.action == "mouseup" and validate_mouse(data.mouseX, data.mouseY) then
+                    print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
+                    os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
+                    print ("xdotool mouseup "..(mouse_web_to_xdo[data.button]))
+                    os.execute ("xdotool mouseup "..(mouse_web_to_xdo[data.button]))
+                end
+                if data.action == "mousedown" and validate_mouse(data.mouseX, data.mouseY) then
+                    print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
+                    os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
+                    print ("xdotool mousedown "..(mouse_web_to_xdo[data.button]))
+                    os.execute ("xdotool mousedown "..(mouse_web_to_xdo[data.button]))
+                end
 
-        if data.action == "paste" then
-            print ("xclip")
-            print (data.clipboard)
-            local xdotool = io.popen("xclip -selection clipboard", 'w')
-            xdotool:write(data.clipboard)
-            xdotool:close()
-            print ("xdotool key ctrl+v")
-            os.execute ("xdotool key ctrl+v")
-        end
-        if data.action == "keyup" then
-            data.key = keyboard_web_to_xdo[data.key] or data.key
-            print ("xdotool keyup "..data.key)
-            pressed_keys[data.key] = nil
-            os.execute ("xdotool keyup "..data.key)
-        end
-        if data.action == "keydown" then
-            data.key = keyboard_web_to_xdo[data.key] or data.key
-            print ("xdotool keydown "..data.key)
-            pressed_keys[data.key] = true
-            os.execute ("xdotool keydown "..data.key)
-        end
-        if data.action == "reset_keyboard" then
-            for key, pressed in pairs(pressed_keys) do
-            print ("xdotool keyup "..key)
-            os.execute ("xdotool keyup "..key)
-            pressed_keys[key] = nil
-            end
-        end
-        if data.action == "scroll" then
-            if data.direction == "up" then
-                print ("xdotool click 4")
-                os.execute ("xdotool click 4")
-            end
-            if data.direction == "down" then
-                print ("xdotool click 5")
-                os.execute ("xdotool click 5")
+                if data.action == "paste" then
+                    print ("xclip")
+                    print (data.clipboard)
+                    local xdotool = io.popen("xclip -selection clipboard", 'w')
+                    xdotool:write(data.clipboard)
+                    xdotool:close()
+                    print ("xdotool key ctrl+v")
+                    os.execute ("xdotool key ctrl+v")
+                end
+                if data.action == "keyup" then
+                    data.key = keyboard_web_to_xdo[data.key] or data.key
+                    print ("xdotool keyup "..data.key)
+                    pressed_keys[data.key] = nil
+                    os.execute ("xdotool keyup "..data.key)
+                end
+                if data.action == "keydown" then
+                    data.key = keyboard_web_to_xdo[data.key] or data.key
+                    print ("xdotool keydown "..data.key)
+                    pressed_keys[data.key] = true
+                    os.execute ("xdotool keydown "..data.key)
+                end
+                if data.action == "reset_keyboard" then
+                    for key, pressed in pairs(pressed_keys) do
+                    print ("xdotool keyup "..key)
+                    os.execute ("xdotool keyup "..key)
+                    pressed_keys[key] = nil
+                    end
+                end
+                if data.action == "scroll" then
+                    if data.direction == "up" then
+                        print ("xdotool click 4")
+                        os.execute ("xdotool click 4")
+                    end
+                    if data.direction == "down" then
+                        print ("xdotool click 5")
+                        os.execute ("xdotool click 5")
+                    end
+                end
             end
         end
     end
