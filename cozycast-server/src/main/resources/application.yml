@@ -10,3 +10,7 @@ micronaut:
                 enabled: true
                 mapping: "/**"
                 paths: "classpath:static"
+    io:
+        watch:
+            paths: src/main
+            restart: true

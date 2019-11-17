@@ -18,7 +18,7 @@ sudo docker run \
     --env KURENTO_IP=$KURENTO_IP \
     --env SOURCE_URL=$(git remote get-url origin) \
     --network host \
-    --name cozycast-server cozycast-server sh
+    --name cozycast-server cozycast-server /root/cozycast/cozycast-server/gradlew run --continuous
 
 # Ports required:
 # TCP 8443 Webserver
