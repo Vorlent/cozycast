@@ -47,7 +47,7 @@ class WorkerWebsocketServer {
 
     @OnOpen
     void onOpen(String room, WebSocketSession session) {
-        log.info "New Worker ${session}"
+        log.info "New Worker ${session} for room ${room}"
         WorkerSession worker = new WorkerSession()
         worker.websocket = session
         roomRegistry.getRoom(room).worker = worker
@@ -68,7 +68,7 @@ class WorkerWebsocketServer {
         if(audioMatcher.find()) {
             audioPort = audioMatcher.group(1)
         }
-        log.info "SDP Offer:\n${workerSDPOffer}"
+        log.info "SDP Offer for room ${room}:\n${workerSDPOffer}"
 
         session.sendSync(new SDPOffer(
             ip: System.getenv("KURENTO_IP"),
@@ -93,7 +93,7 @@ class WorkerWebsocketServer {
     @OnMessage
     void onMessage(String room, SDPAnswer answer) {
         String content = answer.content.replace("sprop-stereo:1", "sprop-stereo=1")
-        log.info "SDP Answer:\n${content}"
+        log.info "SDP Answer for room ${room}:\n${content}"
         roomRegistry.getRoom(room).worker?.rtpEndpoint?.processAnswer(content)
     }
 

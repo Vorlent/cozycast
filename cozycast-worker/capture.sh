@@ -1,6 +1,4 @@
 #!/bin/bash
-export DISPLAY=":99"
-
 IP=$1
 VIDEO_PORT=$2
 AUDIO_PORT=$3

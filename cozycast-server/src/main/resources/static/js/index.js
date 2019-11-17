@@ -492,7 +492,8 @@ window.onbeforeunload = function() {
 }
 
 function connect() {
-    websocket = new WebSocket('ws://' + location.host + '/player/default');
+    var room = window.location.hash.substr(1) == "" ? 'default' : window.location.hash.substr(1)
+    websocket = new WebSocket('ws://' + location.host + '/player/' + room);
     websocket.onmessage = function(message) {
     	var parsedMessage = JSON.parse(message.data);
         console.log(parsedMessage)

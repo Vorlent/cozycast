@@ -99,11 +99,8 @@ function capture(data, ws)
 end
 
 function validate_mouse(x,y)
-    print("x"..x)
-    print("y"..y)
-    x = tonumber(x or 0)
-    y = tonumber(y or 0)
-    return x ~= 0
+    return x and y
+    and x ~= 0
     and y ~= 0
     and x >= 0
     and y >= 0
