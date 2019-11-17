@@ -99,8 +99,12 @@ function capture(data, ws)
 end
 
 function validate_mouse(x,y)
-    return x ~= "-0"
-    and y ~= "-0"
+    print("x"..x)
+    print("y"..y)
+    x = tonumber(x or 0)
+    y = tonumber(y or 0)
+    return x ~= 0
+    and y ~= 0
     and x >= 0
     and y >= 0
 end
@@ -112,6 +116,7 @@ function start_server()
     ws:connect()
     while true do
         local msg = ws:receive()
+        print(msg)
         local data = lunajson.decode(msg)
         if data.type == "sdpOffer" then
             print("sdpOffer")

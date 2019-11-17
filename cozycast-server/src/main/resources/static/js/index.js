@@ -260,7 +260,7 @@ function remote() {
 }
 
 function videoScroll(e) {
-    if(!remote) { return }
+    if(!state.remote) { return }
     if(e.deltaY < 0) {
     	sendMessage({
     		action : 'scroll',
@@ -276,7 +276,7 @@ function videoScroll(e) {
 }
 
 function videoKeyUp(e) {
-    if(!remote) { return }
+    if(!state.remote) { return }
     if(e.ctrlKey && e.key.toLowerCase() == "v") {
     	return;
     }
@@ -288,7 +288,7 @@ function videoKeyUp(e) {
 }
 
 function videoKeyDown(e) {
-    if(!remote) { return }
+    if(!state.remote) { return }
     if(e.ctrlKey && e.key.toLowerCase() == "v") {
     	return;
     }
@@ -300,7 +300,7 @@ function videoKeyDown(e) {
 }
 
 function getRemotePosition(e) {
-    if(!videoElement) {
+    if(!videoElement || videoElement.videWith == 0 || videoElement.videoHeight == 0) {
         return { x: 0, y: 0 }
     }
     var videoRect = videoElement.getBoundingClientRect();
@@ -321,7 +321,7 @@ function getRemotePosition(e) {
 }
 
 function videoMouseUp(e) {
-    if(!remote) { return }
+    if(!state.remote) { return }
     var pos = getRemotePosition(e);
     sendMessage({
     	action : 'mouseup',
@@ -332,7 +332,7 @@ function videoMouseUp(e) {
 }
 
 function videoMouseDown(e) {
-    if(!remote) { return }
+    if(!state.remote) { return }
     var videoElement = document.getElementById('video');
     if(videoElement.paused) {
         videoElement.play();
@@ -349,7 +349,7 @@ function videoMouseDown(e) {
 }
 
 function videoMousemove(e) {
-    if(!remote) { return }
+    if(!state.remote) { return }
     var now = Date.now();
     if(now - lastMouseEvent > 10) {
     	var pos = getRemotePosition(e);
@@ -363,7 +363,7 @@ function videoMousemove(e) {
 }
 
 function paste(e) {
-    if(!remote) { return }
+    if(!state.remote) { return }
     e.preventDefault();
     var pastedData = e.clipboardData.getData('text');
     sendMessage({

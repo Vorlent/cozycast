@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo docker build -t cozycast_worker .
+sudo docker build -t cozycast-worker .

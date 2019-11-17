@@ -1,6 +1,9 @@
 #!/bin/bash
 source ../.env
 
+sudo docker stop kurento
+sudo docker rm kurento
+
 sudo docker run \
     --rm \
     -d \

@@ -11,4 +11,6 @@ RUN ./gradlew
 COPY . /root/cozycast/cozycast-server
 RUN ./gradlew assemble
 
+ENV JAVA_OPTS="$JAVA_OPS -Xms32M -Xmx64M"
+
 CMD java -Dcom.sun.management.jmxremote -noverify ${JAVA_OPTS} -jar build/libs/cozycast-server-*-all.jar

@@ -314,6 +314,7 @@ class PlayerWebsocketServer {
     }
 
     private void mousemove(Room room, WebSocketSession session, Map jsonMessage) {
+        log.info jsonMessage.toString()
         if(session.getId() == room.remote) {
             room.worker?.websocket?.sendSync(new MouseMoveEvent(
                 mouseX: jsonMessage.mouseX,
@@ -322,6 +323,7 @@ class PlayerWebsocketServer {
     }
 
     private void mouseup(Room room, WebSocketSession session, Map jsonMessage) {
+        log.info jsonMessage.toString()
         if(session.getId() == room.remote) {
             room.worker?.websocket?.sendSync(new MouseUpEvent(
                 mouseX: jsonMessage.mouseX,
@@ -331,6 +333,7 @@ class PlayerWebsocketServer {
     }
 
     private void mousedown(Room room, WebSocketSession session, Map jsonMessage) {
+        log.info jsonMessage.toString()
         if(session.getId() == room.remote) {
             room.worker?.websocket?.sendSync(new MouseDownEvent(
                 mouseX: jsonMessage.mouseX,

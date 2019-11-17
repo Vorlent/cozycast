@@ -1,5 +1,9 @@
 #!/bin/bash
 source ../.env
+
+sudo docker stop coturn
+sudo docker rm coturn
+
 sudo docker run \
   --rm \
   -d \

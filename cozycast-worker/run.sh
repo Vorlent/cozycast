@@ -9,4 +9,4 @@ sudo docker run \
     -v $(realpath cozycast):/home/cozycast \
     --env COZYCAST_IP=$COZYCAST_IP \
     --shm-size 2g \
-    --name cozycast_worker cozycast_worker #bash
+    --name cozycast-worker cozycast-worker #bash
