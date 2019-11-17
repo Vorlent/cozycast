@@ -1,7 +1,12 @@
-import { html, Component, render } from '/js/preact.standalone.module.js'
+import { html, Component, render } from '/js/libs/preact.standalone.module.js'
+
+import { Chat } from '/js/Chat.js'
+import { ProfileModal, openProfile } from '/js/ProfileModal.js'
+import { Userlist } from '/js/Userlist.js'
+import { VideoControls } from '/js/VideoControls.js'
 
 var globalVar = {};
-var state = {
+export var state = {
     typingUsers: [],
     userlist: [],
     chatMessages: [],
@@ -13,95 +18,9 @@ var state = {
     videoLoading: false
 };
 
-function updateState(fun) {
-    fun()
+export function updateState(fun) {
+    fun(state)
     globalVar.callback(state);
-}
-
-function Userlist(props) {
-    return html`<div id="userlist" class="userlist">
-        ${props.state.userlist.map(user => html`
-            <div class="user">
-                <img class="avatar" src="${user.url}"></img>
-                <div class="centered">${user.username}</div>
-                <i class="icon-keyboard remote" style=${user.remote ? "" : "display: none;"}></i>
-            </div>
-        `)}
-    </div>`
-}
-
-class Chat extends Component {
-    componentDidUpdate() {
-    	this.scrollToBottom();
-    }
-
-    scrollToBottom() {
-        var messages = document.getElementById("messages");
-        messages.scrollTop = messages.scrollHeight;
-    }
-
-    render({ state }, { xyz = [] }) {
-        return html`<div id="chat">
-            <div id="messages">
-                ${state.chatMessages.map(message => html`
-                    <div class="message">
-                        <div class="username">${message.username + " " + message.timestamp}</div>
-                        ${message.messages.map(msg => html`
-                            ${msg.type == "url" &&
-                                html`<div><a class="chat-link" target="_blank" href="${msg.href}">${msg.href}</a></div>`}
-                            ${msg.type == "image" &&
-                                html`<div class="chat-image">
-                                    <a class="chat-link" target="_blank" href="${msg.href}"><img src="${msg.href}" /></a>
-                                </div>`}
-                            ${msg.type == "text" &&
-                                html`<div>${msg.message}</div>`}
-                        `)}
-                    </div>
-                `)}
-            </div>
-            <div id="chatbox">
-                <div id="typing">
-                    ${state.typingUsers.length > 0 && html`
-                        ${state.typingUsers.map((user, i) => html`
-                            ${user.username}${(state.typingUsers.length - 1 != i) && ', '}
-                        `)} ${state.typingUsers.length > 1 ? 'are' : 'is'} typing...
-                    `}
-                </div>
-                <textarea id="chatbox-textarea" onkeypress=${chatKeypress}>
-                    ${state.chatBox}
-                </textarea>
-            </div>
-        </div>`
-    }
-}
-
-class ProfileModal extends Component {
-    render({ state }, { xyz = [] }) {
-        return html`${state.profileModal && html`
-            <div id="profile-modal-background">
-                <div id="profile-modal">
-                    <div class="title">
-                        <div>
-                            Profile
-                        </div>
-                        <button type="button" id="profile-modal-close" onclick=${closeProfile}>X</button>
-                    </div>
-                    <div class="image avatar big" style="background-image: url('${state.profileModal.avatarUrl}');">
-                        <div class="uploader-overlay" onclick=${openAvatarUpload}>
-                            <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg" onchange=${avatarSelected}/>
-                            <div class="center">Upload</div>
-                        </div>
-                    </div>
-                    <div>
-                        Username
-                    </div>
-                    <input class="profile-modal-username" type="text"
-                        onInput=${e => updateProfileUsername(e.target.value)}
-                        name="username" value="${state.profileModal.username}"/>
-                    <button class="btn btn-primary" onclick=${saveProfile}>Save</a>
-                </div>
-        </div>`}`
-    }
 }
 
 class App extends Component {
@@ -112,50 +31,12 @@ class App extends Component {
     	globalVar.callback = (data) => {
         	this.setState(data);
         };
-        this.updateVolume();
-    }
-
-    componentDidUpdate() {
-    	this.updateVolume();
-    }
-
-    updateVolume() {
-        document.getElementById('video').volume = state.volume/100;
     }
 
     render({ page }, { xyz = [] }) {
     return html`
       <div id="pagecontent">
-          <div id="videoBig">
-              <div id="videocontrols" tabindex="0"
-                oncontextmenu=${disableContextmenu}
-                onmousemove=${videoMousemove}
-                onmouseup=${videoMouseUp}
-                onmousedown=${videoMouseDown}
-                onpaste=${paste}
-                onkeyup=${videoKeyUp}
-                onkeydown=${videoKeyDown}
-                onwheel=${videoScroll}
-              >
-                ${state.videoPaused &&
-                  html`<div class="paused-screen">
-                    <div class="play-button">Play</div>
-                </div>`}
-                ${state.videoLoading &&
-                    html`<div class="paused-screen">
-                    <div class="loading-screen">
-                        <img class="loading-animation" src="svg/loading.svg"/>
-                        LOADING...
-                    </div>
-                </div>`}
-              </div>
-              <div id="videosizer">
-                <video id="video" autoplay tabindex="0"
-                    onplay=${e => videoLoadingScreen(false)}
-                    onloadstart=${e => videoLoadingScreen(true)}
-                ></video>
-              </div>
-          </div>
+          <${VideoControls} state=${state}/>
           <div id="pagetoolbar">
               <div id="controls">
                 <button type="button" class="btn btn-primary" onclick=${openProfile}>
@@ -183,11 +64,6 @@ var preactBody = render(html`<${App} page="All" />`, document.body);
 var webRtcPeer;
 var websocket;
 
-var lastMouseEvent = Date.now();
-var videoElement;
-var resolutionX = 1280;
-var resolutionY = 720;
-
 updateState(function () {
     state.username = localStorage.getItem("username");
     if(!state.username) {
@@ -205,71 +81,6 @@ function changeVolume(e) {
     })
 }
 
-window.onload = function() {
-    connect();
-    videoElement = document.getElementById('video');
-}
-
-var typingTimer;
-function chatKeypress(e) {
-    updateState(function() {
-        var enterKeycode = 13;
-        state.chatBox = e.target.value;
-        if(e.which == enterKeycode) {
-            e.preventDefault();
-            if(state.chatBox.trim() != "") {
-                sendMessage({
-                    action : 'chatmessage',
-                    message: state.chatBox,
-                    username: state.username
-                });
-            }
-            e.target.value = ""; // hack
-            state.chatBox = "";
-
-            clearTimeout(typingTimer)
-            typingTimer = null;
-            sendMessage({
-                action : 'typing',
-                state: 'stop',
-                username: state.username
-            });
-        } else {
-            if(typingTimer) {
-                clearTimeout(typingTimer)
-                typingTimer = null;
-            } else {
-                sendMessage({
-                    action : 'typing',
-                    state: 'start',
-                    username: state.username
-                });
-            }
-
-            typingTimer = setTimeout(function() {
-                sendMessage({
-                    action : 'typing',
-                    state: 'stop',
-                    username: state.username
-                });
-                typingTimer = null;
-            }, 2000)
-        }
-    })
-}
-
-function disableContextmenu(e) {
-    e.preventDefault();
-    return false;
-}
-
-function videoLoadingScreen(loadingState) {
-    updateState(function () {
-        state.videoPaused = false;
-        state.videoLoading = loadingState;
-    })
-}
-
 function remote() {
     if(state.remote) {
     	sendMessage({
@@ -280,119 +91,6 @@ function remote() {
     		action : 'pickup_remote'
     	});
     }
-}
-
-function videoScroll(e) {
-    if(!state.remote) { return }
-    if(e.deltaY < 0) {
-    	sendMessage({
-    		action : 'scroll',
-    		direction: "up"
-    	});
-    }
-    if(e.deltaY > 0) {
-    	sendMessage({
-    		action : 'scroll',
-    		direction: "down"
-    	});
-    }
-}
-
-function videoKeyUp(e) {
-    if(!state.remote) { return }
-    if(e.ctrlKey && e.key.toLowerCase() == "v") {
-    	return;
-    }
-    e.preventDefault();
-    sendMessage({
-    	action : 'keyup',
-    	key: e.key
-    });
-}
-
-function videoKeyDown(e) {
-    if(!state.remote) { return }
-    if(e.ctrlKey && e.key.toLowerCase() == "v") {
-    	return;
-    }
-    e.preventDefault();
-    sendMessage({
-    	action : 'keydown',
-    	key: e.key
-    });
-}
-
-function getRemotePosition(e) {
-    if(!videoElement || videoElement.videWith == 0 || videoElement.videoHeight == 0) {
-        return { x: 0, y: 0 }
-    }
-    var videoRect = videoElement.getBoundingClientRect();
-    var ratioDistortion = (videoRect.width / videoRect.height) / (videoElement.videoWidth / videoElement.videoHeight);
-    var wider = (ratioDistortion > 1);
-    // assume centered
-    var padVt = wider ? 0 : (videoRect.height * (1 - ratioDistortion) / 2);
-    var padHz = wider ? (videoRect.width * (1 - 1 / ratioDistortion)) / 2 : 0;
-    var correctedRect = { // video rectangle with corrections for black lines
-        top: videoRect.top + padVt,
-        right: videoRect.right - padHz,
-        bottom: videoRect.bottom - padVt,
-        left: videoRect.left + padHz
-    };
-    var x = (e.clientX - correctedRect.left) / (correctedRect.right - correctedRect.left) * resolutionX;
-    var y = (e.clientY - correctedRect.top) / (correctedRect.bottom - correctedRect.top) * resolutionY;
-    return { x: x, y: y }
-}
-
-function videoMouseUp(e) {
-    if(!state.remote) { return }
-    var pos = getRemotePosition(e);
-    sendMessage({
-    	action : 'mouseup',
-    	mouseX: pos.x,
-    	mouseY: pos.y,
-    	button: e.button
-    });
-}
-
-function videoMouseDown(e) {
-    if(!state.remote) { return }
-    var videoElement = document.getElementById('video');
-    if(videoElement.paused) {
-        videoElement.play();
-        videoLoadingScreen(true)
-    }
-
-    var pos = getRemotePosition(e);
-    sendMessage({
-    	action : 'mousedown',
-    	mouseX: pos.x,
-    	mouseY: pos.y,
-    	button: e.button
-    });
-}
-
-function videoMousemove(e) {
-    if(!state.remote) { return }
-    var now = Date.now();
-    if(now - lastMouseEvent > 10) {
-    	var pos = getRemotePosition(e);
-    	sendMessage({
-    		action : 'mousemove',
-    		mouseX: pos.x,
-    		mouseY: pos.y
-    	});
-    	lastMouseEvent = now;
-    }
-}
-
-function paste(e) {
-    if(!state.remote) { return }
-    e.preventDefault();
-    var pastedData = e.clipboardData.getData('text');
-    sendMessage({
-    	action : 'paste',
-    	clipboard: pastedData
-    });
 }
 
 function typing(parsedMessage) {
@@ -488,26 +186,16 @@ function changeprofilepicture(parsedMessage) {
     })
 }
 
-function openAvatarUpload() {
-    document.getElementById('avatar-uploader').click();
-}
-
-function avatarSelected(e) {
-    let formData = new FormData();
-    formData.append("avatar", e.target.files[0]);
-    fetch('/avatar/upload', {method: "POST", body: formData}).then((e) => e.json()).then(function (e) {
-        updateState(function () {
-            state.profileModal.avatarUrl = e.url;
-        })
-    });
-}
-
 function leave(parsedMessage) {
     updateState(function () {
         state.userlist = state.userlist.filter(function(element) {
             return element.session != parsedMessage.session;
         });
     })
+}
+
+window.onload = function() {
+    connect();
 }
 
 window.onbeforeunload = function() {
@@ -592,12 +280,12 @@ function connect() {
 
     websocket.onopen = function (event) {
     	setTimeout(function() {
-    		start(video);
+    		start();
     	}, 300);
     };
 }
 
-function start(video) {
+function start() {
     sendMessage({
     	action : 'join',
     	username: state.username,
@@ -605,7 +293,7 @@ function start(video) {
     });
     fetch("/turn/credential").then((e) => e.json()).then(function(iceServer) {
     	var options = {
-    		remoteVideo : video,
+    		remoteVideo : document.getElementById("video"),
     		mediaConstraints : {
     			audio : true,
     			video : true
@@ -655,47 +343,6 @@ function startResponse(message) {
     });
 }
 
-function openProfile() {
-    updateState(function () {
-        state.profileModal = {
-            username: state.username,
-            avatarUrl: state.avatarUrl
-        };
-    })
-}
-
-function closeProfile() {
-    updateState(function () {
-        delete state.profileModal;
-    })
-}
-
-function updateProfileUsername(username) {
-    updateState(function () {
-        state.profileModal.username = username;
-    })
-}
-
-function saveProfile() {
-    updateState(function () {
-        if(state.profileModal) {
-            localStorage.setItem("username", state.profileModal.username);
-            localStorage.setItem("avatarUrl", state.profileModal.avatarUrl);
-            state.username = state.profileModal.username;
-            state.avatarUrl = state.profileModal.avatarUrl;
-            sendMessage({
-                action : 'changeusername',
-                username : state.username
-            });
-            sendMessage({
-                action : 'changeprofilepicture',
-                url : state.avatarUrl
-            });
-        }
-    })
-    closeProfile()
-}
-
-function sendMessage(message) {
+export function sendMessage(message) {
     websocket.send(JSON.stringify(message));
 }
