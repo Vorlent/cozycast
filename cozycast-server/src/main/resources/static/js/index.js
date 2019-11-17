@@ -18,6 +18,92 @@ function updateState(fun) {
     globalVar.callback(state);
 }
 
+function Userlist(props) {
+    return html`<div id="userlist" class="userlist">
+        ${props.state.userlist.map(user => html`
+            <div class="user">
+                <img class="avatar" src="${user.url}"></img>
+                <div class="centered">${user.username}</div>
+                <i class="icon-keyboard remote" style=${user.remote ? "" : "display: none;"}></i>
+            </div>
+        `)}
+    </div>`
+}
+
+class Chat extends Component {
+    componentDidUpdate() {
+    	this.scrollToBottom();
+    }
+
+    scrollToBottom() {
+        var messages = document.getElementById("messages");
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    render({ state }, { xyz = [] }) {
+        return html`<div id="chat">
+            <div id="messages">
+                ${state.chatMessages.map(message => html`
+                    <div class="message">
+                        <div class="username">${message.username + " " + message.timestamp}</div>
+                        ${message.messages.map(msg => html`
+                            ${msg.type == "url" &&
+                                html`<div><a class="chat-link" target="_blank" href="${msg.href}">${msg.href}</a></div>`}
+                            ${msg.type == "image" &&
+                                html`<div class="chat-image">
+                                    <a class="chat-link" target="_blank" href="${msg.href}"><img src="${msg.href}" /></a>
+                                </div>`}
+                            ${msg.type == "text" &&
+                                html`<div>${msg.message}</div>`}
+                        `)}
+                    </div>
+                `)}
+            </div>
+            <div id="chatbox">
+                <div id="typing">
+                    ${state.typingUsers.length > 0 && html`
+                        ${state.typingUsers.map((user, i) => html`
+                            ${user.username}${(state.typingUsers.length - 1 != i) && ', '}
+                        `)} ${state.typingUsers.length > 1 ? 'are' : 'is'} typing...
+                    `}
+                </div>
+                <textarea id="chatbox-textarea" onkeypress=${chatKeypress}>
+                    ${state.chatBox}
+                </textarea>
+            </div>
+        </div>`
+    }
+}
+
+class ProfileModal extends Component {
+    render({ state }, { xyz = [] }) {
+        return html`${state.profileModal && html`
+            <div id="profile-modal-background">
+                <div id="profile-modal">
+                    <div class="title">
+                        <div>
+                            Profile
+                        </div>
+                        <button type="button" id="profile-modal-close" onclick=${closeProfile}>X</button>
+                    </div>
+                    <div class="image avatar big" style="background-image: url('${state.profileModal.avatarUrl}');">
+                        <div class="uploader-overlay" onclick=${openAvatarUpload}>
+                            <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg" onchange=${avatarSelected}/>
+                            <div class="center">Upload</div>
+                        </div>
+                    </div>
+                    <div>
+                        Username
+                    </div>
+                    <input class="profile-modal-username" type="text"
+                        onInput=${e => updateProfileUsername(e.target.value)}
+                        name="username" value="${state.profileModal.username}"/>
+                    <button class="btn btn-primary" onclick=${saveProfile}>Save</a>
+                </div>
+        </div>`}`
+    }
+}
+
 class App extends Component {
     chatref = null;
     setChatref = (dom) => this.chatref = dom;
@@ -26,16 +112,14 @@ class App extends Component {
     	globalVar.callback = (data) => {
         	this.setState(data);
         };
-        this.scrollToBottom();
+        this.updateVolume();
     }
 
     componentDidUpdate() {
-    	this.scrollToBottom();
+    	this.updateVolume();
     }
 
-    scrollToBottom() {
-        var messages = document.getElementById("messages");
-        messages.scrollTop = messages.scrollHeight;
+    updateVolume() {
         document.getElementById('video').volume = state.volume/100;
     }
 
@@ -84,72 +168,11 @@ class App extends Component {
                 <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider" oninput=${changeVolume}/>
                 <a id="copyright" href="/license" target="_blank">Copyright (C) 2019 Vorlent</a>
               </div>
-              <div id="userlist" class="userlist">
-                    ${state.userlist.map(user => html`
-                        <div class="user">
-                            <img class="avatar" src="${user.url}"></img>
-                            <div class="centered">${user.username}</div>
-                            <i class="icon-keyboard remote" style=${user.remote ? "" : "display: none;"}></i>
-                        </div>
-                    `)}
-              </div>
+              <${Userlist} state=${state}/>
           </div>
-          <div id="chat">
-             <div id="messages" ref=${this.setChatref}>
-                ${state.chatMessages.map(message => html`
-                  <div class="message">
-                      <div class="username">${message.username + " " + message.timestamp}</div>
-                      ${message.messages.map(msg => html`
-                          ${msg.type == "url" &&
-                              html`<div><a class="chat-link" target="_blank" href="${msg.href}">${msg.href}</a></div>`}
-                          ${msg.type == "image" &&
-                              html`<div class="chat-image">
-                                  <a class="chat-link" target="_blank" href="${msg.href}"><img src="${msg.href}" /></a>
-                              </div>`}
-                          ${msg.type == "text" &&
-                              html`<div>${msg.message}</div>`}
-                      `)}
-                  </div>
-                `)}
-            </div>
-            <div id="chatbox">
-              <div id="typing">
-                ${state.typingUsers.length > 0 && html`
-                    ${state.typingUsers.map((user, i) => html`
-                        ${user.username}${(state.typingUsers.length - 1 != i) && ', '}
-                    `)} ${state.typingUsers.length > 1 ? 'are' : 'is'} typing...
-                `}
-              </div>
-              <textarea id="chatbox-textarea" onkeypress=${chatKeypress}>
-                ${state.chatBox}
-              </textarea>
-            </div>
-          </div>
+          <${Chat} state=${state}/>
 
-          ${state.profileModal && html`
-              <div id="profile-modal-background">
-                <div id="profile-modal">
-                  <div class="title">
-                    <div>
-                      Profile
-                    </div>
-                    <button type="button" id="profile-modal-close" onclick=${closeProfile}>X</button>
-                  </div>
-                  <div class="image avatar big" style="background-image: url('${state.profileModal.avatarUrl}');">
-                    <div class="uploader-overlay" onclick=${openAvatarUpload}>
-                      <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg" onchange=${avatarSelected}/>
-                        <div class="center">Upload</div>
-                      </div>
-                    </div>
-                  <div>
-                    Username
-                  </div>
-                  <input class="profile-modal-username" type="text"
-                    onInput=${e => updateProfileUsername(e.target.value)}
-                    name="username" value="${state.profileModal.username}"/>
-                  <button class="btn btn-primary" onclick=${saveProfile}>Save</a>
-                </div>
-              </div>`}
+          <${ProfileModal} state=${state}/>
       </div>
     `;
     }
