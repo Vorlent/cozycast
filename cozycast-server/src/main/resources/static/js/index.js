@@ -71,7 +71,15 @@ updateState(function () {
     }
     state.avatarUrl = localStorage.getItem("avatarUrl");
     if(!state.avatarUrl) {
-        state.avatarUrl = 'https://pepethefrog.ucoz.com/_nw/2/89605944.jpg'
+        state.avatarUrl = '/png/default_avatar.png'
+    } else {
+        fetch(state.avatarUrl).then((e) => {
+            if(e.status != 200) {
+                updateState(function() {
+                    state.avatarUrl = '/png/default_avatar.png'
+                })
+            }
+        })
     }
 })
 
