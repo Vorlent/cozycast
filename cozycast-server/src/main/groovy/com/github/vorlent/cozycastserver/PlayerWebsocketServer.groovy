@@ -157,6 +157,10 @@ class ScrollEvent {
     String direction
 }
 
+class KeepAlive {
+    String action = "keepalive"
+}
+
 @Slf4j
 @ServerWebSocket("/player/{room}")
 class PlayerWebsocketServer {
@@ -170,6 +174,10 @@ class PlayerWebsocketServer {
         this.broadcaster = broadcaster
         this.kurento = kurento
         this.roomRegistry = roomRegistry
+    }
+
+    private void keepalive(Room room, WebSocketSession session, Map jsonMessage) {
+        session.sendSync(new KeepAlive())
     }
 
     private void start(Room room, WebSocketSession session, Map jsonMessage) {
@@ -414,6 +422,9 @@ class PlayerWebsocketServer {
 
         try {
             switch (jsonMessage.action) {
+                case "keepalive":
+                    keepalive(currentRoom, session, jsonMessage)
+                    break;
                 case "start":
                     start(currentRoom, session, jsonMessage)
                     break;

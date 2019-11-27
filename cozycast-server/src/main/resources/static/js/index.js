@@ -202,6 +202,8 @@ window.onbeforeunload = function() {
     websocket.close();
 }
 
+var keepAlive;
+
 function connect() {
     var room = window.location.hash.substr(1) == "" ? 'default' : window.location.hash.substr(1)
     websocket = new WebSocket('ws://' + location.host + '/player/' + room);
@@ -209,6 +211,8 @@ function connect() {
     	var parsedMessage = JSON.parse(message.data);
         console.log(parsedMessage)
     	switch (parsedMessage.action) {
+            case 'keepalive':
+    			break;
     		case 'startResponse':
     			startResponse(parsedMessage);
     			break;
@@ -275,6 +279,8 @@ function connect() {
     		webRtcPeer.dispose();
     		webRtcPeer = null;
     	}
+        clearInterval(keepAlive)
+        keepAlive = null;
     	connect();
     }
 
@@ -283,6 +289,12 @@ function connect() {
     		start();
     	}, 300);
     };
+
+     keepAlive = setInterval(function(){
+         sendMessage({
+         	action : 'keepalive'
+         });
+     }, 30000);
 }
 
 function start() {
