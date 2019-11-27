@@ -123,6 +123,11 @@ function chatmessage(parsedMessage) {
     var offset = 0;
     var remaining = parsedMessage.message;
     urls.forEach(function(element) {
+        if(element.value.indexOf("http") == -1) {
+            element.value = "http://" + element.value
+        }
+        console.log(element.value)
+        console.log(element.value.indexOf("http"))
     	var end = remaining.indexOf(element.value, offset);
     	split.push({ "type": "text", "message": remaining.substring(offset, end) });
     	if(isImageUrl(element.value)) {
