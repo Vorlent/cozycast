@@ -7,7 +7,7 @@ import io.micronaut.http.HttpStatus
 import io.micronaut.http.MediaType
 import io.micronaut.http.multipart.CompletedFileUpload
 import io.micronaut.http.server.types.files.SystemFile
-
+import io.micronaut.http.HttpResponse
 
 import java.lang.String
 import java.io.InputStream
@@ -22,6 +22,7 @@ import java.security.NoSuchAlgorithmException
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.Files
+import java.net.URLConnection
 
 import groovy.util.logging.Slf4j
 
@@ -52,14 +53,33 @@ class AvatarController {
         }
     }
 
+    private String fileExtension(String mimeType) {
+        switch(mimeType) {
+            case "image/jpeg":
+                return ".jpeg"
+            case "image/png":
+                return ".png"
+            case "image/gif":
+                return ".gif"
+            default:
+                return null
+        }
+    }
+
     @Post(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA)
-    AvatarUploadResponse upload(CompletedFileUpload avatar) {
+    def upload(CompletedFileUpload avatar) {
         try {
             String filename = generateFilename();
             log.info "Uploaded file: $filename"
-            Path path = new File(avatarDirectory, filename).toPath();
-            Files.write(path, avatar.getBytes());
-            return new AvatarUploadResponse(url: "/avatar/image/"+filename)
+            byte[] content = avatar.getBytes()
+            String fileExt = fileExtension(URLConnection.guessContentTypeFromStream(new ByteArrayInputStream(content)));
+            if(fileExt != null) {
+                Path path = new File(avatarDirectory, filename + fileExt).toPath();
+                Files.write(path, content);
+                return new AvatarUploadResponse(url: "/avatar/image/${filename}${fileExt}")
+            } else {
+                return HttpResponse.badRequest()
+            }
         } catch(IOException e) {
             throw new RuntimeException(e);
         }

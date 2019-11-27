@@ -70,7 +70,7 @@ export class ProfileModal extends Component {
                     </div>
                     <div class="image avatar big" style="background-image: url('${state.profileModal.avatarUrl}');">
                         <div class="uploader-overlay" onclick=${openAvatarUpload}>
-                            <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg" onchange=${avatarSelected}/>
+                            <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg, image/gif" onchange=${avatarSelected}/>
                             <div class="center">Upload</div>
                         </div>
                     </div>
