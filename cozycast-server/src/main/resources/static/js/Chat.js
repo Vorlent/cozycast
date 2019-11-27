@@ -71,7 +71,7 @@ export class Chat extends Component {
                                 html`<div><a class="chat-link" target="_blank" href="${msg.href}">${msg.href}</a></div>`}
                             ${msg.type == "image" &&
                                 html`<div class="chat-image">
-                                    <a class="chat-link" target="_blank" href="${msg.href}"><img src="${msg.href}" /></a>
+                                    <a class="chat-link" target="_blank" href="${msg.href}"><img onload="${this.scrollToBottom}" src="${msg.href}" /></a>
                                 </div>`}
                             ${msg.type == "text" &&
                                 html`<div>${msg.message}</div>`}
