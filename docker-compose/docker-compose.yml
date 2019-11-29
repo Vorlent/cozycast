@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+    coturn:
+        image: instrumentisto/coturn:4.5.1
+        command:
+            - -n
+            - --external-ip="$TURN_IP/$PRIVATE_IP"
+            - --min-port=49160
+            - --max-port=49200
+            - --lt-cred-mech
+            - --fingerprint
+            - --realm=my.realm.org
+            - --use-auth-secret
+            - --static-auth-secret=$TURN_SECRET
+            - --realm=kurento.org
+            - --log-file=stdout
+        network_mode: 'host'
+        tmpfs: '/var/lib/coturn'
+        restart: unless-stopped
+    kurento:
+        image: kurento/kurento-media-server:6.12
+        network_mode: 'host'
+        environment:
+            KMS_TURN_URL: "$KURENTO_USERNAME:$KURENTO_PASSWORD@$TURN_IP:3478"
+            GST_DEBUG: "Kurento*:4,kms*:4,kmsremb:3"
+        restart: unless-stopped
+    cozycast-worker:
+        build: ../cozycast-worker
+        image: cozycast-worker
+        network_mode: 'host'
+        shm_size: 2g
+        environment:
+            COZYCAST_IP: $COZYCAST_IP
+            COZYCAST_ROOM: default
+        volumes:
+            - "../cozycast-worker/cozycast:/home/cozycast"
+        restart: unless-stopped
+    cozycast-server:
+        build: ../cozycast-server
+        image: cozycast-server
+        network_mode: 'host'
+        shm_size: 2g
+        environment:
+            TURN_SECRET: $TURN_SECRET
+            TURN_IP: $TURN_IP
+            KURENTO_IP: $KURENTO_IP
+        volumes:
+            - "../cozycast-server/cache/avatar):/var/cozycast/avatar/"
+        restart: unless-stopped
