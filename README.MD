@@ -9,7 +9,7 @@ Install Docker.
 Arch Example:
 
 ```
-sudo pacman -S docker
+sudo pacman -S docker docker-compose
 sudo systemctl enable docker.socket
 sudo systemctl start docker.socket
 ```
@@ -41,6 +41,16 @@ export SOURCE_URL=<>
 ```
 
 If you have made modifications to the source code then it is recommended to set SOURCE_URL to point to the modified source code (e.g. git/github repository or downloadable zip file) to ensure compliance with the AGPL. If you have not made any modifications then you can simply set it to https://github.com/Vorlent/cozycast.
+
+# Start cozycast
+
+```
+./cozycast build
+./cozycast start
+./cozycast stop
+```
+
+# Old Method:
 
 Start coturn
 
