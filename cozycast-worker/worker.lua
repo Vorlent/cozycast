@@ -109,7 +109,7 @@ end
 function start_server()
     local server = os.getenv("COZYCAST_IP")
     local room = os.getenv("COZYCAST_ROOM") or "default"
-    local url = "ws://"..server..":8080/worker/"..room
+    local url = "ws://"..server..":80/worker/"..room
     local ws = websocket.new_from_uri(url)
     ws:connect()
     while true do
