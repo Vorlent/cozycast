@@ -2,7 +2,7 @@ micronaut:
     application:
         name: cozycast-server
     server:
-        port: 8080
+        port: 80
 
     router:
         static-resources:
