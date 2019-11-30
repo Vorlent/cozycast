@@ -15,19 +15,19 @@ case $1 in
         echo "KURENTO_PASSWORD=$KURENTO_PASSWORD" >> .env
         echo "SOURCE_URL=$SOURCE_URL" >> .env
 
-        sudo docker-compose -f docker-compose.yml up -d
-        sudo docker exec -it docker-compose_coturn_1 \
+        sudo docker-compose -p cozycast -f docker-compose.yml up -d
+        sudo docker exec -it cozycast_coturn_1 \
             turnadmin -a -u kurento -p $KURENTO_PASSWORD -r kurento.org
         exit;
         ;;
     stop)
         cd docker-compose
-        sudo docker-compose -f docker-compose.yml down
+        sudo docker-compose -p cozycast -f docker-compose.yml down
         exit;
         ;;
     build)
         cd docker-compose
-        sudo docker-compose -f docker-compose.yml build
+        sudo docker-compose -p cozycast -f docker-compose.yml build
         exit;
         ;;
     *)
