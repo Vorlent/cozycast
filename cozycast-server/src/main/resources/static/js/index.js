@@ -46,6 +46,12 @@ class App extends Component {
                     onclick=${remote}>
                   Remote
                 </button>
+
+                <button type="button" class="btn ${state.remote ? 'btn-danger' : 'btn-primary'}"
+                    onclick=${startFullscreen}>
+                  Fullscreen
+                </button>
+
                 <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider" oninput=${changeVolume}/>
                 <a id="copyright" href="/license" target="_blank">Copyright (C) 2019 Vorlent</a>
               </div>
@@ -82,6 +88,10 @@ updateState(function () {
         })
     }
 })
+
+function startFullscreen() {
+    document.getElementById("pagecontent").requestFullscreen()
+}
 
 function changeVolume(e) {
     updateState(function() {
