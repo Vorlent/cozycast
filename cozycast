@@ -4,17 +4,7 @@ case $1 in
     start)
         mkdir -p cozycast-server/cache/avatar
         cd docker-compose
-        rm .env 2> /dev/null
-        echo "TURN_SECRET=$TURN_SECRET" >> .env
-        echo "PUBLIC_IP=$PUBLIC_IP" >> .env
-        echo "PRIVATE_IP=$PRIVATE_IP" >> .env
-        echo "TURN_IP=$TURN_IP" >> .env
-        echo "KURENTO_IP=$KURENTO_IP" >> .env
-        echo "COZYCAST_IP=$COZYCAST_IP" >> .env
-        echo "KURENTO_USERNAME=$KURENTO_USERNAME" >> .env
-        echo "KURENTO_PASSWORD=$KURENTO_PASSWORD" >> .env
-        echo "SOURCE_URL=$SOURCE_URL" >> .env
-
+        grep -oE "[^ ]+=" ../.env | sed 's/=//' | xargs -I{} bash -c "echo {}=\${}" > .env
         sudo docker-compose -p cozycast -f docker-compose.yml up -d
         sudo docker exec -it cozycast_coturn_1 \
             turnadmin -a -u kurento -p $KURENTO_PASSWORD -r kurento.org
@@ -28,6 +18,16 @@ case $1 in
     build)
         cd docker-compose
         sudo docker-compose -p cozycast -f docker-compose.yml build
+        exit;
+        ;;
+    dev)
+        mkdir -p cozycast-server/cache/avatar
+        cd docker-compose
+        grep -oE "[^ ]+=" ../.env | sed 's/=//' | xargs -I{} bash -c "echo {}=\${}" > .env
+        echo "SOURCE_URL=$(git remote get-url origin)" >> .env
+        sudo docker-compose -p cozycast -f docker-compose.yml -f docker-compose.dev.yml up -d
+        sudo docker exec -it cozycast_coturn_1 \
+            turnadmin -a -u kurento -p $KURENTO_PASSWORD -r kurento.org
         exit;
         ;;
     *)
