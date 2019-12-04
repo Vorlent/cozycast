@@ -47,7 +47,7 @@ class App extends Component {
                   Remote
                 </button>
 
-                <button type="button" class="btn ${state.remote ? 'btn-danger' : 'btn-primary'}"
+                <button type="button" class="btn"
                     onclick=${startFullscreen}>
                   Fullscreen
                 </button>
