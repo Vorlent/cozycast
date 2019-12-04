@@ -46,6 +46,7 @@ import groovy.util.logging.Slf4j
 class StartResponse {
     String action = "startResponse"
     String sdpAnswer
+    VideoSettings videoSettings
 }
 
 class IceCandidateEvent {
@@ -208,7 +209,7 @@ class PlayerWebsocketServer {
         String sdpOffer = jsonMessage.sdpOffer;
         String sdpAnswer = webRtcEndpoint.processOffer(sdpOffer)
 
-        session.sendSync(new StartResponse(sdpAnswer: sdpAnswer))
+        session.sendSync(new StartResponse(sdpAnswer: sdpAnswer, videoSettings: room.worker.videoSettings))
 
         webRtcEndpoint.gatherCandidates()
     }

@@ -3,8 +3,6 @@ import { html, Component } from '/js/libs/preact.standalone.module.js'
 import { state, updateState, sendMessage } from '/js/index.js'
 
 var lastMouseEvent = Date.now();
-var resolutionX = 1280;
-var resolutionY = 720;
 
 function disableContextmenu(e) {
     e.preventDefault();
@@ -29,8 +27,8 @@ function getRemotePosition(e) {
         bottom: videoRect.bottom - padVt,
         left: videoRect.left + padHz
     };
-    var x = (e.clientX - correctedRect.left) / (correctedRect.right - correctedRect.left) * resolutionX;
-    var y = (e.clientY - correctedRect.top) / (correctedRect.bottom - correctedRect.top) * resolutionY;
+    var x = (e.clientX - correctedRect.left) / (correctedRect.right - correctedRect.left) * state.videoSettings.width;
+    var y = (e.clientY - correctedRect.top) / (correctedRect.bottom - correctedRect.top) * state.videoSettings.height;
     return { x: x, y: y }
 }
 

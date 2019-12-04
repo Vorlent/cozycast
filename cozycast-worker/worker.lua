@@ -72,11 +72,48 @@ function wait_for_pulseaudio()
     end
 end
 
+local video_settings = {
+    width = 1280,
+    height =  720,
+    frame_rate = 25,
+    video_bitrate = "1M",
+    audio_bitrate = "192k"
+}
+
 function capture(data, ws)
     wait_for_pulseaudio()
 
-    print ("/capture.sh "..data.ip.." "..data.videoPort.." "..data.audioPort)
-    os.execute ("/capture.sh "..data.ip.." "..data.videoPort.." "..data.audioPort)
+    local options = {
+        "-thread_queue_size 512",
+        "-f alsa",
+        "-ac 2",
+        "-channel_layout stereo",
+        "-i pulse",
+        "-s "..video_settings.width.."x"..video_settings.height,
+        "-r "..video_settings.frame_rate,
+        "-f x11grab",
+        "-i $DISPLAY.0+0,0",
+        "-vsync 1 -async 1",
+        "-c:v libvpx",
+        "-quality realtime",
+        "-crf 10",
+        "-b:v "..video_settings.video_bitrate,
+        "-pix_fmt yuv420p",
+        "-sdp_file /home/cozycast/sdp_answer",
+        "-an -f rtp rtp://"..data.ip..":"..data.audioPort,
+        "-c:a libopus",
+        "-b:a "..video_settings.audio_bitrate,
+        "-vn -sdp_file /home/cozycast/sdp_answer",
+        "-f rtp rtp://"..data.ip..":"..data.videoPort
+    }
+
+    local options_string = ""
+    for i = 1, #options do
+      options_string = options_string.." "..options[i]
+    end
+
+    print ("/capture.sh "..options_string)
+    os.execute ("/capture.sh "..options_string)
     repeat
         local file, error = io.open("/home/cozycast/sdp_answer", "rb")
         if file then
@@ -112,6 +149,10 @@ function start_server()
     local url = "ws://"..server..":80/worker/"..room
     local ws = websocket.new_from_uri(url)
     ws:connect()
+    ws:send(lunajson.encode{
+        action = "video_settings",
+        video_settings = video_settings
+    })
     while true do
         local msg, error, errno = ws:receive(5)
         if errno == 107 or errno == 32 or (not msg and not error and not errno) then
@@ -195,6 +236,7 @@ function start_server()
     ws:close()
 end
 
+os.execute ("Xvfb $DISPLAY -screen 0 "..video_settings.width.."x"..video_settings.height.."x24 -nolisten tcp &")
 while true do
     print(pcall(start_server))
     print("Restarting lua worker in 5 seconds")

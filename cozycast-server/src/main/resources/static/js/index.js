@@ -15,7 +15,8 @@ export var state = {
     username: "Anonymous",
     volume: 100,
     videoPaused: true,
-    videoLoading: false
+    videoLoading: false,
+    videoSettings: null
 };
 
 export function updateState(fun) {
@@ -47,7 +48,7 @@ class App extends Component {
                   Remote
                 </button>
 
-                <button type="button" class="btn"
+                <button type="button" class="btn btn-primary"
                     onclick=${startFullscreen}>
                   Fullscreen
                 </button>
@@ -376,6 +377,12 @@ function startResponse(message) {
     		return;
     	}
     });
+    console.log("startResponse")
+    console.log(message)
+    updateState(function (state) {
+        state.videoSettings = message.videoSettings;
+        console.log(state.videoSettings)
+    })
 }
 
 export function sendMessage(message) {
