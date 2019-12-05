@@ -4,29 +4,27 @@ case $1 in
     start)
         mkdir -p cozycast-server/cache/avatar
         cd docker-compose
-        grep -oE "[^ ]+=" ../.env | sed 's/=//' | xargs -I{} bash -c "echo {}=\${}" > .env
-        sudo docker-compose -p cozycast -f docker-compose.yml up -d
-        sudo docker exec -it cozycast_coturn_1 \
+        sudo -E docker-compose -p cozycast -f docker-compose.yml up -d
+        sudo -E docker exec -it cozycast_coturn_1 \
             turnadmin -a -u kurento -p $KURENTO_PASSWORD -r kurento.org
         exit;
         ;;
     stop)
         cd docker-compose
-        sudo docker-compose -p cozycast -f docker-compose.yml down
+        sudo -E docker-compose -p cozycast -f docker-compose.yml down
         exit;
         ;;
     build)
         cd docker-compose
-        sudo docker-compose -p cozycast -f docker-compose.yml build
+        sudo -E docker-compose -p cozycast -f docker-compose.yml build
         exit;
         ;;
     dev)
         mkdir -p cozycast-server/cache/avatar
         cd docker-compose
-        grep -oE "[^ ]+=" ../.env | sed 's/=//' | xargs -I{} bash -c "echo {}=\${}" > .env
-        echo "SOURCE_URL=$(git remote get-url origin)" >> .env
-        sudo docker-compose -p cozycast -f docker-compose.yml -f docker-compose.dev.yml up -d
-        sudo docker exec -it cozycast_coturn_1 \
+        export SOURCE_URL=$(git remote get-url origin)
+        sudo -E docker-compose -p cozycast -f docker-compose.yml -f docker-compose.dev.yml up -d
+        sudo -E docker exec -it cozycast_coturn_1 \
             turnadmin -a -u kurento -p $KURENTO_PASSWORD -r kurento.org
         exit;
         ;;

@@ -86,7 +86,7 @@ html, body, #pagecontent, #videosizer {
     display: grid;
     grid-gap: .5em;
     padding: .5em;
-    grid-template-columns: repeat(4, 25%);
+    grid-template-columns: repeat(4, 1fr);
 }
 
 .btn {
@@ -96,7 +96,6 @@ html, body, #pagecontent, #videosizer {
 }
 
 .btn-primary {
-
     background-color: #17c;
     border-color: #048;
 }
