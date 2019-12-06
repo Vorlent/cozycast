@@ -175,6 +175,7 @@ function chatmessage(parsedMessage) {
             })
         }
     })
+    if (parsedMessage.username !== state.username) document.querySelector("#pop").play();
 }
 
 function join(parsedMessage) {

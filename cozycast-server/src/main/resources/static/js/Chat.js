@@ -87,6 +87,7 @@ export class Chat extends Component {
                         `)} ${state.typingUsers.length > 1 ? 'are' : 'is'} typing...
                     `}
                 </div>
+                <audio id="pop" controls="" src="/audio/pop.wav" autoplay="" preload="auto" />
                 <textarea id="chatbox-textarea" onkeypress=${chatKeypress}>
                     ${state.chatBox}
                 </textarea>
