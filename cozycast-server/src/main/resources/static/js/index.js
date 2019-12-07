@@ -215,6 +215,9 @@ function leave(parsedMessage) {
         state.userlist = state.userlist.filter(function(element) {
             return element.session != parsedMessage.session;
         });
+        state.typingUsers = state.typingUsers.filter(function(user) {
+            return user.session != parsedMessage.session;
+        });
     })
 }
 
