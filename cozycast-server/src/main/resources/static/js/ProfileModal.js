@@ -7,24 +7,31 @@ function openAvatarUpload() {
 }
 
 function closeProfile() {
-    updateState(function () {
+    updateState(function (state) {
         delete state.profileModal;
     })
 }
 
 function updateProfileUsername(username) {
-    updateState(function () {
+    updateState(function (state) {
         state.profileModal.username = username;
     })
 }
 
+function updateProfileMuteChatNotification(muteChatNotification) {
+    updateState(function (state) {
+        state.profileModal.muteChatNotification = muteChatNotification;
+    })
+}
+
 function saveProfile() {
-    updateState(function () {
+    updateState(function (state) {
         if(state.profileModal) {
             localStorage.setItem("username", state.profileModal.username);
             localStorage.setItem("avatarUrl", state.profileModal.avatarUrl);
             state.username = state.profileModal.username;
             state.avatarUrl = state.profileModal.avatarUrl;
+            state.muteChatNotification = state.profileModal.muteChatNotification;
             sendMessage({
                 action : 'changeusername',
                 username : state.username
@@ -49,10 +56,11 @@ function avatarSelected(e) {
 }
 
 export function openProfile() {
-    updateState(function () {
+    updateState(function (state) {
         state.profileModal = {
             username: state.username,
-            avatarUrl: state.avatarUrl
+            avatarUrl: state.avatarUrl,
+            muteChatNotification: state.muteChatNotification
         };
     })
 }
@@ -80,6 +88,9 @@ export class ProfileModal extends Component {
                     <input class="profile-modal-username" type="text"
                         onInput=${e => updateProfileUsername(e.target.value)}
                         name="username" value="${state.profileModal.username}"/>
+                    <div>Mute Chat Notification: <input class="profile-modal-username" type="checkbox"
+                        onInput=${e => updateProfileMuteChatNotification(e.target.checked)}
+                        name="muteChatNotification" checked="${state.profileModal.muteChatNotification}"/></div>
                     <button class="btn btn-primary" onclick=${saveProfile}>Save</button>
                 </div>
         </div>`}`

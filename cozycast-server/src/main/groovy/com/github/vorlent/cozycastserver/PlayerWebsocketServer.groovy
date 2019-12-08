@@ -59,12 +59,14 @@ class TypingEvent {
     String session
     String state
     String username
+    Long lastTypingTime
 }
 
 class ReceiveMessageEvent {
     String action = "receivemessage"
     String message
     String username
+    String session
     String timestamp
 }
 
@@ -162,6 +164,11 @@ class KeepAlive {
     String action = "keepalive"
 }
 
+class SessonIdEvent {
+    String action = "session_id"
+    String session
+}
+
 @Slf4j
 @ServerWebSocket("/player/{room}")
 class PlayerWebsocketServer {
@@ -216,12 +223,14 @@ class PlayerWebsocketServer {
 
     private void typing(Room room, WebSocketSession session, Map jsonMessage) {
         log.info jsonMessage.toString()
+        final UserSession user = room.users.get(session.getId())
         room.users.each { key, value ->
             if(session.getId() != value.getWebSocketSession().getId()) {
                 value.getWebSocketSession().sendSync(new TypingEvent(
                     session: session.getId(),
                     state: jsonMessage.state,
-                    username: jsonMessage.username
+                    username: jsonMessage.username,
+                    lastTypingTime: new Date().getTime()
                 ))
             }
         }
@@ -237,6 +246,7 @@ class PlayerWebsocketServer {
             value.webSocketSession.sendSync(new ReceiveMessageEvent(
                 message: jsonMessage.message,
                 username: jsonMessage.username,
+                session: session.getId(),
                 timestamp: nowAsISO
             ))
         }
@@ -273,6 +283,9 @@ class PlayerWebsocketServer {
         if(jsonMessage.url) {
             user.avatarUrl = jsonMessage.url
         }
+        session.sendSync(new SessonIdEvent(
+            session: session.getId()
+        ))
 
         room.users.each { key, value ->
             // send existing users to new user

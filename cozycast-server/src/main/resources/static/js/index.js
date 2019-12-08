@@ -16,7 +16,9 @@ export var state = {
     volume: 100,
     videoPaused: true,
     videoLoading: false,
-    videoSettings: null
+    videoSettings: null,
+    session: null,
+    muteChatNotification: false
 };
 
 export function updateState(fun) {
@@ -175,6 +177,9 @@ function chatmessage(parsedMessage) {
             })
         }
     })
+    if (!state.muteChatNotification && document.hidden && parsedMessage.session !== state.session) {
+        document.querySelector("#pop").play();
+    }
 }
 
 function join(parsedMessage) {
@@ -240,6 +245,11 @@ function connect() {
     	switch (parsedMessage.action) {
             case 'keepalive':
     			break;
+            case 'session_id':
+                updateState(function (state) {
+                    state.session = parsedMessage.session;
+                })
+                break;
     		case 'startResponse':
     			startResponse(parsedMessage);
     			break;
