@@ -80,6 +80,7 @@ html, body, #pagecontent, #videosizer {
     grid-area: toolbar;
     display: flex;
     background-color: #123;
+    min-width: 0;
 }
 
 #controls {
