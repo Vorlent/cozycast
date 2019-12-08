@@ -191,7 +191,6 @@ html, body, #pagecontent, #videosizer {
 #userlist {
     flex-grow: 1;
     display: flex;
-    justify-content: center;
     min-width: 0;
     overflow: auto hidden;
     scrollbar-width: thin;
