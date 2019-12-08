@@ -1,11 +1,20 @@
 * {
     box-sizing: border-box;
+    scrollbar-color: #346 #235;
 }
 
 :root {
     --cozycast-noise: url("/png/noise_128.png");
     --cozycast-dpr: 1;
     font-family: sans-serif;
+}
+
+::-webkit-scrollbar {
+    background: #346;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #235;
 }
 
 html, body, #pagecontent, #videosizer {
@@ -34,10 +43,6 @@ html, body, #pagecontent, #videosizer {
     #messages {
         scrollbar-width: thin;
     }
-}
-
-#usrlist, #messages {
-    scrollbar-color: #235 #346;
 }
 
 #pagecontent > * {
@@ -189,7 +194,6 @@ html, body, #pagecontent, #videosizer {
     justify-content: center;
     min-width: 0;
     overflow: auto hidden;
-    scrollbar-color: #235 #346;
     scrollbar-width: thin;
 }
 
