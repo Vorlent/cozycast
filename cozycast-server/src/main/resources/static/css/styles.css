@@ -209,7 +209,7 @@ html, body, #pagecontent, #videosizer {
 
 .remote {
     position: absolute;
-    bottom: 20px;
+    bottom: 0px;
     right: 0px;
     background-color: #e4910a;
 }
