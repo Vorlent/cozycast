@@ -193,8 +193,10 @@ html, body, #pagecontent, #videosizer {
 }
 
 .user {
-    position: relative;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     color: white;
     margin-left: 5px;
     margin-right: 5px;
@@ -205,14 +207,6 @@ html, body, #pagecontent, #videosizer {
     bottom: 20px;
     right: 0px;
     background-color: #e4910a;
-}
-
-/* Centered text */
-.user .centered {
-    position: absolute;
-    padding-top: 10px;
-    left: 50%;
-    transform: translate(-50%, -50%);
 }
 
 .volumeSlider {

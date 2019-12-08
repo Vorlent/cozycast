@@ -5,7 +5,7 @@ export function Userlist({ state }) {
         ${state.userlist.map(user => html`
             <div class="user">
                 <div class="image avatar" style="background-image: url('${user.url}');"/>
-                <div class="centered">${user.username}</div>
+                <div>${user.username}</div>
                 <i class="icon-keyboard remote" style=${user.remote ? "" : "display: none;"}></i>
             </div>
         `)}
