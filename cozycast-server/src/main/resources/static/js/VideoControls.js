@@ -44,12 +44,17 @@ function videoMouseUp(e) {
 }
 
 function videoMouseDown(e) {
-    if(!state.remote) { return }
     var videoElement = document.getElementById('video');
-    if(videoElement.paused) {
+    if(state.videoPaused) {
         videoElement.play();
-        videoLoadingScreen(true)
+        updateState(function (state)  {
+            state.videoPaused = false;
+            if(state.videoLoading != "loaded") {
+                state.videoLoading = "loading";
+            }
+        })
     }
+    if(!state.remote) { return }
 
     var pos = getRemotePosition(e);
     sendMessage({
@@ -124,10 +129,21 @@ function paste(e) {
     });
 }
 
-function videoLoadingScreen(loadingState) {
+function autoplayDetected(loadingState) {
     updateState(function (state) {
         state.videoPaused = false;
-        state.videoLoading = loadingState;
+    })
+}
+
+function onCanPlay(e) {
+    updateState(function (state) {
+        state.videoLoading = "loaded";
+    })
+}
+
+function onLoadStart(e) {
+    updateState(function (state) {
+        state.videoLoading = "loading";
     })
 }
 
@@ -164,7 +180,7 @@ export class VideoControls extends Component {
                 html`<div class="paused-screen">
                   <div class="play-button">Play</div>
               </div>`}
-              ${state.videoLoading &&
+              ${state.videoLoading == "loading" && !state.videoPaused &&
                   html`<div class="paused-screen">
                   <div class="loading-screen">
                       <img class="loading-animation" src="svg/loading.svg"/>
@@ -172,10 +188,12 @@ export class VideoControls extends Component {
                   </div>
               </div>`}
             </div>
+            <audio id="autoplay" controls="" volume="0" src="/audio/pop.wav" autoplay
+                preload="auto" onplay=${e => autoplayDetected(false)}/>
             <div id="videosizer">
               <video id="video" autoplay tabindex="0"
-                  onplay=${e => videoLoadingScreen(false)}
-                  onloadstart=${e => videoLoadingScreen(true)}
+                  oncanplay=${e => onCanPlay(e)}
+                  onloadstart=${e => onLoadStart(e)}
               ></video>
             </div>
         </div>`

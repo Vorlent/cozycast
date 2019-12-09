@@ -252,6 +252,7 @@ html, body, #pagecontent, #videosizer {
     display: flex;
     justify-content: center;
     flex-direction: column;
+    color: white;
 }
 
 .loading-screen {
