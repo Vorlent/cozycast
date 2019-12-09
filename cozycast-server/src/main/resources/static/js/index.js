@@ -90,6 +90,7 @@ updateState(function () {
             }
         })
     }
+    state.muteChatNotification = localStorage.getItem("muteChatNotification");
 })
 
 function startFullscreen() {

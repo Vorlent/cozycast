@@ -29,6 +29,7 @@ function saveProfile() {
         if(state.profileModal) {
             localStorage.setItem("username", state.profileModal.username);
             localStorage.setItem("avatarUrl", state.profileModal.avatarUrl);
+            localStorage.setItem("muteChatNotification", state.profileModal.muteChatNotification);
             state.username = state.profileModal.username;
             state.avatarUrl = state.profileModal.avatarUrl;
             state.muteChatNotification = state.profileModal.muteChatNotification;
