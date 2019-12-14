@@ -123,6 +123,8 @@ html, body, #pagecontent, #videosizer {
     grid-column: span 3;
     color: lightgray;
     font-size: .5em;
+    align-self: center;
+    justify-self: start;
 }
 
 .message {
