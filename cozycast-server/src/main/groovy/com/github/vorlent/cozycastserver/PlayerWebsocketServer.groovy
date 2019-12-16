@@ -425,7 +425,7 @@ class PlayerWebsocketServer {
         roomRegistry.getRoom(room).users.put(session.getId(), new UserSession(
                 webSocketSession: session,
                 username: "Anonymous",
-                avatarUrl: "https://pepethefrog.ucoz.com/_nw/2/89605944.jpg"
+                avatarUrl: "/png/default_avatar.png"
             ))
     }
 
