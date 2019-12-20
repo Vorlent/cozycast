@@ -185,7 +185,7 @@ class PlayerWebsocketServer {
     }
 
     private void keepalive(Room room, WebSocketSession session, Map jsonMessage) {
-        session.sendSync(new KeepAlive())
+        sendMessage(session, new KeepAlive())
     }
 
     private void start(Room room, WebSocketSession session, Map jsonMessage) {
@@ -204,7 +204,7 @@ class PlayerWebsocketServer {
 
         webRtcEndpoint.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
             public void onEvent(IceCandidateFoundEvent event) {
-                session.sendSync(new IceCandidateEvent(
+                sendMessage(session, new IceCandidateEvent(
                     candidate: [
                         candidate: event.candidate.candidate,
                         sdpMid: event.candidate.sdpMid,
@@ -216,7 +216,7 @@ class PlayerWebsocketServer {
         String sdpOffer = jsonMessage.sdpOffer;
         String sdpAnswer = webRtcEndpoint.processOffer(sdpOffer)
 
-        session.sendSync(new StartResponse(sdpAnswer: sdpAnswer, videoSettings: room.worker.videoSettings))
+        sendMessage(session, new StartResponse(sdpAnswer: sdpAnswer, videoSettings: room.worker.videoSettings))
 
         webRtcEndpoint.gatherCandidates()
     }
@@ -226,7 +226,7 @@ class PlayerWebsocketServer {
         final UserSession user = room.users.get(session.getId())
         room.users.each { key, value ->
             if(session.getId() != value.getWebSocketSession().getId()) {
-                value.getWebSocketSession().sendSync(new TypingEvent(
+                sendMessage(value.webSocketSession, new TypingEvent(
                     session: session.getId(),
                     state: jsonMessage.state,
                     username: jsonMessage.username,
@@ -243,7 +243,7 @@ class PlayerWebsocketServer {
         df.setTimeZone(tz)
         String nowAsISO = df.format(new Date())
         room.users.each { key, value ->
-            value.webSocketSession.sendSync(new ReceiveMessageEvent(
+            sendMessage(value.webSocketSession, new ReceiveMessageEvent(
                 message: jsonMessage.message,
                 username: jsonMessage.username,
                 session: session.getId(),
@@ -257,7 +257,7 @@ class PlayerWebsocketServer {
         UserSession user = room.users.get(session.getId())
         user.username = jsonMessage.username
         room.users.each { key, value ->
-            value.webSocketSession.sendSync(new ChangeUsernameEvent(
+            sendMessage(value.webSocketSession, new ChangeUsernameEvent(
                 session: session.getId(),
                 username: jsonMessage.username
             ))
@@ -269,7 +269,7 @@ class PlayerWebsocketServer {
         UserSession user = room.users.get(session.getId())
         user.avatarUrl = jsonMessage.url
         room.users.each { key, value ->
-            value.webSocketSession.sendSync(new ChangeProfilePictureEvent(
+            sendMessage(value.webSocketSession, new ChangeProfilePictureEvent(
                 session: session.getId(),
                 url: jsonMessage.url
             ))
@@ -283,14 +283,14 @@ class PlayerWebsocketServer {
         if(jsonMessage.url) {
             user.avatarUrl = jsonMessage.url
         }
-        session.sendSync(new SessonIdEvent(
+        sendMessage(session, new SessonIdEvent(
             session: session.getId()
         ))
 
         room.users.each { key, value ->
             // send existing users to new user
             if(value.getWebSocketSession() != session) {
-                value.webSocketSession.sendSync(new JoinEvent(
+                sendMessage(value.webSocketSession, new JoinEvent(
                     session: session.getId(),
                     username: jsonMessage.username,
                     url: jsonMessage.url
@@ -299,7 +299,7 @@ class PlayerWebsocketServer {
 
             // send new user to existing users
             if (value.getUsername() != null) {
-                session.sendSync(new JoinEvent(
+                sendMessage(session, new JoinEvent(
                     session: key,
                     username: value.getUsername(),
                     url: value.getAvatarUrl()
@@ -311,34 +311,34 @@ class PlayerWebsocketServer {
     private void scroll(Room room, WebSocketSession session, Map jsonMessage) {
         if(session.getId() == room.remote) {
             log.info jsonMessage.toString()
-            room.worker?.websocket?.sendSync(new ScrollEvent(direction: jsonMessage.direction))
+            sendMessage(room.worker?.websocket, new ScrollEvent(direction: jsonMessage.direction))
         }
     }
 
     private void paste(Room room, WebSocketSession session, Map jsonMessage) {
         if(session.getId() == room.remote) {
             log.info jsonMessage.toString()
-            room.worker?.websocket?.sendSync(new PasteEvent(clipboard: jsonMessage.clipboard))
+            sendMessage(room.worker?.websocket, new PasteEvent(clipboard: jsonMessage.clipboard))
         }
     }
 
     private void keyup(Room room, WebSocketSession session, Map jsonMessage) {
         if(session.getId() == room.remote) {
             log.info jsonMessage.toString()
-            room.worker?.websocket?.sendSync(new KeyUpEvent(key: jsonMessage.key))
+            sendMessage(room.worker?.websocket, new KeyUpEvent(key: jsonMessage.key))
         }
     }
 
     private void keydown(Room room, WebSocketSession session, Map jsonMessage) {
         if(session.getId() == room.remote) {
-            room.worker?.websocket?.sendSync(new KeyDownEvent(key: jsonMessage.key))
+            sendMessage(room.worker?.websocket, new KeyDownEvent(key: jsonMessage.key))
         }
     }
 
     private void mousemove(Room room, WebSocketSession session, Map jsonMessage) {
         log.info jsonMessage.toString()
         if(session.getId() == room.remote) {
-            room.worker?.websocket?.sendSync(new MouseMoveEvent(
+            sendMessage(room.worker?.websocket, new MouseMoveEvent(
                 mouseX: jsonMessage.mouseX,
                 mouseY: jsonMessage.mouseY))
         }
@@ -347,7 +347,7 @@ class PlayerWebsocketServer {
     private void mouseup(Room room, WebSocketSession session, Map jsonMessage) {
         log.info jsonMessage.toString()
         if(session.getId() == room.remote) {
-            room.worker?.websocket?.sendSync(new MouseUpEvent(
+            sendMessage(room.worker?.websocket, new MouseUpEvent(
                 mouseX: jsonMessage.mouseX,
                 mouseY: jsonMessage.mouseY,
                 button: jsonMessage.button))
@@ -357,7 +357,7 @@ class PlayerWebsocketServer {
     private void mousedown(Room room, WebSocketSession session, Map jsonMessage) {
         log.info jsonMessage.toString()
         if(session.getId() == room.remote) {
-            room.worker?.websocket?.sendSync(new MouseDownEvent(
+            sendMessage(room.worker?.websocket, new MouseDownEvent(
                 mouseX: jsonMessage.mouseX,
                 mouseY: jsonMessage.mouseY,
                 button: jsonMessage.button))
@@ -367,17 +367,17 @@ class PlayerWebsocketServer {
     private void pickupremote(Room room, WebSocketSession session) {
         room.remote = session.getId()
         room.users.each { key, value ->
-            value.webSocketSession.sendSync(new PickupRemoteEvent(
+            sendMessage(value.webSocketSession, new PickupRemoteEvent(
                 session: session.getId(),
                 has_remote: value.webSocketSession.getId() == session.getId()))
         }
-        room.worker?.websocket?.sendSync(new ResetKeyboardEvent())
+        sendMessage(room.worker?.websocket, new ResetKeyboardEvent())
     }
 
     private void dropremote(Room room, WebSocketSession session) {
         room.remote = null
         room.users.each { key, value ->
-            value.webSocketSession.sendSync(new DropRemoteEvent(
+            sendMessage(value.webSocketSession, new DropRemoteEvent(
                 session: session.getId()
             ))
         }
@@ -387,7 +387,7 @@ class PlayerWebsocketServer {
         UserSession user = room.users.remove(sessionId)
         room.users.each { key, value ->
             if (value.username != null) {
-                value.webSocketSession.sendSync(new LeaveEvent(
+                sendMessage(value.webSocketSession, new LeaveEvent(
                     session: sessionId,
                     username: value.username
                 ))
@@ -412,12 +412,12 @@ class PlayerWebsocketServer {
 
     public void sendPlayEnd(Room room, WebSocketSession session) {
         if (room.users.containsKey(session.getId())) {
-            session.sendSync(new PlayEndEvent())
+            sendMessage(session, new PlayEndEvent())
         }
     }
 
     private void sendError(WebSocketSession session, String message) {
-        session.sendSync(new CozycastError(message: message))
+        sendMessage(session, new CozycastError(message: message))
     }
 
     @OnOpen
@@ -498,6 +498,12 @@ class PlayerWebsocketServer {
             t.printStackTrace()
             sendError(session, t.getMessage())
         }
+    }
+
+    private void sendMessage(WebSocketSession session, Object message) {
+        def i = new Random().nextInt(1000)
+        session.send(message)
+            .subscribe({arg -> "SEND stop ${i}"})
     }
 
     @OnClose
