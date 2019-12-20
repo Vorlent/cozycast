@@ -47,5 +47,5 @@ services:
             KURENTO_IP: $KURENTO_IP
             SOURCE_URL: $SOURCE_URL
         volumes:
-            - "../cozycast-server/cache/avatar):/var/cozycast/avatar/"
+            - "../cozycast-server/cache/avatar:/var/cozycast/avatar/"
         restart: unless-stopped
