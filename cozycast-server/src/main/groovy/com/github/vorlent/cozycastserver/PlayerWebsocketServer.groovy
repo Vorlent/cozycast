@@ -294,6 +294,9 @@ class PlayerWebsocketServer {
         sendMessage(session, new SessonIdEvent(
             session: session.getId()
         ))
+        sendMessage(session, new WindowTitleEvent(
+            title: "CozyCast: " + (room.title ?: "Low latency screen capture via WebRTC")
+        ))
 
         room.users.each { key, value ->
             // send existing users to new user
@@ -509,9 +512,8 @@ class PlayerWebsocketServer {
     }
 
     private void sendMessage(WebSocketSession session, Object message) {
-        def i = new Random().nextInt(1000)
         session.send(message)
-            .subscribe({arg -> "SEND stop ${i}"})
+            .subscribe({arg -> ""})
     }
 
     @OnClose

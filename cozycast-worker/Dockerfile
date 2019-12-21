@@ -17,6 +17,11 @@ RUN export UNAME=$UNAME UID=1000 GID=1000 && \
     chown ${UID}:${GID} -R /home/${UNAME} && \
     gpasswd -a ${UNAME} audio
 
+ENV TINI_VERSION v0.18.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+#ENTRYPOINT ["/tini", "--"]
+
 COPY cozycast-worker-1.0-1.rockspec .
 RUN luarocks make
 COPY . .

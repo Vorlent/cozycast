@@ -135,6 +135,13 @@ function capture(data, ws)
     until file
 end
 
+function get_active_window_title()
+    local xprop = io.popen('xprop -id $(xprop -root _NET_ACTIVE_WINDOW | grep -oiP \"0x.{7}\") WM_NAME | sed \"s/WM_NAME(STRING) = //\"', 'r')
+    local stdout = xprop:read("*a")
+    xprop:close()
+    return stdout
+end
+
 function validate_mouse(x,y)
     return x and y
     and x ~= 0
@@ -164,6 +171,10 @@ function start_server()
                 action = "keepalive"
             })
             print("keepalive")
+            ws:send(lunajson.encode{
+                action = "window_title",
+                title = get_active_window_title()
+            })
         else
             print(msg)
             print(error)
@@ -231,12 +242,14 @@ function start_server()
                 end
             end
         end
+        io.stdout:flush()
     end
 
     ws:close()
 end
 
 os.execute ("Xvfb $DISPLAY -screen 0 "..video_settings.width.."x"..video_settings.height.."x24 -nolisten tcp &")
+os.execute ("sudo -u cozycast xfce4-session &")
 while true do
     print(pcall(start_server))
     print("Restarting lua worker in 5 seconds")

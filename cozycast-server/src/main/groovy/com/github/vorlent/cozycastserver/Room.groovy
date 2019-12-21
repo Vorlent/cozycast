@@ -6,4 +6,5 @@ class Room {
     final ConcurrentHashMap<String, UserSession> users = new ConcurrentHashMap<>()
     WorkerSession worker
     String remote
+    String title
 }

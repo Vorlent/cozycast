@@ -18,7 +18,8 @@ export var state = {
     videoLoading: false,
     videoSettings: null,
     session: null,
-    muteChatNotification: false
+    muteChatNotification: false,
+    windowTitle: "CozyCast: Low latency screen capture via WebRTC"
 };
 
 export function updateState(fun) {
@@ -34,6 +35,10 @@ class App extends Component {
     	globalVar.callback = (data) => {
         	this.setState(data);
         };
+    }
+
+    componentDidUpdate() {
+        document.title = state.windowTitle
     }
 
     render({ page }, { xyz = [] }) {
@@ -295,6 +300,11 @@ function connect() {
                     state.remote = parsedMessage.has_remote;
                 })
     			break;
+            case 'window_title':
+                updateState(function () {
+                    state.windowTitle = parsedMessage.title
+                })
+                break;
     		case 'iceCandidate':
     			webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
     				if (error) {

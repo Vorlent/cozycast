@@ -30,6 +30,11 @@ class SDPAnswer {
     String content
 }
 
+class WindowTitleEvent {
+    String action = "window_title"
+    String title
+}
+
 @Slf4j
 @ServerWebSocket("/worker/{room}")
 class WorkerWebsocketServer {
@@ -90,6 +95,17 @@ class WorkerWebsocketServer {
         }
     }
 
+    private void windowtitle(Room room, WebSocketSession session, Map jsonMessage) {
+        if(room.title != jsonMessage.title) {
+            room.title = jsonMessage.title
+            room.users.each { key, value ->
+                value.webSocketSession.sendSync(new WindowTitleEvent(
+                    title: "CozyCast: " + (room.title ?: "Low latency screen capture via WebRTC")
+                ))
+            }
+        }
+    }
+
     @OnMessage
     void onMessage(String room, Map answer, WebSocketSession session) {
         if(answer.action == "sdpAnswer") {
@@ -110,6 +126,9 @@ class WorkerWebsocketServer {
                 videoBitrate: answer.video_settings.video_bitrate,
                 audioBitrate: answer.video_settings.audio_bitrate,
             )
+        }
+        if(answer.action == "window_title") {
+            windowtitle(roomRegistry.getRoom(room), session, answer)
         }
     }
 
