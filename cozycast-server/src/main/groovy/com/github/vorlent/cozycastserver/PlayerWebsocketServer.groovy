@@ -254,6 +254,14 @@ class PlayerWebsocketServer {
 
     private void changeusername(Room room, WebSocketSession session, Map jsonMessage) {
         log.info jsonMessage.toString()
+        if(!(jsonMessage.username instanceof String)) {
+            log.warn "Username ${jsonMessage.username} of type ${${jsonMessage.username?.class}} is not a string."
+            return;
+        }
+        if(jsonMessage.username.length() > 12) {
+            log.warn "Username ${jsonMessage.username} is longer than 12 characters."
+            return;
+        }
         UserSession user = room.users.get(session.getId())
         user.username = jsonMessage.username
         room.users.each { key, value ->
