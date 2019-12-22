@@ -13,6 +13,9 @@ services:
             - "../cozycast-server:/root/cozycast/cozycast-server"
             - "../cozycast-server/cache/.gradle:/root/.gradle/repository"
             - "../cozycast-server/cache/build:/root/cozycast/cozycast-server/build"
+    cozycast-worker:
+        volumes:
+            - "../cozycast-worker/worker.lua:/worker.lua"
 
 
 # mkdir -p cache/avatar cache/.gradle cache/build

@@ -3,7 +3,7 @@ ENV REPO="xenial"
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y ffmpeg xvfb lua5.3 libssl-dev m4 luarocks xdotool pulseaudio firefox sudo xfce4 xclip fonts-wqy-microhei
+    apt-get install -y ffmpeg xvfb lua5.3 libssl-dev m4 luarocks xdotool pulseaudio firefox sudo xfce4 xclip fonts-wqy-microhei inotify-tools
 
 ENV UNAME cozycast
 
@@ -20,7 +20,7 @@ RUN export UNAME=$UNAME UID=1000 GID=1000 && \
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
-#ENTRYPOINT ["/tini", "--"]
+ENTRYPOINT ["/tini", "--"]
 
 COPY cozycast-worker-1.0-1.rockspec .
 RUN luarocks make

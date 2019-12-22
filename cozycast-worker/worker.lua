@@ -247,9 +247,8 @@ function start_server()
 
     ws:close()
 end
-
-os.execute ("Xvfb $DISPLAY -screen 0 "..video_settings.width.."x"..video_settings.height.."x24 -nolisten tcp &")
-os.execute ("sudo -u cozycast xfce4-session &")
+os.execute ("Xvfb $DISPLAY -screen 0 "..video_settings.width.."x"..video_settings.height.."x24 -nolisten tcp & echo $! >> /worker.pid")
+os.execute ("sudo -u cozycast xfce4-session & echo $! >> /worker.pid")
 while true do
     print(pcall(start_server))
     print("Restarting lua worker in 5 seconds")
