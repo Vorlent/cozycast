@@ -121,12 +121,18 @@ function remote() {
 }
 
 function typing(parsedMessage) {
-    updateState(function () {
+    updateState(function (state) {
         if(parsedMessage.state == "start") {
-            state.typingUsers.push({
-                username: parsedMessage.username,
-                session: parsedMessage.session
-            })
+            var typingUser = state.typingUsers.find(e => e.session == parsedMessage.session)
+            if(typingUser) {
+                typingUser.lastTypingTime = moment()
+            } else {
+                state.typingUsers.push({
+                    username: parsedMessage.username,
+                    session: parsedMessage.session,
+                    lastTypingTime: moment()
+                })
+            }
         } else if(parsedMessage.state == "stop") {
             state.typingUsers = state.typingUsers.filter(function(user) {
                 return user.session != parsedMessage.session;
@@ -401,11 +407,8 @@ function startResponse(message) {
     		return;
     	}
     });
-    console.log("startResponse")
-    console.log(message)
     updateState(function (state) {
         state.videoSettings = message.videoSettings;
-        console.log(state.videoSettings)
     })
 }
 

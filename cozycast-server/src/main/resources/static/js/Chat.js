@@ -1,7 +1,7 @@
 import { html, Component } from '/js/libs/preact.standalone.module.js'
 import { state, updateState, sendMessage } from '/js/index.js'
 
-var typingTimer;
+var lastTypingEvent = Date.now();
 function chatKeypress(e) {
     updateState(function() {
         var enterKeycode = 13;
@@ -18,39 +18,45 @@ function chatKeypress(e) {
             e.target.value = ""; // hack
             state.chatBox = "";
 
-            clearTimeout(typingTimer)
-            typingTimer = null;
             sendMessage({
                 action : 'typing',
                 state: 'stop',
                 username: state.username
             });
         } else {
-            if(typingTimer) {
-                clearTimeout(typingTimer)
-                typingTimer = null;
-            } else {
+            var now = Date.now();
+            if(now - lastTypingEvent > 1000) {
                 sendMessage({
                     action : 'typing',
                     state: 'start',
                     username: state.username
                 });
+                lastTypingEvent = now;
             }
-
-            typingTimer = setTimeout(function() {
-                sendMessage({
-                    action : 'typing',
-                    state: 'stop',
-                    username: state.username
-                });
-                typingTimer = null;
-            }, 2000)
         }
     })
 }
 
 
 export class Chat extends Component {
+    typingInterval = null;
+
+    componentDidMount() {
+         this.typingInterval = setInterval(function() {
+             updateState(function (state) {
+                 state.typingUsers = state.typingUsers.filter(function(user) {
+                     return user.lastTypingTime.isAfter(moment().subtract(3, 'seconds'));
+                 });
+             })
+         }, 1000);
+    }
+
+    componentWillUnmount() {
+        if(this.typingInterval) {
+            clearInterval(this.typingInterval)
+        }
+    }
+
     componentDidUpdate() {
     	this.scrollToBottom();
     }
