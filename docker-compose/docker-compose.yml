@@ -1,6 +1,16 @@
 version: '3'
 
 services:
+    postgres:
+        image: postgres:12.1
+        environment:
+            POSTGRES_DB: cozycast
+            POSTGRES_USER: cozycast
+            POSTGRES_PASSWORD: $COZYCAST_DB_PASS
+        network_mode: 'host'
+        restart: unless-stopped
+        volumes:
+            - "../data/postgres:/var/lib/postgresql/data"
     coturn:
         image: instrumentisto/coturn:4.5.1
         command:
@@ -46,6 +56,8 @@ services:
             TURN_IP: $TURN_IP
             KURENTO_IP: $KURENTO_IP
             SOURCE_URL: $SOURCE_URL
+            COZYCAST_DB_HOST: $COZYCAST_DB_HOST
+            COZYCAST_DB_PASS: $COZYCAST_DB_PASS
         volumes:
             - "../data/cozycast-server/avatar:/var/cozycast/avatar/"
         restart: unless-stopped

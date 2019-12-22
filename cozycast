@@ -1,12 +1,33 @@
 #!/bin/bash
 source .env
+
+function coturn_add_kurento_user {
+    sudo -E docker exec -it cozycast_coturn_1 \
+        turnadmin -a -u kurento -p $KURENTO_PASSWORD -r kurento.org
+}
+
+function liquibase_update {
+    sudo docker run -it \
+        -v $(readlink -f ../liquibase/changelog.xml):/changelog.xml \
+        -v $(readlink -f ../liquibase/driver):/liquibase/jdbc \
+        --network host \
+        liquibase/liquibase \
+        --driver=org.postgresql.Driver \
+        --classpath=/liquibase/jdbc/postgresql-42.2.9.jre7.jar \
+        --url="jdbc:postgresql://$COZYCAST_DB_HOST:5432/cozycast" \
+        --changeLogFile=/changelog.xml \
+        --username=cozycast \
+        --password=$COZYCAST_DB_PASS \
+        update
+}
+
 case $1 in
     start)
         mkdir -p cozycast-server/cache/avatar
         cd docker-compose
         sudo -E docker-compose -p cozycast -f docker-compose.yml up -d
-        sudo -E docker exec -it cozycast_coturn_1 \
-            turnadmin -a -u kurento -p $KURENTO_PASSWORD -r kurento.org
+        coturn_add_kurento_user
+        liquibase_update
         exit;
         ;;
     stop)
@@ -24,8 +45,12 @@ case $1 in
         cd docker-compose
         export SOURCE_URL=$(git remote get-url origin)
         sudo -E docker-compose -p cozycast -f docker-compose.yml -f docker-compose.dev.yml up -d
-        sudo -E docker exec -it cozycast_coturn_1 \
-            turnadmin -a -u kurento -p $KURENTO_PASSWORD -r kurento.org
+        coturn_add_kurento_user
+        liquibase_update
+        exit;
+        ;;
+    db)
+        sudo docker exec -it cozycast_postgres_1 psql -U cozycast
         exit;
         ;;
     *)

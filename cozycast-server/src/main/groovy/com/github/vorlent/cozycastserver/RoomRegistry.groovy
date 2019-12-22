@@ -10,7 +10,7 @@ class RoomRegistry {
     Room getRoom(String name) {
         Room room = rooms.get(name)
         if(!room) {
-            room = new Room()
+            room = new Room(name: name)
             rooms.put(name, room)
         }
         return room

@@ -7,39 +7,44 @@ import io.micronaut.websocket.annotation.OnOpen
 import io.micronaut.websocket.annotation.ServerWebSocket
 import io.micronaut.websocket.WebSocketSession
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.List;
-import com.google.gson.Gson;
-import java.util.concurrent.CopyOnWriteArrayList;
+import com.github.vorlent.cozycastserver.domain.ChatMessage
 
-import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
+import java.time.format.DateTimeFormatter
+import java.time.ZonedDateTime
+import java.time.ZoneId
+import java.io.IOException
+import java.util.Map
+import java.util.List
+import com.google.gson.Gson
+import java.util.concurrent.CopyOnWriteArrayList
 
-import org.kurento.client.EndOfStreamEvent;
-import org.kurento.client.ErrorEvent;
-import org.kurento.client.EventListener;
-import org.kurento.client.IceCandidate;
-import org.kurento.client.IceCandidateFoundEvent;
-import org.kurento.client.KurentoClient;
-import org.kurento.client.MediaPipeline;
-import org.kurento.client.MediaState;
-import org.kurento.client.MediaStateChangedEvent;
-import org.kurento.client.RtpEndpoint;
-import org.kurento.client.VideoInfo;
-import org.kurento.client.WebRtcEndpoint;
-import org.kurento.commons.exception.KurentoException;
-import org.kurento.jsonrpc.JsonUtils;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
+import java.io.IOException
+import java.util.concurrent.ConcurrentHashMap
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import java.util.TimeZone;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import org.kurento.client.EndOfStreamEvent
+import org.kurento.client.ErrorEvent
+import org.kurento.client.EventListener
+import org.kurento.client.IceCandidate
+import org.kurento.client.IceCandidateFoundEvent
+import org.kurento.client.KurentoClient
+import org.kurento.client.MediaPipeline
+import org.kurento.client.MediaState
+import org.kurento.client.MediaStateChangedEvent
+import org.kurento.client.RtpEndpoint
+import org.kurento.client.VideoInfo
+import org.kurento.client.WebRtcEndpoint
+import org.kurento.commons.exception.KurentoException
+import org.kurento.jsonrpc.JsonUtils
+import java.util.regex.Pattern
+import java.util.regex.Matcher
+
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
+import java.util.TimeZone
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.Date
 
 import groovy.util.logging.Slf4j
 
@@ -238,17 +243,29 @@ class PlayerWebsocketServer {
 
     private void chatmessage(Room room, WebSocketSession session, Map jsonMessage) {
         log.info jsonMessage.toString()
-        TimeZone tz = TimeZone.getTimeZone("UTC")
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
-        df.setTimeZone(tz)
-        String nowAsISO = df.format(new Date())
-        room.users.each { key, value ->
-            sendMessage(value.webSocketSession, new ReceiveMessageEvent(
+        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))
+        String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
+        ChatMessage.withTransaction {
+            def chatMessage = new ChatMessage(
+                room: room.name,
                 message: jsonMessage.message,
                 username: jsonMessage.username,
-                session: session.getId(),
-                timestamp: nowAsISO
-            ))
+                timestamp: zonedDateTime
+            )
+            if(chatMessage.validate()) {
+                chatMessage.save()
+            } else {
+                log.warn "Chat message by user ${jsonMessage.username} in room ${room.name} is too long: ${jsonMessage.message.substring(0, 4096)}"
+                return
+            }
+            room.users.each { key, value ->
+                sendMessage(value.webSocketSession, new ReceiveMessageEvent(
+                    message: jsonMessage.message,
+                    username: jsonMessage.username,
+                    session: session.getId(),
+                    timestamp: nowAsISO
+                ))
+            }
         }
     }
 
