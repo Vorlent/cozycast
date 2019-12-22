@@ -34,7 +34,7 @@ services:
             COZYCAST_IP: $COZYCAST_IP
             COZYCAST_ROOM: default
         volumes:
-            - "../cozycast-worker/cozycast:/home/cozycast"
+            - "../data/cozycast-worker/cozycast:/home/cozycast"
         restart: unless-stopped
     cozycast-server:
         build: ../cozycast-server
@@ -47,5 +47,5 @@ services:
             KURENTO_IP: $KURENTO_IP
             SOURCE_URL: $SOURCE_URL
         volumes:
-            - "../cozycast-server/cache/avatar:/var/cozycast/avatar/"
+            - "../data/cozycast-server/avatar:/var/cozycast/avatar/"
         restart: unless-stopped
