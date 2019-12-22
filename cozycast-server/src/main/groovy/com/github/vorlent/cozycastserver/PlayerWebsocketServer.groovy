@@ -67,6 +67,11 @@ class TypingEvent {
     Long lastTypingTime
 }
 
+class ChatHistoryEvent {
+    String action = "chat_history"
+    List<ReceiveMessageEvent> messages
+}
+
 class ReceiveMessageEvent {
     String action = "receivemessage"
     String message
@@ -314,6 +319,22 @@ class PlayerWebsocketServer {
         sendMessage(session, new WindowTitleEvent(
             title: "CozyCast: " + (room.title ?: "Low latency screen capture via WebRTC")
         ))
+
+        ChatMessage.withTransaction {
+            sendMessage(session, new ChatHistoryEvent(
+                messages: ChatMessage.where { room == room.name &&
+                        timestamp > ZonedDateTime.now().minusHours(1)
+                    }.collect {
+                    new ReceiveMessageEvent(
+                        message: it.message,
+                        username: it.username,
+                        session: null,
+                        timestamp: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'")
+                            .format(it.timestamp)
+                    )
+                }
+            ))
+        }
 
         room.users.each { key, value ->
             // send existing users to new user

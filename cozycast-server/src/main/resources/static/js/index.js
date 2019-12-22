@@ -10,6 +10,7 @@ export var state = {
     typingUsers: [],
     userlist: [],
     chatMessages: [],
+    newMessage: false,
     chatBox: "",
     remote: false,
     username: "Anonymous",
@@ -188,6 +189,7 @@ function chatmessage(parsedMessage) {
                 messages: split
             })
         }
+        state.newMessage = true
     })
     if (!state.muteChatNotification && document.hidden && parsedMessage.session !== state.session) {
         document.querySelector("#pop").play();
@@ -271,6 +273,10 @@ function connect() {
     		case 'typing':
     			typing(parsedMessage);
     			break;
+            case 'chat_history':
+                parsedMessage.messages
+                    .forEach(e => chatmessage(e))
+                break;
     		case 'receivemessage':
     			chatmessage(parsedMessage);
     			break;
@@ -327,6 +333,7 @@ function connect() {
         updateState(function () {
             state.userlist = [];
             state.typingUsers = [];
+            state.chatMessages = [];
             state.remote = false;
         })
         if (webRtcPeer) {

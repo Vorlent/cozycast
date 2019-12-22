@@ -58,7 +58,12 @@ export class Chat extends Component {
     }
 
     componentDidUpdate() {
-    	this.scrollToBottom();
+        if(state.newMessage) {
+            updateState(function (state) {
+                state.newMessage = false
+            })
+            this.scrollToBottom();
+        }
     }
 
     scrollToBottom() {
