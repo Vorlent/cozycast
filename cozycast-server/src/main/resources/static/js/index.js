@@ -142,15 +142,6 @@ function typing(parsedMessage) {
     })
 }
 
-function isImageUrl(url) {
-    url = url.toLowerCase()
-    return url.endsWith(".png")
-    || url.endsWith(".jpg")
-    || url.endsWith(".gif")
-    || url.endsWith(".bmp")
-    || url.endsWith(".webp");
-}
-
 function chatmessage(parsedMessage) {
     var queuedMessages = [];
     if(parsedMessage.image) {
@@ -167,11 +158,7 @@ function chatmessage(parsedMessage) {
             console.log(element.value.indexOf("http"))
         	var end = remaining.indexOf(element.value, offset);
         	queuedMessages.push({ "type": "text", "message": remaining.substring(offset, end) });
-        	if(isImageUrl(element.value)) {
-        		queuedMessages.push({ "type": "image", "href": element.value });
-        	} else {
-        		queuedMessages.push({ "type": "url", "href": element.value });
-        	}
+            queuedMessages.push({ "type": "url", "href": element.value });
         	offset = end + element.value.length;
         });
         if(offset < remaining.length) {
