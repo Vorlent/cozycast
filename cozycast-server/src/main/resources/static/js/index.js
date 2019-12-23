@@ -149,7 +149,7 @@ function chatmessage(parsedMessage) {
     } else {
         var offset = 0;
         var urls = linkify.find(parsedMessage.message || "");
-        var remaining = parsedMessage.message;
+        var remaining = parsedMessage.message || "";
         urls.forEach(function(element) {
             if(element.value.indexOf("http") == -1) {
                 element.value = "http://" + element.value
