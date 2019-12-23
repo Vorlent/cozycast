@@ -254,9 +254,9 @@ class PlayerWebsocketServer {
         ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))
         String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
         ChatMessage.withTransaction {
-            ChatMessage.where { room == room.name &&
+            ChatMessage.where { room == room.name //&&
                 timestamp < ZonedDateTime.now(ZoneId.of("UTC")).minusHours(1)
-            }.deleteAll()
+            }.list().each { it.delete() }
             def chatMessage = new ChatMessage(
                 room: room.name,
                 message: jsonMessage.message,
