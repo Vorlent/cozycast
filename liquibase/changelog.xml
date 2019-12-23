@@ -35,11 +35,24 @@
 
     <changeSet id="2" author="vorlent">
         <modifyDataType
-                columnName="message"
-                newDataType="varchar(4096)"
-                tableName="chat_message"/>
+            columnName="message"
+            newDataType="varchar(4096)"
+            tableName="chat_message"/>
     </changeSet>
 
+    <changeSet id="3" author="vorlent">
+        <addColumn tableName="chat_message">
+            <column name="image"
+                type="varchar(128)"/>
+        </addColumn>
+    </changeSet>
 
+    <changeSet id="4" author="vorlent">
+        <addColumn tableName="chat_message">
+            <column name="image" type="varchar(128)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
 
 </databaseChangeLog>

@@ -152,41 +152,45 @@ function isImageUrl(url) {
 }
 
 function chatmessage(parsedMessage) {
-    var urls = linkify.find(parsedMessage.message);
-    var split = [];
-    var offset = 0;
-    var remaining = parsedMessage.message;
-    urls.forEach(function(element) {
-        if(element.value.indexOf("http") == -1) {
-            element.value = "http://" + element.value
+    var queuedMessages = [];
+    if(parsedMessage.image) {
+        queuedMessages.push({ "type": "image", "href": parsedMessage.image });
+    } else {
+        var offset = 0;
+        var urls = linkify.find(parsedMessage.message);
+        var remaining = parsedMessage.message;
+        urls.forEach(function(element) {
+            if(element.value.indexOf("http") == -1) {
+                element.value = "http://" + element.value
+            }
+            console.log(element.value)
+            console.log(element.value.indexOf("http"))
+        	var end = remaining.indexOf(element.value, offset);
+        	queuedMessages.push({ "type": "text", "message": remaining.substring(offset, end) });
+        	if(isImageUrl(element.value)) {
+        		queuedMessages.push({ "type": "image", "href": element.value });
+        	} else {
+        		queuedMessages.push({ "type": "url", "href": element.value });
+        	}
+        	offset = end + element.value.length;
+        });
+        if(offset < remaining.length) {
+        	queuedMessages.push({ "type": "text", "message": remaining.substring(offset, remaining.length) });
         }
-        console.log(element.value)
-        console.log(element.value.indexOf("http"))
-    	var end = remaining.indexOf(element.value, offset);
-    	split.push({ "type": "text", "message": remaining.substring(offset, end) });
-    	if(isImageUrl(element.value)) {
-    		split.push({ "type": "image", "href": element.value });
-    	} else {
-    		split.push({ "type": "url", "href": element.value });
-    	}
-    	offset = end + element.value.length;
-    });
-    if(offset < remaining.length) {
-    	split.push({ "type": "text", "message": remaining.substring(offset, remaining.length) });
     }
 
     updateState(function () {
         var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
         if(state.chatMessages.length > 0 && state.chatMessages[state.chatMessages.length-1].username == parsedMessage.username) {
             var lastMessage = state.chatMessages[state.chatMessages.length-1];
-            split.forEach(function(message) {
+            queuedMessages.forEach(function(message) {
                 lastMessage.messages.push(message)
             })
         } else {
             state.chatMessages.push({
                 username: parsedMessage.username,
                 timestamp: moment(parsedMessage.timestamp).format('h:mm A'),
-                messages: split
+                messages: queuedMessages
             })
         }
         state.newMessage = true

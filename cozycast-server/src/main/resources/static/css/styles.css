@@ -190,6 +190,33 @@ html, body, #pagecontent, #videosizer {
     height: 5em;
 }
 
+.image-uploader {
+    position: relative;
+}
+
+.image-uploader-button-wrapper {
+    width: 20%;
+    height: 100%;
+    position: absolute;
+    bottom: 0px;
+    right: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-uploader-button {
+}
+
+.image-uploader-button:hover {
+    background-color: white;
+    border-radius: 5px;
+}
+
+#image-upload-file {
+    display: none;
+}
+
 #userlist {
     flex-grow: 1;
     display: flex;

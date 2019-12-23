@@ -9,6 +9,7 @@ class ChatMessage {
     String room
     String username
     String message
+    String image
     ZonedDateTime timestamp
 
     static mapping = {
@@ -17,5 +18,6 @@ class ChatMessage {
 
     static constraints = {
         message maxSize: 4096
+        image nullable: true
     }
 }

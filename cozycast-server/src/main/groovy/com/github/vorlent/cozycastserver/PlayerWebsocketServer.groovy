@@ -77,6 +77,7 @@ class ChatHistoryEvent {
 class ReceiveMessageEvent {
     String action = "receivemessage"
     String message
+    String image
     String username
     String session
     String timestamp
@@ -256,18 +257,20 @@ class PlayerWebsocketServer {
             def chatMessage = new ChatMessage(
                 room: room.name,
                 message: jsonMessage.message,
+                image: jsonMessage.image,
                 username: jsonMessage.username,
                 timestamp: zonedDateTime
             )
             if(chatMessage.validate()) {
                 chatMessage.save()
             } else {
-                log.warn "Chat message by user ${jsonMessage.username} in room ${room.name} is too long: ${jsonMessage.message.substring(0, 4096)}"
+                log.warn "Chat message by user ${jsonMessage.username} in room ${room.name} is too long: ${jsonMessage.message?.substring(0, 4096)}"
                 return
             }
             room.users.each { key, value ->
                 sendMessage(value.webSocketSession, new ReceiveMessageEvent(
                     message: jsonMessage.message,
+                    image: jsonMessage.image,
                     username: jsonMessage.username,
                     session: session.getId(),
                     timestamp: nowAsISO
@@ -332,6 +335,7 @@ class PlayerWebsocketServer {
                     }.list(sort: "timestamp", order: "asc", max: 500).collect {
                     new ReceiveMessageEvent(
                         message: it.message,
+                        image: it.image,
                         username: it.username,
                         session: null,
                         timestamp: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'")

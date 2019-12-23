@@ -2,10 +2,25 @@ import { html, Component } from '/js/libs/preact.standalone.module.js'
 import { state, updateState, sendMessage } from '/js/index.js'
 
 var lastTypingEvent = Date.now();
-function chatKeypress(e) {
-    updateState(function() {
+function chatInput(e) {
+    updateState(function(state) {
         var enterKeycode = 13;
         state.chatBox = e.target.value;
+        var now = Date.now();
+        if(now - lastTypingEvent > 1000) {
+            sendMessage({
+                action : 'typing',
+                state: 'start',
+                username: state.username
+            });
+            lastTypingEvent = now;
+        }
+    })
+}
+
+function chatEnter(e) {
+    updateState(function(state) {
+        var enterKeycode = 13;
         if(e.which == enterKeycode) {
             e.preventDefault();
             if(state.chatBox.trim() != "") {
@@ -23,20 +38,28 @@ function chatKeypress(e) {
                 state: 'stop',
                 username: state.username
             });
-        } else {
-            var now = Date.now();
-            if(now - lastTypingEvent > 1000) {
-                sendMessage({
-                    action : 'typing',
-                    state: 'start',
-                    username: state.username
-                });
-                lastTypingEvent = now;
-            }
         }
+        console.log(state.chatBox.length == 0)
     })
 }
 
+function openPictureUpload() {
+    document.getElementById('image-upload-file').click();
+}
+
+function imageSelected(e) {
+    let formData = new FormData();
+    formData.append("image", e.target.files[0]);
+    fetch('/image/upload', {method: "POST", body: formData}).then((e) => e.json()).then(function (e) {
+        //TODO send chat message
+        sendMessage({
+            action: 'chatmessage',
+            image: e.url,
+            message: "",
+            username: state.username
+        });
+    });
+}
 
 export class Chat extends Component {
     typingInterval = null;
@@ -99,9 +122,16 @@ export class Chat extends Component {
                     `}
                 </div>
                 <audio id="pop" controls="" src="/audio/pop.wav" autoplay="" preload="auto" />
-                <textarea id="chatbox-textarea" onkeypress=${chatKeypress}>
-                    ${state.chatBox}
-                </textarea>
+                <div class="image-uploader">
+                    <textarea id="chatbox-textarea" oninput=${chatInput} onkeypress=${chatEnter}>
+                        ${state.chatBox}
+                    </textarea>
+                    <div class="image-uploader-button-wrapper">
+                        <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif" onchange=${imageSelected}/>
+                        ${state.chatBox.length == 0 &&
+                            html`<img class="image-uploader-button" src="/svg/image_upload.svg" onclick=${openPictureUpload}/>`}
+                    </div>
+                </div>
             </div>
         </div>`
     }

@@ -60,4 +60,5 @@ services:
             COZYCAST_DB_PASS: $COZYCAST_DB_PASS
         volumes:
             - "../data/cozycast-server/avatar:/var/cozycast/avatar/"
+            - "../data/cozycast-server/image:/var/cozycast/image/"
         restart: unless-stopped

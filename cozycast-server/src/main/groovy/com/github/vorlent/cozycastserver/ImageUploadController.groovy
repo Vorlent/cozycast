@@ -27,15 +27,15 @@ import java.net.URLConnection
 import groovy.util.logging.Slf4j
 
 
-class AvatarUploadResponse {
+class ImageUploadResponse {
     String url
 }
 
 @Slf4j
-@Controller("/avatar")
-class AvatarController {
+@Controller("/image")
+class ImageController {
 
-    String avatarDirectory = "/var/cozycast/avatar"
+    String imageDirectory = "/var/cozycast/image"
 
     private String generateFilename() {
         try {
@@ -65,16 +65,16 @@ class AvatarController {
     }
 
     @Post(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA)
-    def upload(CompletedFileUpload avatar) {
+    def upload(CompletedFileUpload image) {
         try {
             String filename = generateFilename();
             log.info "Uploaded file: $filename"
-            byte[] content = avatar.getBytes()
+            byte[] content = image.getBytes()
             String fileExt = fileExtension(URLConnection.guessContentTypeFromStream(new ByteArrayInputStream(content)));
             if(fileExt != null) {
-                Path path = new File(avatarDirectory, filename + fileExt).toPath();
+                Path path = new File(imageDirectory, filename + fileExt).toPath();
                 Files.write(path, content);
-                return new AvatarUploadResponse(url: "/avatar/image/${filename}${fileExt}")
+                return new ImageUploadResponse(url: "/image/asset/${filename}${fileExt}")
             } else {
                 return HttpResponse.badRequest()
             }
@@ -83,12 +83,12 @@ class AvatarController {
         }
     }
 
-    @Get("/image/{filename:.+}")
+    @Get("/asset/{filename:.+}")
     public SystemFile download(String filename) {
         try {
-            File file = new File(avatarDirectory, filename);
+            File file = new File(imageDirectory, filename);
             log.info "Dowloaded file: $file"
-            if(file.getCanonicalFile().getParentFile().equals(new File(avatarDirectory))) {
+            if(file.getCanonicalFile().getParentFile().equals(new File(imageDirectory))) {
                 return new SystemFile(file);
             } else {
                 throw new RuntimeException("Invalid filename");
