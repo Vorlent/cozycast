@@ -39,7 +39,6 @@ function chatEnter(e) {
                 username: state.username
             });
         }
-        console.log(state.chatBox.length == 0)
     })
 }
 
@@ -51,7 +50,6 @@ function imageSelected(e) {
     let formData = new FormData();
     formData.append("image", e.target.files[0]);
     fetch('/image/upload', {method: "POST", body: formData}).then((e) => e.json()).then(function (e) {
-        //TODO send chat message
         sendMessage({
             action: 'chatmessage',
             image: e.url,

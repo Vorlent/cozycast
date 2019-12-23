@@ -148,14 +148,12 @@ function chatmessage(parsedMessage) {
         queuedMessages.push({ "type": "image", "href": parsedMessage.image });
     } else {
         var offset = 0;
-        var urls = linkify.find(parsedMessage.message);
+        var urls = linkify.find(parsedMessage.message || "");
         var remaining = parsedMessage.message;
         urls.forEach(function(element) {
             if(element.value.indexOf("http") == -1) {
                 element.value = "http://" + element.value
             }
-            console.log(element.value)
-            console.log(element.value.indexOf("http"))
         	var end = remaining.indexOf(element.value, offset);
         	queuedMessages.push({ "type": "text", "message": remaining.substring(offset, end) });
             queuedMessages.push({ "type": "url", "href": element.value });
