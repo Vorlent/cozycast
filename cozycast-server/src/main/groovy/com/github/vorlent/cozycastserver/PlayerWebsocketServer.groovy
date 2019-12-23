@@ -7,6 +7,8 @@ import io.micronaut.websocket.annotation.OnOpen
 import io.micronaut.websocket.annotation.ServerWebSocket
 import io.micronaut.websocket.WebSocketSession
 
+import io.reactivex.Flowable
+import io.reactivex.schedulers.Schedulers
 import com.github.vorlent.cozycastserver.domain.ChatMessage
 
 import java.time.format.DateTimeFormatter
@@ -321,10 +323,13 @@ class PlayerWebsocketServer {
         ))
 
         ChatMessage.withTransaction {
+            ChatMessage.where { room == room.name &&
+                timestamp < ZonedDateTime.now().minusHours(1)
+            }.deleteAll()
             sendMessage(session, new ChatHistoryEvent(
                 messages: ChatMessage.where { room == room.name &&
                         timestamp > ZonedDateTime.now().minusHours(1)
-                    }.collect {
+                    }.list(sort: "timestamp", order: "asc", max: 500).collect {
                     new ReceiveMessageEvent(
                         message: it.message,
                         username: it.username,
