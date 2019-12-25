@@ -7,7 +7,7 @@ function coturn_add_kurento_user {
 }
 
 function liquibase_update {
-    sudo docker run -it \
+    sudo docker run --rm -it \
         -v $(readlink -f ../liquibase/changelog.xml):/changelog.xml \
         -v $(readlink -f ../liquibase/driver):/liquibase/jdbc \
         --network host \

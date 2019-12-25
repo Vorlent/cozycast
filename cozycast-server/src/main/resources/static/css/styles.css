@@ -32,19 +32,6 @@ html, body, #pagecontent, #videosizer {
     / 1fr 15em;
 }
 
-@media (max-width: 780px) {
-    #pagecontent {
-        grid:
-        "video" 40%
-        "toolbar" 4em
-        "chat" 1fr;
-    }
-
-    #messages {
-        scrollbar-width: thin;
-    }
-}
-
 #pagecontent > * {
     background: fixed repeat top left var(--cozycast-noise);
     background-size: calc(128px / var(--cozycast-dpr));
@@ -83,7 +70,9 @@ html, body, #pagecontent, #videosizer {
 
 #pagetoolbar {
     grid-area: toolbar;
-    display: flex;
+    grid:
+        "controls userlist" 1fr / 30em 1fr;
+    display: grid;
     background-color: #123;
     min-width: 0;
 }
@@ -195,7 +184,6 @@ html, body, #pagecontent, #videosizer {
 }
 
 .image-uploader-button-wrapper {
-    width: 20%;
     height: 100%;
     position: absolute;
     bottom: 0px;
@@ -225,6 +213,11 @@ html, body, #pagecontent, #videosizer {
     scrollbar-width: thin;
 }
 
+.remote-wrapper {
+    margin-left: auto;
+    position: relative;
+}
+
 .user {
     display: flex;
     flex-direction: column;
@@ -243,6 +236,7 @@ html, body, #pagecontent, #videosizer {
 }
 
 .volumeSlider {
+    margin: auto;
     align-self: center;
     -webkit-appearance: none;
     appearance: none;
@@ -379,7 +373,6 @@ html, body, #pagecontent, #videosizer {
     border-radius: 50%;
     width: 60px;
     height: 60px;
-    position: relative;
 }
 
 .avatar.big {
@@ -387,6 +380,7 @@ html, body, #pagecontent, #videosizer {
     box-shadow: 0 0 1em black inset;
     width: 180px;
     height: 180px;
+    position: relative;
 }
 
 .uploader-overlay {
@@ -412,4 +406,27 @@ html, body, #pagecontent, #videosizer {
 
 .uploader-overlay input[type="file"] {
     display: none;
+}
+
+@media (max-width: 780px) {
+    #pagecontent {
+        grid:
+        "video" 40%
+        "toolbar" 10em
+        "chat" 1fr;
+    }
+
+    #pagetoolbar {
+        grid:
+            "controls"
+            "userlist" 1fr;
+    }
+
+    #messages {
+        scrollbar-width: thin;
+    }
+
+    .user {
+        padding-bottom: 10px;
+    }
 }
