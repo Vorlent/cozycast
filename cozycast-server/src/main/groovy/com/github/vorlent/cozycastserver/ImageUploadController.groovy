@@ -24,11 +24,15 @@ import java.nio.file.Paths
 import java.nio.file.Files
 import java.net.URLConnection
 
+import org.apache.tika.Tika
+import org.apache.tika.metadata.Metadata
+import org.apache.tika.metadata.TikaCoreProperties
 import groovy.util.logging.Slf4j
 
 
 class ImageUploadResponse {
     String url
+    String type
 }
 
 @Slf4j
@@ -51,8 +55,16 @@ class ImageController {
         }
     }
 
-    private String fileExtension(String mimeType) {
+    private String fileExtension(ByteArrayInputStream stream, String filename) {
+        Tika tika = new Tika()
+        Metadata metadata = new Metadata()
+        metadata.set(Metadata.RESOURCE_NAME_KEY, filename)
+        String mimeType = tika.detect(stream, metadata)
+
+        log.info "MIME TYPE ${mimeType}"
         switch(mimeType) {
+            case "video/webm":
+                return ".webm"
             case "image/jpeg":
                 return ".jpg"
             case "image/png":
@@ -68,13 +80,13 @@ class ImageController {
     def upload(CompletedFileUpload image) {
         try {
             String filename = generateFilename();
-            log.info "Uploaded file: $filename"
             byte[] content = image.getBytes()
-            String fileExt = fileExtension(URLConnection.guessContentTypeFromStream(new ByteArrayInputStream(content)));
+            String fileExt = fileExtension(new ByteArrayInputStream(content), image.filename);
+            log.info "Uploading file: $filename.$fileExt"
             if(fileExt != null) {
                 Path path = new File(imageDirectory, filename + fileExt).toPath();
                 Files.write(path, content);
-                return new ImageUploadResponse(url: "/image/asset/${filename}${fileExt}")
+                return new ImageUploadResponse(url: "/image/asset/${filename}${fileExt}", type: fileExt.endsWith(".webm") ? "video" : "image")
             } else {
                 return HttpResponse.badRequest()
             }

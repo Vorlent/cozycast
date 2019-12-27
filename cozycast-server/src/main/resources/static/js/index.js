@@ -144,7 +144,9 @@ function typing(parsedMessage) {
 
 function chatmessage(parsedMessage) {
     var queuedMessages = [];
-    if(parsedMessage.image) {
+    if(parsedMessage.type == "video") {
+        queuedMessages.push({ "type": "video", "href": parsedMessage.image });
+    } else if(parsedMessage.type == "image") {
         queuedMessages.push({ "type": "image", "href": parsedMessage.image });
     } else {
         var offset = 0;

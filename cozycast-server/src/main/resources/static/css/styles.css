@@ -154,6 +154,11 @@ html, body, #pagecontent, #videosizer {
     word-break: break-word;
 }
 
+.chat-video video {
+    height: 100%;
+    width: 100%;
+}
+
 .chat-image {
     display: block;
     height: auto;

@@ -26,6 +26,7 @@ function chatEnter(e) {
             if(state.chatBox.trim() != "") {
                 sendMessage({
                     action : 'chatmessage',
+                    type: "text",
                     message: state.chatBox,
                     username: state.username
                 });
@@ -53,6 +54,7 @@ function imageSelected(e) {
         sendMessage({
             action: 'chatmessage',
             image: e.url,
+            type: e.type,
             message: "",
             username: state.username
         });
@@ -105,6 +107,10 @@ export class Chat extends Component {
                                 html`<div class="chat-image">
                                     <a class="chat-link" target="_blank" href="${msg.href}"><img onload="${this.scrollToBottom}" src="${msg.href}" /></a>
                                 </div>`}
+                            ${msg.type == "video" &&
+                                html`<div class="chat-video">
+                                    <a class="chat-link" target="_blank" href="${msg.href}"><video autoplay muted onload="${this.scrollToBottom}" src="${msg.href}" /></a>
+                                </div>`}
                             ${msg.type == "text" &&
                                 html`<div>${msg.message}</div>`}
                         `)}
@@ -125,7 +131,7 @@ export class Chat extends Component {
                         ${state.chatBox}
                     </textarea>
                     <div class="image-uploader-button-wrapper">
-                        <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif" onchange=${imageSelected}/>
+                        <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm" onchange=${imageSelected}/>
                         ${state.chatBox.length == 0 &&
                             html`<img class="image-uploader-button" src="/svg/image_upload.svg" onclick=${openPictureUpload}/>`}
                     </div>

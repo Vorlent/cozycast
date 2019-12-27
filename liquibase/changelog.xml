@@ -48,4 +48,12 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="5" author="vorlent">
+        <addColumn tableName="chat_message">
+            <column name="type" type="varchar(16)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

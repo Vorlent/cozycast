@@ -78,6 +78,7 @@ class ReceiveMessageEvent {
     String action = "receivemessage"
     String message
     String image
+    String type
     String username
     String session
     String timestamp
@@ -261,6 +262,7 @@ class PlayerWebsocketServer {
                 room: room.name,
                 message: jsonMessage.message,
                 image: jsonMessage.image,
+                type: jsonMessage.type,
                 username: jsonMessage.username,
                 timestamp: zonedDateTime
             )
@@ -274,6 +276,7 @@ class PlayerWebsocketServer {
                 sendMessage(value.webSocketSession, new ReceiveMessageEvent(
                     message: jsonMessage.message,
                     image: jsonMessage.image,
+                    type: jsonMessage.type,
                     username: jsonMessage.username,
                     session: session.getId(),
                     timestamp: nowAsISO
@@ -336,6 +339,7 @@ class PlayerWebsocketServer {
                     new ReceiveMessageEvent(
                         message: it.message,
                         image: it.image,
+                        type: it.type,
                         username: it.username,
                         session: null,
                         timestamp: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'")
