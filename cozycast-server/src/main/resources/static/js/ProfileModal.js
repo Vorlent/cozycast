@@ -27,18 +27,20 @@ function updateProfileMuteChatNotification(muteChatNotification) {
 function saveProfile() {
     updateState(function (state) {
         if(state.profileModal) {
-            localStorage.setItem("username", state.profileModal.username);
-            localStorage.setItem("avatarUrl", state.profileModal.avatarUrl);
-            localStorage.setItem("muteChatNotification", state.profileModal.muteChatNotification);
             state.muteChatNotification = state.profileModal.muteChatNotification;
+            state.username = state.profileModal.username.substring(0, 12)
+            state.avatarUrl = state.profileModal.avatarUrl
             sendMessage({
                 action : 'changeusername',
-                username : state.profileModal.username
+                username : state.username
             });
             sendMessage({
                 action : 'changeprofilepicture',
-                url : state.profileModal.avatarUrl
+                url : state.avatarUrl
             });
+            localStorage.setItem("username", state.username);
+            localStorage.setItem("avatarUrl", state.avatarUrl);
+            localStorage.setItem("muteChatNotification", state.muteChatNotification);
         }
     })
     closeProfile()
