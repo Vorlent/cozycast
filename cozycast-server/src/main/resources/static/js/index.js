@@ -11,6 +11,7 @@ export var state = {
     userlist: [],
     chatMessages: [],
     newMessage: false,
+    forceChatScroll: false,
     chatBox: "",
     remote: false,
     username: "Anonymous",
@@ -268,6 +269,9 @@ function connect() {
                 if(parsedMessage.messages) {
                     parsedMessage.messages
                         .forEach(e => chatmessage(e))
+                    updateState(function (state) {
+                        state.forceChatScroll = true
+                    })
                 }
                 break;
     		case 'receivemessage':
