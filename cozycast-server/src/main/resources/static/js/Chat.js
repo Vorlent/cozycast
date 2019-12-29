@@ -133,7 +133,6 @@ export class Chat extends Component {
                         `)} ${state.typingUsers.length > 1 ? 'are' : 'is'} typing...
                     `}
                 </div>
-                <audio id="pop" controls="" src="/audio/pop.wav" autoplay="" preload="auto" />
                 <div class="image-uploader">
                     <textarea id="chatbox-textarea" oninput=${chatInput} onkeypress=${chatEnter}>
                         ${state.chatBox}

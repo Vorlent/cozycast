@@ -143,7 +143,7 @@ function typing(parsedMessage) {
     })
 }
 
-function chatmessage(parsedMessage) {
+function chatmessage(parsedMessage, skip_notifications) {
     var queuedMessages = [];
     if(parsedMessage.type == "video") {
         queuedMessages.push({ "type": "video", "href": parsedMessage.image });
@@ -151,8 +151,9 @@ function chatmessage(parsedMessage) {
         queuedMessages.push({ "type": "image", "href": parsedMessage.image });
     } else {
         var offset = 0;
-        var urls = linkify.find(parsedMessage.message || "");
-        var remaining = parsedMessage.message || "";
+        var msg = parsedMessage.message || "";
+        var urls = linkify.find(msg);
+        var remaining = msg;
         urls.forEach(function(element) {
             if(element.value.indexOf("http") == -1) {
                 element.value = "http://" + element.value
@@ -183,8 +184,17 @@ function chatmessage(parsedMessage) {
         }
         state.newMessage = true
     })
-    if (!state.muteChatNotification && document.hidden && parsedMessage.session !== state.session) {
-        document.querySelector("#pop").play();
+    if(skip_notifications) {
+        return
+    }
+
+    var pattern = "@" + state.username
+    var mentionPos = msg.indexOf(pattern)
+    var lookahead = msg.substring(mentionPos, (pattern + " ").length).trim()
+    var mention = lookahead == pattern
+    if (mention || !state.muteChatNotification && document.hidden && parsedMessage.session !== state.session) {
+        var audio = new Audio('/audio/pop.wav');
+        audio.play();
     }
 }
 
@@ -268,7 +278,7 @@ function connect() {
             case 'chat_history':
                 if(parsedMessage.messages) {
                     parsedMessage.messages
-                        .forEach(e => chatmessage(e))
+                        .forEach(e => chatmessage(e, true))
                     updateState(function (state) {
                         state.forceChatScroll = true
                     })
