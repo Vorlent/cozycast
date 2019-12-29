@@ -92,6 +92,8 @@ export class Chat extends Component {
     scrollToBottom() {
         var messages = document.getElementById("messages");
         messages.scrollTop = messages.scrollHeight;
+        console.log(messages.scrollTop)
+        console.log(messages.scrollHeight)
     }
 
     render({ state }, { xyz = [] }) {

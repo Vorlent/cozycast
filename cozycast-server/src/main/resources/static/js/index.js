@@ -79,7 +79,7 @@ var preactBody = render(html`<${App} page="All" />`, document.body);
 var webRtcPeer;
 var websocket;
 
-updateState(function () {
+updateState(function (state) {
     state.username = localStorage.getItem("username");
     if(!state.username) {
         state.username = "Anonymous"
@@ -90,7 +90,7 @@ updateState(function () {
     } else {
         fetch(state.avatarUrl).then((e) => {
             if(e.status != 200) {
-                updateState(function() {
+                updateState(function(state) {
                     state.avatarUrl = '/png/default_avatar.png'
                 })
             }
@@ -104,7 +104,7 @@ function startFullscreen() {
 }
 
 function changeVolume(e) {
-    updateState(function() {
+    updateState(function(state) {
         state.volume = e.target.value;
     })
 }
@@ -166,7 +166,7 @@ function chatmessage(parsedMessage) {
         }
     }
 
-    updateState(function () {
+    updateState(function (state) {
         var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
         if(state.chatMessages.length > 0 && state.chatMessages[state.chatMessages.length-1].username == parsedMessage.username) {
             var lastMessage = state.chatMessages[state.chatMessages.length-1];
@@ -188,7 +188,7 @@ function chatmessage(parsedMessage) {
 }
 
 function join(parsedMessage) {
-    updateState(function () {
+    updateState(function (state) {
         state.userlist.push({
             username: parsedMessage.username,
             url: parsedMessage.url,
@@ -199,7 +199,7 @@ function join(parsedMessage) {
 }
 
 function changeusername(parsedMessage) {
-    updateState(function () {
+    updateState(function (state) {
         state.userlist = state.userlist.map(function(element) {
             if(element.session == parsedMessage.session) {
                 element.username = parsedMessage.username;
@@ -210,7 +210,7 @@ function changeusername(parsedMessage) {
 }
 
 function changeprofilepicture(parsedMessage) {
-    updateState(function () {
+    updateState(function (state) {
         state.userlist = state.userlist.map(function(element) {
             if(element.session == parsedMessage.session) {
                 element.url = parsedMessage.url;
@@ -221,7 +221,7 @@ function changeprofilepicture(parsedMessage) {
 }
 
 function leave(parsedMessage) {
-    updateState(function () {
+    updateState(function (state) {
         state.userlist = state.userlist.filter(function(element) {
             return element.session != parsedMessage.session;
         });
@@ -265,8 +265,10 @@ function connect() {
     			typing(parsedMessage);
     			break;
             case 'chat_history':
-                parsedMessage.messages
-                    .forEach(e => chatmessage(e))
+                if(parsedMessage.messages) {
+                    parsedMessage.messages
+                        .forEach(e => chatmessage(e))
+                }
                 break;
     		case 'receivemessage':
     			chatmessage(parsedMessage);
@@ -284,7 +286,7 @@ function connect() {
     			leave(parsedMessage);
     			break;
     		case 'drop_remote':
-                updateState(function () {
+                updateState(function (state) {
                     state.remote = false;
                     state.userlist = state.userlist.map(function(user) {
                         if(user.session == parsedMessage.session) {
@@ -295,7 +297,7 @@ function connect() {
                 })
     			break;
     		case 'pickup_remote':
-                updateState(function () {
+                updateState(function (state) {
                     state.userlist = state.userlist.map(function(user) {
                         user.remote = user.session == parsedMessage.session;
                         return user;
@@ -304,7 +306,7 @@ function connect() {
                 })
     			break;
             case 'window_title':
-                updateState(function () {
+                updateState(function (state) {
                     state.windowTitle = parsedMessage.title
                 })
                 break;
@@ -321,7 +323,7 @@ function connect() {
     	}
     }
     websocket.onclose = function (event) {
-        updateState(function () {
+        updateState(function (state) {
             state.userlist = [];
             state.typingUsers = [];
             state.chatMessages = [];

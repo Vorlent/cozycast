@@ -50,7 +50,7 @@ function avatarSelected(e) {
     let formData = new FormData();
     formData.append("avatar", e.target.files[0]);
     fetch('/avatar/upload', {method: "POST", body: formData}).then((e) => e.json()).then(function (e) {
-        updateState(function () {
+        updateState(function (state) {
             state.profileModal.avatarUrl = e.url;
         })
     });
