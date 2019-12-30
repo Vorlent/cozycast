@@ -21,7 +21,8 @@ export var state = {
     videoSettings: null,
     session: null,
     muteChatNotification: false,
-    windowTitle: "CozyCast: Low latency screen capture via WebRTC"
+    windowTitle: "CozyCast: Low latency screen capture via WebRTC",
+    historyMode: false
 };
 
 export function updateState(fun) {

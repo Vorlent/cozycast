@@ -89,22 +89,31 @@ export class Chat extends Component {
         }
     }
 
-    scrollToBottom() {
+    chatScroll() {
         var messages = document.getElementById("messages");
-        if(0.9 * messages.scrollTopMax < messages.scrollTop) {
-            messages.scrollTop = messages.scrollHeight;
-        }
-        if(state.forceChatScroll) {
-            messages.scrollTop = messages.scrollHeight;
+        var activateHistoryMode = 0.3 * messages.offsetHeight < messages.scrollTopMax - messages.scrollTop
+        if(state.historyMode != activateHistoryMode) {
             updateState(function (state) {
-                state.forceChatScroll = false
+                state.historyMode = activateHistoryMode
             })
+        }
+    }
+
+    scrollToBottom() {
+        if(!state.historyMode || state.forceChatScroll) {
+            var messages = document.getElementById("messages");
+            messages.scrollTop = messages.scrollHeight;
+            if(state.forceChatScroll) {
+                updateState(function (state) {
+                    state.forceChatScroll = false
+                })
+            }
         }
     }
 
     render({ state }, { xyz = [] }) {
         return html`<div id="chat">
-            <div id="messages">
+            <div id="messages" onscroll=${this.chatScroll}>
                 ${state.chatMessages.map(message => html`
                     <div class="message">
                         <div class="username">${message.username + " " + message.timestamp}</div>
