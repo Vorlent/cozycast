@@ -188,10 +188,10 @@ function chatmessage(parsedMessage, skip_notifications) {
     if(skip_notifications) {
         return
     }
-
-    var pattern = "@" + state.username
-    var mentionPos = msg.indexOf(pattern)
-    var lookahead = msg.substring(mentionPos, (pattern + " ").length).trim()
+    var lowerCaseMsg = msg.toLowerCase()
+    var pattern = "@" + state.username.toLowerCase()
+    var mentionPos = lowerCaseMsg.indexOf(pattern)
+    var lookahead = lowerCaseMsg.substring(mentionPos, (pattern + " ").length).trim()
     var mention = lookahead == pattern
     if (mention || !state.muteChatNotification && document.hidden && parsedMessage.session !== state.session) {
         var audio = new Audio('/audio/pop.wav');
