@@ -24,7 +24,8 @@ export var state = {
     session: null,
     muteChatNotification: false,
     windowTitle: "CozyCast: Low latency screen capture via WebRTC",
-    historyMode: false
+    historyMode: false,
+    fullscreen: false
 };
 
 export function updateState(fun) {
@@ -60,8 +61,8 @@ class Room extends Component {
                         Remote
                     </button>
 
-                    <button type="button" class="btn btn-primary"
-                        onclick=${startFullscreen}>
+                    <button type="button" class="btn ${state.fullscreen ? 'btn-danger' : 'btn-primary'}"
+                        onclick=${toggleFullscreen}>
                         Fullscreen
                     </button>
 
@@ -127,8 +128,18 @@ updateState(function (state) {
     state.muteChatNotification = localStorage.getItem("muteChatNotification");
 })
 
-function startFullscreen() {
-    document.getElementById("pagecontent").requestFullscreen()
+document.addEventListener('fullscreenchange', (event) => {
+  updateState(function(state) {
+      state.fullscreen = document.fullscreenElement !== null
+  })
+});
+
+function toggleFullscreen() {
+    if(document.fullscreenElement != null) {
+        document.exitFullscreen()
+    } else {
+        document.getElementById("pagecontent").requestFullscreen()
+    }
 }
 
 function changeVolume(e) {
