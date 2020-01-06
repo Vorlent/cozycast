@@ -1,4 +1,5 @@
-import { html, Component } from '/js/libs/preact.standalone.module.js'
+import { Component } from '/js/libs/preact.js'
+import { html } from '/js/libs/htm/preact/index.js'
 
 export function Userlist({ state }) {
     return html`<div id="userlist" class="userlist">

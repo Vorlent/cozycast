@@ -1,4 +1,6 @@
-import { html, Component, render } from '/js/libs/preact.standalone.module.js'
+import { Component, render } from '/js/libs/preact.js'
+import { html } from '/js/libs/htm/preact/index.js'
+import Router from '/js/libs/preact-router/index.js'
 
 import { Chat } from '/js/Chat.js'
 import { ProfileModal, openProfile } from '/js/ProfileModal.js'
@@ -30,6 +32,52 @@ export function updateState(fun) {
     globalVar.callback(state);
 }
 
+class Room extends Component {
+    chatref = null;
+    setChatref = (dom) => this.chatref = dom;
+
+    componentDidMount(){
+    	globalVar.callback = (data) => {
+        	this.setState(data);
+        };
+    }
+
+    componentDidUpdate() {
+        document.title = state.windowTitle
+    }
+
+    render({ page }, { xyz = [] }) {
+    return html`
+        <div id="pagecontent">
+            <${VideoControls} state=${state}/>
+            <div id="pagetoolbar">
+                <div id="controls">
+                    <button type="button" class="btn btn-primary" onclick=${openProfile}>
+                        Profile
+                    </button>
+                    <button type="button" class="btn ${state.remote ? 'btn-danger' : 'btn-primary'}"
+                        onclick=${remote}>
+                        Remote
+                    </button>
+
+                    <button type="button" class="btn btn-primary"
+                        onclick=${startFullscreen}>
+                        Fullscreen
+                    </button>
+
+                    <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider" oninput=${changeVolume}/>
+                    <a id="copyright" href="/license" target="_blank">Copyright (C) 2019 Vorlent</a>
+                </div>
+                <${Userlist} state=${state}/>
+            </div>
+            <${Chat} state=${state}/>
+
+            <${ProfileModal} state=${state}/>
+        </div>
+    `;
+    }
+}
+
 class App extends Component {
     chatref = null;
     setChatref = (dom) => this.chatref = dom;
@@ -46,32 +94,10 @@ class App extends Component {
 
     render({ page }, { xyz = [] }) {
     return html`
-      <div id="pagecontent">
-          <${VideoControls} state=${state}/>
-          <div id="pagetoolbar">
-              <div id="controls">
-                <button type="button" class="btn btn-primary" onclick=${openProfile}>
-                  Profile
-                </button>
-                <button type="button" class="btn ${state.remote ? 'btn-danger' : 'btn-primary'}"
-                    onclick=${remote}>
-                  Remote
-                </button>
-
-                <button type="button" class="btn btn-primary"
-                    onclick=${startFullscreen}>
-                  Fullscreen
-                </button>
-
-                <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider" oninput=${changeVolume}/>
-                <a id="copyright" href="/license" target="_blank">Copyright (C) 2019 Vorlent</a>
-              </div>
-              <${Userlist} state=${state}/>
-          </div>
-          <${Chat} state=${state}/>
-
-          <${ProfileModal} state=${state}/>
-      </div>
+        <${Router}>
+    		<${Room} path="/"/>
+            <Management path="/management/"/>
+        <//>
     `;
     }
 }

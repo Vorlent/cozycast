@@ -1,4 +1,5 @@
-import { html, Component } from '/js/libs/preact.standalone.module.js'
+import { Component } from '/js/libs/preact.js'
+import { html } from '/js/libs/htm/preact/index.js'
 import { state, updateState, sendMessage } from '/js/index.js'
 
 
