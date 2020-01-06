@@ -6,6 +6,7 @@ import { Chat } from '/js/Chat.js'
 import { ProfileModal, openProfile } from '/js/ProfileModal.js'
 import { Userlist } from '/js/Userlist.js'
 import { VideoControls } from '/js/VideoControls.js'
+import { RoomList } from '/js/RoomList.js'
 
 var globalVar = {};
 export var state = {
@@ -34,14 +35,6 @@ export function updateState(fun) {
 }
 
 class Room extends Component {
-    chatref = null;
-    setChatref = (dom) => this.chatref = dom;
-
-    componentDidMount(){
-    	globalVar.callback = (data) => {
-        	this.setState(data);
-        };
-    }
 
     componentDidUpdate() {
         document.title = state.windowTitle
@@ -50,6 +43,7 @@ class Room extends Component {
     render({ page }, { xyz = [] }) {
     return html`
         <div id="pagecontent">
+            <a href="/management">MANAGEMENT</a>
             <${VideoControls} state=${state}/>
             <div id="pagetoolbar">
                 <div id="controls">
@@ -80,8 +74,6 @@ class Room extends Component {
 }
 
 class App extends Component {
-    chatref = null;
-    setChatref = (dom) => this.chatref = dom;
 
     componentDidMount(){
     	globalVar.callback = (data) => {
@@ -89,15 +81,12 @@ class App extends Component {
         };
     }
 
-    componentDidUpdate() {
-        document.title = state.windowTitle
-    }
-
     render({ page }, { xyz = [] }) {
     return html`
         <${Router}>
-    		<${Room} path="/"/>
-            <Management path="/management/"/>
+    		<${Room} state=${state} path="/"/>
+            <${Room} state=${state} path="/room/:roomId"/>
+            <${RoomList} state=${state} path="/management/"/>
         <//>
     `;
     }
