@@ -184,7 +184,7 @@ export class VideoControls extends Component {
               ${state.videoLoading == "loading" && !state.videoPaused &&
                   html`<div class="paused-screen">
                   <div class="loading-screen">
-                      <img class="loading-animation" src="svg/loading.svg"/>
+                      <img class="loading-animation" src="/svg/loading.svg"/>
                       LOADING...
                   </div>
               </div>`}

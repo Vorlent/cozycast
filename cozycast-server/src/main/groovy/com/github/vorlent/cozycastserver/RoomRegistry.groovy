@@ -15,4 +15,13 @@ class RoomRegistry {
         }
         return room
     }
+
+    void delete(String name) {
+        Room room = rooms.remove(name)
+        room.close()
+    }
+
+    Collection<Room> all() {
+        return rooms.values()
+    }
 }

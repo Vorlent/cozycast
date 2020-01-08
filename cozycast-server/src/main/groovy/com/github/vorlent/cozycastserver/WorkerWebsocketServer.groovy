@@ -6,7 +6,6 @@ import io.micronaut.websocket.annotation.OnMessage
 import io.micronaut.websocket.annotation.OnOpen
 import io.micronaut.websocket.annotation.ServerWebSocket
 import io.micronaut.websocket.WebSocketSession
-import io.micronaut.websocket.CloseReason
 
 import java.util.concurrent.ConcurrentHashMap
 
@@ -55,7 +54,6 @@ class WorkerWebsocketServer {
         log.info "New Worker ${session} for room ${room}"
         WorkerSession worker = new WorkerSession()
         worker.websocket = session
-        roomRegistry.getRoom(room).worker = worker
 
         MediaPipeline pipeline = worker.getMediaPipeline(kurento)
         RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build()
@@ -80,19 +78,8 @@ class WorkerWebsocketServer {
             videoPort: videoPort,
             audioPort: audioPort
         ))
-
-        roomRegistry.getRoom(room).users.each { key, user ->
-            if(user != null) {
-                user.release()
-                if(user.webSocketSession) {
-                    try {
-                        user.webSocketSession.close(CloseReason.SERVICE_RESTART)
-                    } catch(IOException e) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-        }
+        roomRegistry.getRoom(room).close(true)
+        roomRegistry.getRoom(room).worker = worker
     }
 
     private void windowtitle(Room room, WebSocketSession session, Map jsonMessage) {

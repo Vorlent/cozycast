@@ -12,6 +12,7 @@ var globalVar = {};
 export var state = {
     typingUsers: [],
     userlist: [],
+    roomlist: [],
     chatMessages: [],
     newMessage: false,
     forceChatScroll: false,
