@@ -17,9 +17,16 @@ public class IndexController {
     @Inject
     ResourceResolver res;
 
-    @Get("/{path:[^\\.]*}")
+    @Get("/room{path:/?.*}")
     @Produces(MediaType.TEXT_HTML)
-    public HttpResponse<?> refresh(HttpRequest<?> request, String path) {
+    public HttpResponse<?> room(HttpRequest<?> request, String path) {
+        StreamedFile indexFile = new StreamedFile(res.getResource("classpath:static/index.html").get());
+        return HttpResponse.ok(indexFile);
+    }
+
+    @Get("/management{path:/?.*}")
+    @Produces(MediaType.TEXT_HTML)
+    public HttpResponse<?> management(HttpRequest<?> request, String path) {
         StreamedFile indexFile = new StreamedFile(res.getResource("classpath:static/index.html").get());
         return HttpResponse.ok(indexFile);
     }
