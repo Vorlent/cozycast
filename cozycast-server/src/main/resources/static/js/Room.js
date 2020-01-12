@@ -188,6 +188,7 @@ function chatmessage(parsedMessage, skip_notifications) {
 }
 
 function join(parsedMessage) {
+    leave(parsedMessage)
     updateState(function (state) {
         state.userlist.push({
             username: parsedMessage.username,
