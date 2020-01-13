@@ -58,6 +58,8 @@ services:
             SOURCE_URL: $SOURCE_URL
             COZYCAST_DB_HOST: $COZYCAST_DB_HOST
             COZYCAST_DB_PASS: $COZYCAST_DB_PASS
+            COZYCAST_JWT_SECRET: $COZYCAST_JWT_SECRET
+            COZYCAST_INIT_ADMIN_PASSWORD: $COZYCAST_INIT_ADMIN_PASSWORD
         volumes:
             - "../data/cozycast-server/avatar:/var/cozycast/avatar/"
             - "../data/cozycast-server/image:/var/cozycast/image/"

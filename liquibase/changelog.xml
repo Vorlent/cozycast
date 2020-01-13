@@ -56,4 +56,36 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="6" author="vorlent">
+        <createTable tableName="users">
+            <column name="username" type="varchar(64)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="password" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="account_expired" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="account_locked" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password_expired" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="admin" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
 </databaseChangeLog>

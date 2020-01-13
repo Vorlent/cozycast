@@ -18,7 +18,7 @@ class RoomRegistry {
 
     void delete(String name) {
         Room room = rooms.remove(name)
-        room.close()
+        room?.close()
     }
 
     Collection<Room> all() {

@@ -15,6 +15,29 @@ micronaut:
         watch:
             paths: src/main
             restart: true
+    security:
+        enabled: true
+        endpoints:
+            login:
+                enabled: true
+            oauth:
+                enabled: true
+        token:
+            jwt:
+                enabled: true
+                signatures:
+                    secret:
+                        generator:
+                            secret: ${COZYCAST_JWT_SECRET}
+                            jws-algorithm: HS256
+        intercept-url-map:
+            -
+                pattern: /**
+                http-method: GET
+                access:
+                    - isAnonymous()
+
+
 grails:
     gorm:
         failOnError: true
