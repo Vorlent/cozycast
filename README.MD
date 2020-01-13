@@ -42,6 +42,8 @@ export SOURCE_URL=<url>
 export COZYCAST_DB_HOST=localhost
 export COZYCAST_DB_PASS=<db_password>
 export COZYCAST_JWT_SECRET=<arbitrary_secret_value>
+export COZYCAST_INIT_ADMIN_PASSWORD=<admin_password>
+
 ```
 
 If you have made modifications to the source code then it is recommended to set SOURCE_URL to point to the modified source code (e.g. git/github repository or downloadable zip file) to ensure compliance with the AGPL. If you have not made any modifications then you can simply set it to https://github.com/Vorlent/cozycast.
