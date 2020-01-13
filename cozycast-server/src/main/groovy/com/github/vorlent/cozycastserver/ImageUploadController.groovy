@@ -8,6 +8,7 @@ import io.micronaut.http.MediaType
 import io.micronaut.http.multipart.CompletedFileUpload
 import io.micronaut.http.server.types.files.SystemFile
 import io.micronaut.http.HttpResponse
+import io.micronaut.security.annotation.Secured
 
 import java.lang.String
 import java.io.InputStream
@@ -35,6 +36,7 @@ class ImageUploadResponse {
     String type
 }
 
+@Secured("isAnonymous()")
 @Slf4j
 @Controller("/image")
 class ImageController {
