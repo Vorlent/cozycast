@@ -64,7 +64,10 @@ function imageSelected(e) {
 }
 
 export class Chat extends Component {
-    typingInterval = null;
+    constructor() {
+        super()
+        this.typingInterval = null;
+    }
 
     componentDidMount() {
          this.typingInterval = setInterval(function() {
