@@ -59,10 +59,13 @@ export class Room extends Component {
                         onclick=${remote}>
                         Remote
                     </button>
-
-                    <button type="button" class="btn ${state.fullscreen ? 'btn-danger' : 'btn-primary'}"
-                        onclick=${toggleFullscreen}>
-                        Fullscreen
+                    <button type="button" class="video-control-button btn ${state.videoPaused ? 'btn-danger' : 'btn-primary'}"
+                        title="${state.videoPaused ? 'Pause' : 'Play'}" onclick=${pauseVideo}>
+                        <img class="video-control-icon" src="${state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}"/>
+                    </button>
+                    <button type="button" class="video-control-button btn ${state.fullscreen ? 'btn-danger' : 'btn-primary'}"
+                        title="Fullscreen" onclick=${toggleFullscreen}>
+                        <img class="video-control-icon" src="/svg/fullscreen_button.svg"/>
                     </button>
 
                     <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider" oninput=${changeVolume}/>
@@ -91,6 +94,12 @@ function toggleFullscreen() {
     } else {
         document.getElementById("pagecontent").requestFullscreen()
     }
+}
+
+function pauseVideo(e) {
+    updateState(function(state) {
+        state.videoPaused = !state.videoPaused;
+    })
 }
 
 function changeVolume(e) {

@@ -180,7 +180,7 @@ export class VideoControls extends Component {
             >
               ${state.videoPaused &&
                 html`<div class="paused-screen">
-                  <div class="play-button">Play</div>
+                  <div class="play-button"><img title="Play" src="/svg/initial_play_button.svg"/></div>
               </div>`}
               ${state.videoLoading == "loading" && !state.videoPaused &&
                   html`<div class="paused-screen">

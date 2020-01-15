@@ -81,7 +81,7 @@ html, body, #pagecontent, #videosizer {
     display: grid;
     grid-gap: .5em;
     padding: .5em;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: 1fr 1fr 3em 3em 1fr;
 }
 
 .btn {
@@ -287,6 +287,22 @@ html, body, #pagecontent, #videosizer {
     color: white;
 }
 
+.play-button img {
+    height: 128px;
+    transition: height 0.3s;
+}
+
+.play-button img:hover {
+    height: 140px;
+    box-shadow:
+        inset 20px 0 60px #346,
+        inset -20px 0 60px #346,
+        -10px 0 60px #346,
+        10px 0 60px #346;
+    border-radius: 50%;
+    transition: height 0.3s;
+}
+
 .loading-screen {
     display: flex;
     justify-content: center;
@@ -416,6 +432,20 @@ html, body, #pagecontent, #videosizer {
 .uploader-overlay input[type="file"] {
     display: none;
 }
+
+/*  Room.js Start */
+
+.video-control-button {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.video-control-icon {
+    height: 24px;
+}
+/*  Room.js End */
 
 /* RoomList.js Start*/
 
