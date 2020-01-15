@@ -99,6 +99,13 @@ function toggleFullscreen() {
 function pauseVideo(e) {
     updateState(function(state) {
         state.videoPaused = !state.videoPaused;
+        if(state.videoPaused) {
+            var videoElement = document.getElementById('video');
+            videoElement.pause();
+        } else {
+            var videoElement = document.getElementById('video');
+            videoElement.play();
+        }
     })
 }
 
