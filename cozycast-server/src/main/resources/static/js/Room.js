@@ -197,7 +197,7 @@ function chatmessage(parsedMessage, skip_notifications) {
     var mentionPos = lowerCaseMsg.indexOf(pattern)
     var lookahead = lowerCaseMsg.substring(mentionPos, (pattern + " ").length).trim()
     var mention = lookahead == pattern
-    if (mention || !state.muteChatNotification && document.hidden && parsedMessage.session !== state.session) {
+    if (state.historyMode || mention || !state.muteChatNotification && document.hidden && parsedMessage.session !== state.session) {
         var audio = new Audio('/audio/pop.wav');
         audio.play();
     }
