@@ -433,6 +433,16 @@ html, body, #pagecontent, #videosizer {
     display: none;
 }
 
+/*  Chat.js Start */
+
+.history-mode-indicator {
+    text-align: center;
+    position: sticky;
+    padding: 5px;
+    font-weight: bolder;
+}
+/*  Chat.js End */
+
 /*  Room.js Start */
 
 .video-control-button {

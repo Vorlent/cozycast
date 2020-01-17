@@ -118,6 +118,7 @@ export class Chat extends Component {
 
     render({ state }, { xyz = [] }) {
         return html`<div id="chat">
+            ${state.historyMode && html`<div class="history-mode-indicator">Old messages</div>`}
             <div id="messages" onscroll=${this.chatScroll}>
                 ${state.chatMessages.map(message => html`
                     <div class="message">
