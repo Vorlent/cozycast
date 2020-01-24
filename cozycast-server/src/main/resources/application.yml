@@ -44,6 +44,7 @@ grails:
 dataSource:
     pooled: true
     dbCreate: none
+    logSql: true
     url: jdbc:postgresql://${COZYCAST_DB_HOST}:5432/cozycast
     driverClassName: org.postgresql.Driver
     username: cozycast

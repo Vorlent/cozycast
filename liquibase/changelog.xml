@@ -88,4 +88,26 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="7" author="vorlent">
+        <createTable tableName="room_invite">
+            <column name="id" type="varchar(64)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="room" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="uses" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="max_uses" type="int">
+                <constraints nullable="true"/>
+            </column>
+            <column name="expiration" type="timestamp with time zone">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>
