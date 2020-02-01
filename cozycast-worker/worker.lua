@@ -135,21 +135,6 @@ function capture(data, ws)
     until file
 end
 
-function get_active_window_title()
-    local xprop = io.popen('xprop -id $(xprop -root _NET_ACTIVE_WINDOW | grep -oiP \"0x.{7}\") WM_NAME | sed \"s/WM_NAME(STRING) = //\"', 'r')
-    local stdout = xprop:read("*a")
-    xprop:close()
-    return stdout
-end
-
-function validate_mouse(x,y)
-    return x and y
-    and x ~= 0
-    and y ~= 0
-    and x >= 0
-    and y >= 0
-end
-
 local last_keepalive = 0
 
 function keepalive(ws)
@@ -158,72 +143,122 @@ function keepalive(ws)
     })
 end
 
+local worker = {}
+
+function worker.get_active_window_title()
+    local xprop = io.popen('xprop -id $(xprop -root _NET_ACTIVE_WINDOW | grep -oiP \"0x.{7}\") WM_NAME | sed \"s/WM_NAME(STRING) = //\"', 'r')
+    local stdout = xprop:read("*a")
+    xprop:close()
+    return stdout
+end
+
+function worker.mouse_move(mouseX, mouseY)
+    if mouseX and mouseY
+        and mouseX ~= 0
+        and mouseY ~= 0
+        and mouseX >= 0
+        and mouseY >= 0 then
+        os.execute ("xdotool mousemove "..mouseX.." "..mouseY)
+    end
+end
+
+function worker.mouse_up(mouseX, mouseY, button)
+    worker.mouse_move(mouseX, mouseY)
+    local xdo_button = (mouse_web_to_xdo[button])
+    if xdo_button then
+        os.execute ("xdotool mouseup "..xdo_button)
+    end
+end
+
+function worker.mouse_down(mouseX, mouseY, button)
+    worker.mouse_move(mouseX, mouseY)
+    local xdo_button = (mouse_web_to_xdo[button])
+    if xdo_button then
+        os.execute ("xdotool mousedown "..xdo_button)
+    end
+end
+
+function worker.clipboard_write(text)
+    local xdotool = io.popen("xclip -selection clipboard", 'w')
+    xdotool:write(text or "")
+    xdotool:close()
+    os.execute ("xdotool key ctrl+v")
+end
+
+function worker.key_up(key)
+    key = keyboard_web_to_xdo[key] or key
+    pressed_keys[key] = nil
+    if key then
+        os.execute ("xdotool keyup "..key)
+    end
+end
+
+function worker.key_down(key)
+    key = keyboard_web_to_xdo[key] or key
+    pressed_keys[key] = true
+    if key then
+        os.execute ("xdotool keydown "..key)
+    end
+end
+
+function worker.keyboard_reset(key)
+    for key, pressed in pairs(pressed_keys) do
+        if key then
+            os.execute ("xdotool keyup "..key)
+            pressed_keys[key] = nil
+        end
+    end
+end
+
+function worker.scroll_up()
+    os.execute ("xdotool click 4")
+end
+
+function worker.scroll_down()
+    os.execute ("xdotool click 5")
+end
+
 function onmessage(ws, data)
     if data.type == "sdpOffer" then
         print("sdpOffer")
         capture(data, ws)
         return true
     end
-    if data.action == "mousemove" and validate_mouse(data.mouseX, data.mouseY) then
-        -- print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
-        os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
+    if data.action == "mousemove" then
+        worker.mouse_move(data.mouseX, data.mouseY)
         return true
     end
-    if data.action == "mouseup" and validate_mouse(data.mouseX, data.mouseY) then
-        print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
-        os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
-        print ("xdotool mouseup "..(mouse_web_to_xdo[data.button]))
-        os.execute ("xdotool mouseup "..(mouse_web_to_xdo[data.button]))
+    if data.action == "mouseup" then
+        worker.mouse_up(data.mouseX, data.mouseY, data.button)
         return true
     end
-    if data.action == "mousedown" and validate_mouse(data.mouseX, data.mouseY) then
-        print ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
-        os.execute ("xdotool mousemove "..data.mouseX.." "..data.mouseY)
-        print ("xdotool mousedown "..(mouse_web_to_xdo[data.button]))
-        os.execute ("xdotool mousedown "..(mouse_web_to_xdo[data.button]))
+    if data.action == "mousedown" then
+        worker.mouse_down(data.mouseX, data.mouseY, data.button)
         return true
     end
 
     if data.action == "paste" then
-        print ("xclip")
-        print (data.clipboard)
-        local xdotool = io.popen("xclip -selection clipboard", 'w')
-        xdotool:write(data.clipboard or "")
-        xdotool:close()
-        print ("xdotool key ctrl+v")
-        os.execute ("xdotool key ctrl+v")
+        worker.clipboard_write(data.clipboard)
         return true
     end
     if data.action == "keyup" then
-        data.key = keyboard_web_to_xdo[data.key] or data.key
-        print ("xdotool keyup "..data.key)
-        pressed_keys[data.key] = nil
-        os.execute ("xdotool keyup "..data.key)
+        worker.key_up(data.key)
         return true
     end
     if data.action == "keydown" then
-        data.key = keyboard_web_to_xdo[data.key] or data.key
-        print ("xdotool keydown "..data.key)
-        pressed_keys[data.key] = true
-        os.execute ("xdotool keydown "..data.key)
+        worker.key_down(data.key)
         return true
     end
     if data.action == "reset_keyboard" then
-        for key, pressed in pairs(pressed_keys) do
-            print ("xdotool keyup "..key)
-            os.execute ("xdotool keyup "..key)
-            pressed_keys[key] = nil
-        end
+        worker.keyboard_reset()
         return true
     end
     if data.action == "scroll" then
         if data.direction == "up" then
-            print ("xdotool click 4")
-            os.execute ("xdotool click 4")
+            worker.scroll_up()
         end
         if data.direction == "down" then
-            print ("xdotool click 5")
-            os.execute ("xdotool click 5")
+            worker.scroll_down()
         end
         return true
     end
@@ -254,17 +289,21 @@ function start_server()
             keepalive(ws)
             ws:send(lunajson.encode{
                 action = "window_title",
-                title = get_active_window_title()
+                title = worker.get_active_window_title()
             })
         else
-            if error == "text" then
-                local data = lunajson.decode(msg)
-                if not onmessage(ws, data) then
-
-                    print("Unknown message: "..msg)
-                    print(error)
-                    print(errno)
+            status, error = pcall(function()
+                if error == "text" then
+                    local data = lunajson.decode(msg)
+                    if not onmessage(ws, data) then
+                        print("Unknown message: "..msg)
+                        print(error)
+                        print(errno)
+                    end
                 end
+            end)
+            if not status then
+                print(error)
             end
         end
         if last_keepalive < os.time() - 10 then
