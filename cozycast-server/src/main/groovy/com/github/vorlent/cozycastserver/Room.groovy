@@ -10,6 +10,7 @@ class Room {
     WorkerSession worker
     String remote
     String title
+    Boolean inviteOnly = false
 
     def close(restart = false) {
         worker?.close()

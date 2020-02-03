@@ -325,6 +325,8 @@ html, body, #pagecontent, #videosizer {
     }
 }
 
+/* ProfileModal.js START */
+
 #profile-modal-background {
     position: fixed;
     z-index: 3;
@@ -359,6 +361,15 @@ html, body, #pagecontent, #videosizer {
     flex-grow: 1;
 }
 
+.profile-modal-row {
+    padding: 5px 0 5px 0px;
+}
+
+.profile-modal-widget {
+    widget: 100%;
+}
+
+
 #profile-modal-close {
     width: 1.5em; height: 1.5em;
     color: #fff;
@@ -387,6 +398,8 @@ html, body, #pagecontent, #videosizer {
 #profile-modal .btn {
     margin-top: .5em;
 }
+
+/* ProfileModal.js END */
 
 .image {
     background-size: cover;

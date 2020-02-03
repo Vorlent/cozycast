@@ -53,18 +53,16 @@ class InviteController {
     @Get("/new")
     Object create(@NotBlank @QueryValue("room") String room,
         @QueryValue(value = "maxUses", defaultValue = "-1") Integer maxUses,
-        @QueryValue(value = "expiration", defaultValue = "") String expiration) {
+        @QueryValue(value = "expiration", defaultValue = "-1") Integer expiration) {
 
         def expirationDate = null
-        if(expiration) {
+        if(expiration > 0) {
             expirationDate = ZonedDateTime.now(ZoneId.of("UTC"))
-            expirationDate.plusHours(1)
+            expirationDate.plusMinutes(expiration)
         }
         if(maxUses < 0) {
             maxUses = null
         }
-        println maxUses
-        println expirationDate
         RoomInvite.withTransaction {
             def code = RoomInvite.generateCode()
             def invite = new RoomInvite(

@@ -2,6 +2,7 @@ import { Component } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
 import { state, updateState } from '/js/index.js'
 import { sendMessage } from '/js/Room.js'
+import { openInvite, InviteModal } from '/js/InviteModal.js'
 
 export class RoomList extends Component {
 
@@ -28,6 +29,7 @@ export class RoomList extends Component {
     render({ state }, { xyz = [] }) {
     return html`
         <div class="room-list-background">
+            <${InviteModal} state=${state}/>
             <div class="room-list">
                 <div class="room-list-title">
                     Rooms
@@ -46,15 +48,14 @@ export class RoomList extends Component {
                             <td><button type="button" class="btn btn-primary" onclick=${e => this.deleteRoom(room.id)}>
                                 Delete
                             </button></td>
+                            <td><button type="button" class="btn btn-primary" onclick=${e => openInvite(room.id)}>
+                                Invite
+                            </button></td>
                         </tr>
                     `)}
                     </tbody>
                 </table>
-                <!--<button type="button" class="btn btn-primary">
-                    Create Room
-                </button>-->
             </div>
-        </div>
-    `;
+        </div>`;
     }
 }

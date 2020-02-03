@@ -13,7 +13,9 @@ var websocket;
 export class Room extends Component {
 
     componentDidMount() {
+        var roomId = this.props.roomId
         updateState(function (state) {
+            state.roomToken = localStorage.getItem("room-" + roomId + "-token");
             state.username = localStorage.getItem("username");
             if(!state.username) {
                 state.username = "Anonymous"
@@ -365,7 +367,8 @@ function start() {
     sendMessage({
     	action : 'join',
     	username: state.username,
-        url: state.avatarUrl
+        url: state.avatarUrl,
+        token: state.roomToken
     });
     webrtc_start()
 }

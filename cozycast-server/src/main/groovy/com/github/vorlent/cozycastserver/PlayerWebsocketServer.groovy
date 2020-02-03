@@ -6,6 +6,8 @@ import io.micronaut.websocket.annotation.OnMessage
 import io.micronaut.websocket.annotation.OnOpen
 import io.micronaut.websocket.annotation.ServerWebSocket
 import io.micronaut.websocket.WebSocketSession
+import io.micronaut.websocket.CloseReason
+import io.micronaut.security.token.jwt.validator.JwtTokenValidator
 
 import io.reactivex.Flowable
 import io.reactivex.schedulers.Schedulers
@@ -190,12 +192,14 @@ class PlayerWebsocketServer {
     private KurentoClient kurento
     private WebSocketBroadcaster broadcaster
     private RoomRegistry roomRegistry
+    private JwtTokenValidator jwtTokenValidator
 
     PlayerWebsocketServer(WebSocketBroadcaster broadcaster, KurentoClient kurento,
-        RoomRegistry roomRegistry) {
+        RoomRegistry roomRegistry, JwtTokenValidator jwtTokenValidator) {
         this.broadcaster = broadcaster
         this.kurento = kurento
         this.roomRegistry = roomRegistry
+        this.jwtTokenValidator = jwtTokenValidator
     }
 
     private void keepalive(Room room, WebSocketSession session, Map jsonMessage) {
@@ -318,7 +322,14 @@ class PlayerWebsocketServer {
     }
 
     private void join(Room room, WebSocketSession session, Map jsonMessage) {
-        log.info jsonMessage.toString()
+        def token = jsonMessage.token
+        if(room.inviteOnly) {
+            if(token && jwtTokenValidator.validate(token)) {
+                //success
+            } else {
+                session.close()
+            }
+        }
         UserSession user = room.users.get(session.getId())
         user.username = jsonMessage.username
         if(jsonMessage.url) {

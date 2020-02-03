@@ -17,7 +17,7 @@ public class IndexController {
     @Inject
     ResourceResolver res;
 
-    @Get("/{path:(room|management).*}")
+    @Get("/{path:(room|management|invite).*}")
     @Produces(MediaType.TEXT_HTML)
     public HttpResponse<?> index(HttpRequest<?> request, String path) {
         StreamedFile indexFile = new StreamedFile(res.getResource("classpath:static/index.html").get());

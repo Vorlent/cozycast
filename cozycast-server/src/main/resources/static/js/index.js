@@ -4,9 +4,11 @@ import Router from '/js/libs/preact-router/index.js'
 
 import { RoomList } from '/js/RoomList.js'
 import { Room } from '/js/Room.js'
+import { Invite } from '/js/Invite.js'
 
 var globalVar = {};
 export var state = {
+    roomToken: null,
     typingUsers: [],
     userlist: [],
     roomlist: [],
@@ -27,6 +29,12 @@ export var state = {
     fullscreen: false
 };
 
+export function queryParams(params) {
+    return '?' + Object.keys(params)
+        .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+        .join('&');
+}
+
 export function updateState(fun) {
     fun(state)
     globalVar.callback(state);
@@ -41,6 +49,7 @@ class App extends Component {
         <${Router}>
     		<${Room} state=${state} path="/" roomId="default"/>
             <${Room} state=${state} path="/room/:roomId"/>
+            <${Invite} state=${state} path="/invite/:code"/>
             <${RoomList} state=${state} path="/management/"/>
         <//>
     `;
