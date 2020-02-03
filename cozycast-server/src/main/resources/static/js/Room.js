@@ -102,9 +102,11 @@ function pauseVideo(e) {
         if(state.videoPaused) {
             var videoElement = document.getElementById('video');
             videoElement.pause();
+            webrtc_stop()
         } else {
             var videoElement = document.getElementById('video');
             videoElement.play();
+            webrtc_start()
         }
     })
 }
@@ -340,10 +342,7 @@ function connect(room) {
             state.chatMessages = [];
             state.remote = false;
         })
-        if (webRtcPeer) {
-    		webRtcPeer.dispose();
-    		webRtcPeer = null;
-    	}
+        webrtc_stop()
         clearInterval(keepAlive)
         keepAlive = null;
     	connect(room);
@@ -368,6 +367,10 @@ function start() {
     	username: state.username,
         url: state.avatarUrl
     });
+    webrtc_start()
+}
+
+function webrtc_start() {
     fetch("/turn/credential").then((e) => e.json()).then(function(iceServer) {
     	var options = {
     		remoteVideo : document.getElementById("video"),
@@ -390,6 +393,13 @@ function start() {
     			webRtcPeer.generateOffer(onOffer);
     		});
     });
+}
+
+function webrtc_stop() {
+    if (webRtcPeer) {
+        webRtcPeer.dispose();
+        webRtcPeer = null;
+    }
 }
 
 function onOffer(error, sdpOffer) {
