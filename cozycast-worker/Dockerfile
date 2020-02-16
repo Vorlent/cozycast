@@ -4,7 +4,8 @@ ENV REPO="xenial"
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install -y ffmpeg xvfb lua5.3 libssl-dev m4 luarocks xdotool pulseaudio \
-    firefox flashplugin-installer sudo xfce4 xclip fonts-wqy-microhei inotify-tools
+    firefox flashplugin-installer sudo xfce4 xclip fonts-wqy-microhei inotify-tools && \
+    apt-get remove xscreensaver
 
 ENV UNAME cozycast
 
