@@ -153,6 +153,7 @@ function typing(parsedMessage) {
 }
 
 function chatmessage(parsedMessage, skip_notifications) {
+    var msg = parsedMessage.message || "";
     var queuedMessages = [];
     if(parsedMessage.type == "video") {
         queuedMessages.push({ "type": "video", "href": parsedMessage.image });
@@ -160,7 +161,6 @@ function chatmessage(parsedMessage, skip_notifications) {
         queuedMessages.push({ "type": "image", "href": parsedMessage.image });
     } else {
         var offset = 0;
-        var msg = parsedMessage.message || "";
         var urls = linkify.find(msg);
         var remaining = msg;
         urls.forEach(function(element) {
