@@ -164,13 +164,13 @@ function chatmessage(parsedMessage, skip_notifications) {
         var urls = linkify.find(msg);
         var remaining = msg;
         urls.forEach(function(element) {
+            var end = remaining.indexOf(element.value, offset);
+            queuedMessages.push({ "type": "text", "message": remaining.substring(offset, end) });
+            offset = end + element.value.length;
             if(element.value.indexOf("http") == -1) {
                 element.value = "http://" + element.value
             }
-        	var end = remaining.indexOf(element.value, offset);
-        	queuedMessages.push({ "type": "text", "message": remaining.substring(offset, end) });
             queuedMessages.push({ "type": "url", "href": element.value });
-        	offset = end + element.value.length;
         });
         if(offset < remaining.length) {
         	queuedMessages.push({ "type": "text", "message": remaining.substring(offset, remaining.length) });
