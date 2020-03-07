@@ -51,16 +51,18 @@ function openPictureUpload() {
 
 function imageSelected(e) {
     let formData = new FormData();
-    formData.append("image", e.target.files[0]);
-    fetch('/image/upload', {method: "POST", body: formData}).then((e) => e.json()).then(function (e) {
-        sendMessage({
-            action: 'chatmessage',
-            image: e.url,
-            type: e.type,
-            message: "",
-            username: state.username
+    if(e.target.files.length > 0) {
+        formData.append("image", e.target.files[0]);
+        fetch('/image/upload', {method: "POST", body: formData}).then((e) => e.json()).then(function (e) {
+            sendMessage({
+                action: 'chatmessage',
+                image: e.url,
+                type: e.type,
+                message: "",
+                username: state.username
+            });
         });
-    });
+    }
 }
 
 export class Chat extends Component {
