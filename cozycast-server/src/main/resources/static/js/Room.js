@@ -98,7 +98,7 @@ function toggleFullscreen() {
     }
 }
 
-function pauseVideo(e) {
+export function pauseVideo(e) {
     updateState(function(state) {
         state.videoPaused = !state.videoPaused;
         if(state.videoPaused) {

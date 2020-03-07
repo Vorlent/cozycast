@@ -2,7 +2,7 @@ import { Component } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
 
 import { state, updateState } from '/js/index.js'
-import { sendMessage } from '/js/Room.js'
+import { sendMessage, pauseVideo } from '/js/Room.js'
 
 var lastMouseEvent = Date.now();
 
@@ -49,8 +49,8 @@ function videoMouseDown(e) {
     var videoElement = document.getElementById('video');
     if(state.videoPaused) {
         videoElement.play();
-        updateState(function (state)  {
-            state.videoPaused = false;
+        updateState(function (state) {
+            pauseVideo()
             if(state.videoLoading != "loaded") {
                 state.videoLoading = "loading";
             }
