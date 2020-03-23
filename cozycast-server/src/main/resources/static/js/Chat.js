@@ -25,22 +25,29 @@ function chatEnter(e) {
         var enterKeycode = 13;
         if(e.which == enterKeycode) {
             e.preventDefault();
-            if(state.chatBox.trim() != "") {
+            if(e.shiftKey) {
+                updateState(function (state)  {
+                    state.chatBox += "\n"
+                    e.target.value = state.chatBox; // hack
+                });
+            } else {
+                if(state.chatBox.trim() != "") {
+                    sendMessage({
+                        action : 'chatmessage',
+                        type: "text",
+                        message: state.chatBox,
+                        username: state.username
+                    });
+                }
+                state.chatBox = "";
+                e.target.value = state.chatBox; // hack
+
                 sendMessage({
-                    action : 'chatmessage',
-                    type: "text",
-                    message: state.chatBox,
+                    action : 'typing',
+                    state: 'stop',
                     username: state.username
                 });
             }
-            e.target.value = ""; // hack
-            state.chatBox = "";
-
-            sendMessage({
-                action : 'typing',
-                state: 'stop',
-                username: state.username
-            });
         }
     })
 }
@@ -137,7 +144,11 @@ export class Chat extends Component {
                                     <a class="chat-link" target="_blank" href="${msg.href}"><video loop autoplay muted onload="${this.scrollToBottom}" src="${msg.href}" /></a>
                                 </div>`}
                             ${msg.type == "text" &&
-                                html`<div>${msg.message}</div>`}
+                                html`<div>${msg.message.split("\n")
+                                    .map(message => html`
+                                        ${message}
+                                        <br/>
+                                    `)}</div>`}
                         `)}
                     </div>
                 `)}
