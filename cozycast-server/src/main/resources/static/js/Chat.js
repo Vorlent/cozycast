@@ -141,7 +141,7 @@ export class Chat extends Component {
                                 </div>`}
                             ${msg.type == "video" &&
                                 html`<div class="chat-video">
-                                    <a class="chat-link" target="_blank" href="${msg.href}"><video loop autoplay muted onload="${this.scrollToBottom}" src="${msg.href}" /></a>
+                                    <a class="chat-link" target="_blank" href="${msg.href}"><video loop autoplay muted oncanplay="${this.scrollToBottom}" src="${msg.href}" /></a>
                                 </div>`}
                             ${msg.type == "text" &&
                                 html`<div>${msg.message.split("\n")
