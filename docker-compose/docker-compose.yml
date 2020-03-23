@@ -12,7 +12,8 @@ services:
         volumes:
             - "../data/postgres:/var/lib/postgresql/data"
     coturn:
-        image: instrumentisto/coturn:4.5.1
+        image: cozycast-coturn:4.5.1-tini
+        build: ../coturn
         command:
             - -n
             - --external-ip="$TURN_IP/$PRIVATE_IP"
