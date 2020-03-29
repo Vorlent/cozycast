@@ -255,6 +255,9 @@ function leave(parsedMessage) {
 var keepAlive;
 
 function connect(room) {
+    updateState(function (state) {
+        state.roomId = room;
+    })
     websocket = new WebSocket('ws://' + location.host + '/player/' + room);
     websocket.onmessage = function(message) {
     	var parsedMessage = JSON.parse(message.data);

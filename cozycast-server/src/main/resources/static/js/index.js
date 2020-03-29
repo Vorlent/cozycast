@@ -8,6 +8,7 @@ import { Invite } from '/js/Invite.js'
 
 var globalVar = {};
 export var state = {
+    roomId: null,
     roomToken: null,
     typingUsers: [],
     userlist: [],

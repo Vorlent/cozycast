@@ -125,8 +125,22 @@ export class Chat extends Component {
         }
     }
 
+    openRoomSettings(roomId) {
+        console.log("room settings")
+    }
+
     render({ state }, { xyz = [] }) {
+        var roomId = state.roomId;
+        if(roomId == null || roomId == "default") {
+            roomId = "";
+        }
         return html`<div id="chat">
+            <div class="cozycast-pagetitle">
+                <span class="cozycast-titletext">${roomId}</span>
+                <button class="btn btn-primary" onclick=${e => this.openRoomSettings(roomId)}>
+                    <img class="room-settings-icon" src="/png/settings.png"/>
+                </button>
+            </div>
             ${state.historyMode && html`<div class="history-mode-indicator">Old messages</div>`}
             <div id="messages" onscroll=${this.chatScroll}>
                 ${state.chatMessages.map(message => html`

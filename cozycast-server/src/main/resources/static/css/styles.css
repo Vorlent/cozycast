@@ -56,14 +56,6 @@ html, body, #pagecontent, #videosizer {
     flex-grow: 1;
 }
 
-#chat {
-    grid-area: chat;
-    display: flex;
-    flex-direction: column;
-    background-color: #123;
-    min-height: 0;
-}
-
 #chatbox {
     padding: 10px;
 }
@@ -448,11 +440,32 @@ html, body, #pagecontent, #videosizer {
 
 /*  Chat.js Start */
 
+#chat {
+    grid-area: chat;
+    display: flex;
+    flex-direction: column;
+    background-color: #123;
+    min-height: 0;
+}
+
+.cozycast-pagetitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font: bold 1.2em sans-serif;
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
 .history-mode-indicator {
     text-align: center;
     position: sticky;
     padding: 5px;
     font-weight: bolder;
+}
+
+.room-settings-icon {
+    height: 20px;
 }
 /*  Chat.js End */
 
