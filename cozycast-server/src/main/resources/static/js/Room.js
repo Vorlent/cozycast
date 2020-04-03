@@ -248,9 +248,20 @@ function leave(parsedMessage) {
     })
 }
 
+function kick(parsedMessage) {
+    if(parsedMessage.session == state.session) {
+        updateState(function (state) {
+            state.kicked = true
+        })
+    }
+}
+
 var keepAlive;
 
 function connect(room) {
+    if(state.kicked) {
+        return;
+    }
     updateState(function (state) {
         state.roomId = room;
     })
@@ -260,6 +271,9 @@ function connect(room) {
         console.log(parsedMessage)
     	switch (parsedMessage.action) {
             case 'keepalive':
+    			break;
+            case 'kick':
+                kick(parsedMessage)
     			break;
             case 'session_id':
                 updateState(function (state) {

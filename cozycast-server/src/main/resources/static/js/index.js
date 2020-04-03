@@ -11,6 +11,12 @@ export var SidebarState = {
     SETTINGS: "SETTINGS"
 }
 
+export var WorkerStatus = {
+    STOPPED: "STOPPED",
+    STARTING: "STARTING"
+    STARTED: "STARTED"
+}
+
 var globalVar = {};
 export var state = {
     roomId: null,
@@ -29,7 +35,9 @@ export var state = {
     videoLoading: false,
     videoSettings: null,
     roomSidebar: SidebarState.CHAT,
+    workerStatus: WorkerStatus.STARTED,
     roomSettings: {
+        workerStarted: true,
         resolution: 720,
         framerate: 25,
         videoBitrate: 1000,
@@ -41,7 +49,8 @@ export var state = {
     muteChatNotification: false,
     windowTitle: "CozyCast: Low latency screen capture via WebRTC",
     historyMode: false,
-    fullscreen: false
+    fullscreen: false,
+    kicked: true
 };
 
 export function queryParams(params) {

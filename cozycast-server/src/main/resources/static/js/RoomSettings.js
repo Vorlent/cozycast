@@ -1,7 +1,7 @@
 import { Component, render } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
 
-import { SidebarState, state, updateState } from '/js/index.js'
+import { SidebarState, WorkerStatus, state, updateState } from '/js/index.js'
 
 import { Button } from '/js/Button.js'
 
@@ -18,11 +18,38 @@ export class RoomSettings extends Component {
     }
 
     toggleWorker() {
-        console.log("toggleWorker")
+        var token = localStorage.getItem("adminToken");
+        if(state.roomSettings.workerStarted == WorkerStatus.STOPPED) {
+            fetch('/api/room/{roomId}/worker/stop', {method: "POST", headers: { 'Authorization': "Bearer " + token }})
+                .then((e) => e.json()).then(function (e) {
+                updateState(function (state) {
+                    // TODO CHECK FOR FAILURE
+                    state.roomSettings.workerStarted = WorkerStatus.STARTING
+                })
+            });
+        }
+        if(state.roomSettings.workerStarted == WorkerStatus.STARTED) {
+            fetch('/api/room/{roomId}/worker/start', {method: "POST", headers: { 'Authorization': "Bearer " + token }})
+                .then((e) => e.json()).then(function (e) {
+                updateState(function (state) {
+                    // TODO CHECK FOR FAILURE
+                    state.roomSettings.workerStarted = WorkerStatus.STOPPED
+                })
+            });
+        }
     }
 
     restartWorker() {
-        console.log("restartWorker")
+        var token = localStorage.getItem("adminToken");
+        if(state.roomSettings.workerStarted == WorkerStatus.STARTED) {
+            fetch('/api/room/{roomId}/worker/restart', {method: "POST", headers: { 'Authorization': "Bearer " + token }})
+                .then((e) => e.json()).then(function (e) {
+                updateState(function (state) {
+                    // TODO CHECK FOR FAILURE
+                    state.roomSettings.workerStarted = WorkerStatus.STOPPED
+                })
+            });
+        }
     }
 
     toggleCenterRemote() {
@@ -85,8 +112,9 @@ export class RoomSettings extends Component {
                     Ban User
                 <//>
 
-                <${Button} onclick=${e => this.toggleWorker(roomId)}>
-                    Start/Stop
+                <${Button} enabled=${state.workerStarted}
+                    onclick=${e => this.toggleWorker(roomId)}>
+                    ${state.workerStarted ? 'Stop' : 'Start'}
                 <//>
 
                 <${Button} onclick=${e => this.restartWorker(roomId)}>

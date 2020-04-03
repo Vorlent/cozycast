@@ -185,6 +185,11 @@ class SessonIdEvent {
     String session
 }
 
+class KickEvent {
+    String action = "kick"
+    String session
+}
+
 @Slf4j
 @ServerWebSocket("/player/{room}")
 class PlayerWebsocketServer {
