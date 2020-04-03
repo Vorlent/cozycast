@@ -29,6 +29,14 @@ export var state = {
     videoLoading: false,
     videoSettings: null,
     roomSidebar: SidebarState.CHAT,
+    roomSettings: {
+        resolution: 720,
+        framerate: 25,
+        videoBitrate: 1000,
+        audioBitrate: 96,
+        accessType: "public",
+        centerRemote: false
+    },
     session: null,
     muteChatNotification: false,
     windowTitle: "CozyCast: Low latency screen capture via WebRTC",

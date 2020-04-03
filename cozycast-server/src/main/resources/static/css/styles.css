@@ -533,6 +533,18 @@ html, body, #pagecontent, #videosizer {
     color: white;
 }
 
+#settings .btn {
+    margin: 0.25em;
+}
+
+#settings span.center {
+    margin: 0 auto;
+}
+
+#stream-settings select {
+    width: 100%;
+}
+
 #pagecontent > #sidebar {
     background-color: #123;
 }

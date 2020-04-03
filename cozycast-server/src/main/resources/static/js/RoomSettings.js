@@ -5,92 +5,164 @@ import { SidebarState, state, updateState } from '/js/index.js'
 
 import { Button } from '/js/Button.js'
 
+import { openInvite, InviteModal } from '/js/InviteModal.js'
 
 export class RoomSettings extends Component {
 
-    saveRoomSettings() {
-        console.log("saveRoomSettings")
+    openKickModal() {
+        console.log("openKickModal")
     }
 
-    openInviteModal() {
-        console.log("openInviteModal")
+    openBanModal() {
+        console.log("openBanModal")
+    }
+
+    toggleWorker() {
+        console.log("toggleWorker")
+    }
+
+    restartWorker() {
+        console.log("restartWorker")
+    }
+
+    toggleCenterRemote() {
+        updateState(function (state) {
+            state.roomSettings.centerRemote = !state.roomSettings.centerRemote
+        })
+    }
+
+    selectResolution(e) {
+        updateState(function (state) {
+            state.roomSettings.resolution = e.target.value
+        })
+    }
+
+    selectFramerate(e) {
+        updateState(function (state) {
+            state.roomSettings.framerate = e.target.value
+        })
+    }
+
+    selectVideoBitrate(e) {
+        updateState(function (state) {
+            state.roomSettings.videoBitrate = e.target.value
+        })
+    }
+
+    selectAudioBitrate(e) {
+        updateState(function (state) {
+            state.roomSettings.audioBitrate = e.target.value
+        })
+    }
+
+    saveRoomSettings(roomId) {
+        console.log("saveRoomSettings")
     }
 
     render({ roomId }, { xyz = [] }) {
         return html`
             <div id="settings">
+                <${InviteModal} state=${state}/>
 
-                Room Access:
-                <select id="settings-resolution">
-                  <option selected="selected" value="public">Public</option>
-                  <option selected="selected" value="authenticated">Users</option>
-                  <option selected="selected" value="invite">Invited Users only</option>
+                <span class="center">Room Access</span>
+                <select id="settings-resolution"
+                    value=${state.roomSettings.accessType}
+                    onChange=${e => selectAccessType(e)}>
+                  <option value="public">Public</option>
+                  <option value="authenticated">Users</option>
+                  <option value="invite">Invited Users only</option>
                 </select>
 
-                <${Button} onclick=${e => this.openInviteModal(roomId)}>
+                <${Button} onclick=${e => openInvite(state.roomId)}>
                     Create Invite
                 <//>
 
-                <br/>
-
-                <${Button} onclick=${e => this.openInviteModal(roomId)}>
+                <${Button} onclick=${e => this.openKickModal(roomId)}>
                     Kick User
                 <//>
 
-                <${Button} onclick=${e => this.openInviteModal(roomId)}>
+                <${Button} onclick=${e => this.openBanModal(roomId)}>
                     Ban User
                 <//>
 
-                <${Button} onclick=${e => this.openInviteModal(roomId)}>
+                <${Button} onclick=${e => this.toggleWorker(roomId)}>
                     Start/Stop
                 <//>
 
-                <${Button} onclick=${e => this.openInviteModal(roomId)}>
+                <${Button} onclick=${e => this.restartWorker(roomId)}>
                     Restart
                 <//>
 
-                <${Button} onclick=${e => this.openInviteModal(roomId)}>
+                <${Button} enabled=${state.roomSettings.centerRemote}
+                    onclick=${e => this.toggleCenterRemote()}>
                     Center Remote
                 <//>
 
-                Stream settings:
-                <br/>
+                <span class="center">Stream settings</span>
 
-                Resolution:
-                <select id="settings-resolution">
-                  <option value="1080">1080p</option>
-                  <option selected="selected" value="720">720p</option>
-                  <option value="480">480p</option>
-                  <option value="240">240p</option>
-                  <option value="144">144p</option>
-                </select>
+                <table id="stream-settings">
+                    <tbody>
+                        <tr>
 
-                Frame Rate:
-                <select id="settings-framerate">
-                  <option value="30">30</option>
-                  <option selected="selected" value="25">25</option>
-                  <option value="20">20</option>
-                  <option value="15">15</option>
-                  <option value="10">10</option>
-                  <option value="5">5</option>
-                </select>
+                            <td>Resolution</td>
+                            <td>
+                                <select id="settings-resolution"
+                                    value=${state.roomSettings.resolution}
+                                    onChange=${e => selectResolution(e)}>
+                                  <option value="1080">1080p</option>
+                                  <option value="720">720p</option>
+                                  <option value="480">480p</option>
+                                  <option value="240">240p</option>
+                                  <option value="144">144p</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Frame Rate</td>
+                            <td>
+                                <select id="settings-framerate"
+                                     value=${state.roomSettings.framerate}
+                                     onChange=${e => selectFramerate(e)}>
+                                    <option value="30">30 fps</option>
+                                    <option value="25">25 fps</option>
+                                    <option value="20">20 fps</option>
+                                    <option value="15">15 fps</option>
+                                    <option value="10">10 fps</option>
+                                    <option value="5">5 fps</option>
+                                </select>
+                            </td>
+                        </tr>
 
-                Video Bitrate:
-                <select id="settings-video-bitrate">
-                  <option value="2000">2 Mb/s</option>
-                  <option selected="selected" value="1000">1 Mb/s</option>
-                  <option value="500">0.5 Mb/s</option>
-                  <option value="300">0.3 Mb/s</option>
-                </select>
+                        <tr>
+                            <td>Video Bitrate</td>
+                            <td>
+                                <select id="settings-video-bitrate"
+                                     value=${state.roomSettings.videoBitrate}
+                                     onChange=${e => selectVideoBitrate(e)}>
+                                    <option value="2000">2 Mb/s</option>
+                                    <option value="1000">1 Mb/s</option>
+                                    <option value="500">0.5 Mb/s</option>
+                                    <option value="300">0.3 Mb/s</option>
+                                </select>
+                            </td>
+                        </tr>
 
-                Audio Bitrate:
-                <select id="settings-audio-bitrate">
-                  <option value="192">192 Kb/s</option>
-                  <option selected="selected" value="96">96 Kb/s</option>
-                  <option value="64">64 Kb/s</option>
-                  <option value="48">48 Kb/s</option>
-                  <option value="32">32 Kb/s</option>
-                </select>
+                        <tr>
+                            <td>Audio Bitrate</td>
+                            <td>
+                                <select id="settings-audio-bitrate"
+                                    value=${state.roomSettings.audioBitrate}
+                                    onChange=${e => selectAudioBitrate(e)}>
+                                  <option value="192">192 Kb/s</option>
+                                  <option value="96">96 Kb/s</option>
+                                  <option value="64">64 Kb/s</option>
+                                  <option value="48">48 Kb/s</option>
+                                  <option value="32">32 Kb/s</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
 
                 <${Button} onclick=${e => this.saveRoomSettings(roomId)}>
                     Save

@@ -20,21 +20,21 @@ export class RoomSidebar extends Component {
     }
 
     render({ roomId }, { xyz = [] }) {
-    return html`
-        <div id="sidebar">
-            <!--<div class="cozycast-pagetitle">
-                <span class="cozycast-titletext">${roomId}</span>
-                <${Button} enabled=${state.roomSidebar == SidebarState.SETTINGS}
-                    onclick=${e => this.toggleRoomSettings(roomId)}>
-                    <img class="room-settings-icon" src="/png/settings.png"/>
-                <//>
-            </div>-->
-            ${state.roomSidebar == SidebarState.CHAT &&
-                html`<${Chat} state=${state}/>`}
+        return html`
+            <div id="sidebar">
+                <div class="cozycast-pagetitle">
+                    <span class="cozycast-titletext">${roomId}</span>
+                    <${Button} enabled=${state.roomSidebar == SidebarState.SETTINGS}
+                        onclick=${e => this.toggleRoomSettings(roomId)}>
+                        <img class="room-settings-icon" src="/png/settings.png"/>
+                    <//>
+                </div>
+                ${state.roomSidebar == SidebarState.CHAT &&
+                    html`<${Chat} state=${state}/>`}
 
-            ${state.roomSidebar == SidebarState.SETTINGS &&
-                html`<${RoomSettings} state=${state}/>`}
-        </div>
-    `;
+                ${state.roomSidebar == SidebarState.SETTINGS &&
+                    html`<${RoomSettings} state=${state}/>`}
+            </div>
+        `;
     }
 }
