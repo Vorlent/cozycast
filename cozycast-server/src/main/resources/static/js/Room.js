@@ -2,9 +2,11 @@ import { Component, render } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
 
 import { Chat } from '/js/Chat.js'
+import { RoomSidebar } from '/js/RoomSidebar.js'
 import { ProfileModal, openProfile } from '/js/ProfileModal.js'
 import { Userlist } from '/js/Userlist.js'
 import { VideoControls } from '/js/VideoControls.js'
+import { Button } from '/js/Button.js'
 import { state, updateState } from '/js/index.js'
 
 var webRtcPeer;
@@ -54,28 +56,22 @@ export class Room extends Component {
             <${VideoControls} state=${state}/>
             <div id="pagetoolbar">
                 <div id="controls">
-                    <button type="button" class="btn btn-primary" onclick=${openProfile}>
-                        Profile
-                    </button>
-                    <button type="button" class="btn ${state.remote ? 'btn-danger' : 'btn-primary'}"
-                        onclick=${remote}>
-                        Remote
-                    </button>
-                    <button type="button" class="video-control-button btn ${state.videoPaused ? 'btn-danger' : 'btn-primary'}"
+                    <${Button} enabled=${state.profileModal} onclick=${openProfile}>Profile<//>
+                    <${Button} enabled=${state.remote} onclick=${remote}>Remote<//>
+                    <${Button} enabled=${state.videoPaused}
                         title="${state.videoPaused ? 'Pause' : 'Play'}" onclick=${pauseVideo}>
                         <img class="video-control-icon" src="${state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}"/>
-                    </button>
-                    <button type="button" class="video-control-button btn ${state.fullscreen ? 'btn-danger' : 'btn-primary'}"
+                    <//>
+                    <${Button} enabled=${state.fullscreen}
                         title="Fullscreen" onclick=${toggleFullscreen}>
                         <img class="video-control-icon" src="/svg/fullscreen_button.svg"/>
-                    </button>
-
+                    <//>
                     <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider" oninput=${changeVolume}/>
                     <a id="copyright" href="/license" target="_blank">Copyright (C) 2019 Vorlent</a>
                 </div>
                 <${Userlist} state=${state}/>
             </div>
-            <${Chat} state=${state}/>
+            <${RoomSidebar} state=${state}/>
 
             <${ProfileModal} state=${state}/>
         </div>

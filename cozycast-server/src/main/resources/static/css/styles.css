@@ -27,8 +27,8 @@ html, body, #pagecontent, #videosizer {
 #pagecontent {
     display: grid;
     grid:
-    "video chat" 1fr
-    "toolbar chat" 5em
+    "video sidebar" 1fr
+    "toolbar sidebar" 5em
     / 1fr 15em;
 }
 
@@ -441,11 +441,10 @@ html, body, #pagecontent, #videosizer {
 /*  Chat.js Start */
 
 #chat {
-    grid-area: chat;
     display: flex;
     flex-direction: column;
-    background-color: #123;
     min-height: 0;
+    flex-grow: 1;
 }
 
 .cozycast-pagetitle {
@@ -526,12 +525,35 @@ html, body, #pagecontent, #videosizer {
 
 /* RoomList.js End */
 
+/* RoomSidebar.js START */
+#sidebar {
+    grid-area: sidebar;
+    display: flex;
+    flex-direction: column;
+    color: white;
+}
+
+#pagecontent > #sidebar {
+    background-color: #123;
+}
+
+/* RoomSidebar.js END */
+
+/* RoomSettings.js START */
+#settings {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 16px;
+}
+/* RoomSettings.js END */
+
 @media (max-width: 780px) {
     #pagecontent {
         grid:
         "video" 40%
         "toolbar" 10em
-        "chat" 1fr;
+        "sidebar" 1fr;
     }
 
     #pagetoolbar {

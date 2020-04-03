@@ -6,6 +6,11 @@ import { RoomList } from '/js/RoomList.js'
 import { Room } from '/js/Room.js'
 import { Invite } from '/js/Invite.js'
 
+export var SidebarState = {
+    CHAT: "CHAT",
+    SETTINGS: "SETTINGS"
+}
+
 var globalVar = {};
 export var state = {
     roomId: null,
@@ -23,6 +28,7 @@ export var state = {
     videoPaused: true,
     videoLoading: false,
     videoSettings: null,
+    roomSidebar: SidebarState.CHAT,
     session: null,
     muteChatNotification: false,
     windowTitle: "CozyCast: Low latency screen capture via WebRTC",
@@ -43,17 +49,17 @@ export function updateState(fun) {
 
 class App extends Component {
     render({ page }, { xyz = [] }) {
-    globalVar.callback = (data) => {
-        this.setState(data);
-    };
-    return html`
-        <${Router}>
-    		<${Room} state=${state} path="/" roomId="default"/>
-            <${Room} state=${state} path="/room/:roomId"/>
-            <${Invite} state=${state} path="/invite/:code"/>
-            <${RoomList} state=${state} path="/management/"/>
-        <//>
-    `;
+        globalVar.callback = (data) => {
+            this.setState(data);
+        };
+        return html`
+            <${Router}>
+        		<${Room} state=${state} path="/" roomId="default"/>
+                <${Room} state=${state} path="/room/:roomId"/>
+                <${Invite} state=${state} path="/invite/:code"/>
+                <${RoomList} state=${state} path="/management/"/>
+            <//>
+        `;
     }
 }
 
