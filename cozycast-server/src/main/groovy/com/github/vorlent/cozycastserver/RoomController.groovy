@@ -40,7 +40,7 @@ class RoomController {
         return HttpResponse.ok()
     }
 
-    @Secured("ROLE_ADMIN")
+    /*@Secured("ROLE_ADMIN")
     @Post("/{name}/kick/{sessionId}")
     HttpResponse kick(String name, String sessionId) {
         Room room = roomRegistry.getRoom(name)
@@ -56,5 +56,5 @@ class RoomController {
         } else {
             return HttpResponse.notFound()
         }
-    }
+    }*/
 }

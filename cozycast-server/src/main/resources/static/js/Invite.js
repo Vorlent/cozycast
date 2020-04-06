@@ -5,9 +5,6 @@ import { route } from '/js/libs/preact-router/index.js'
 
 import { state, updateState } from '/js/index.js'
 
-var webRtcPeer;
-var websocket;
-
 export class Invite extends Component {
 
     componentWillMount() {

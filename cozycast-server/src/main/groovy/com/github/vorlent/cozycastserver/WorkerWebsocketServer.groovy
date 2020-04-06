@@ -109,7 +109,7 @@ class WorkerWebsocketServer {
             roomRegistry.getRoom(room).worker.videoSettings = new VideoSettings(
                 width: answer.video_settings.width,
                 height: answer.video_settings.height,
-                frameRate: answer.video_settings.frame_rate,
+                framerate: answer.video_settings.frame_rate,
                 videoBitrate: answer.video_settings.video_bitrate,
                 audioBitrate: answer.video_settings.audio_bitrate,
             )

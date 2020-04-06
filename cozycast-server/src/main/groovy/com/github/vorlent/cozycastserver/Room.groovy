@@ -11,6 +11,8 @@ class Room {
     String remote
     String title
     Boolean inviteOnly = false
+    Boolean centerRemote = false
+    VideoSettings videoSettings = new VideoSettings()
 
     def close(restart = false) {
         worker?.close()

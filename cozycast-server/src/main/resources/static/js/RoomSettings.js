@@ -3,7 +3,7 @@ import { html } from '/js/libs/htm/preact/index.js'
 
 import { SidebarState, WorkerStatus, state, updateState } from '/js/index.js'
 
-import { sendWorkerRestart } from '/js/Room.js'
+import { sendWorkerRestart, sendRoomSettings } from '/js/Room.js'
 
 import { Button } from '/js/Button.js'
 
@@ -45,38 +45,49 @@ export class RoomSettings extends Component {
         sendWorkerRestart()
     }
 
+    selectAccessType(e) {
+        updateState(function (state) {
+            state.roomSettings.accessType = e.target.value
+        })
+    }
+
     toggleCenterRemote() {
         updateState(function (state) {
             state.roomSettings.centerRemote = !state.roomSettings.centerRemote
+            console.log(state.roomSettings.centerRemote)
         })
     }
 
     selectResolution(e) {
         updateState(function (state) {
             state.roomSettings.resolution = e.target.value
+            console.log(state.roomSettings.resolution)
         })
     }
 
     selectFramerate(e) {
         updateState(function (state) {
             state.roomSettings.framerate = e.target.value
+            console.log(state.roomSettings.framerate)
         })
     }
 
     selectVideoBitrate(e) {
         updateState(function (state) {
             state.roomSettings.videoBitrate = e.target.value
+            console.log(state.roomSettings.videoBitrate)
         })
     }
 
     selectAudioBitrate(e) {
         updateState(function (state) {
             state.roomSettings.audioBitrate = e.target.value
+            console.log(state.roomSettings.audioBitrate)
         })
     }
 
     saveRoomSettings(roomId) {
-        console.log("saveRoomSettings")
+        sendRoomSettings(state.roomSettings)
     }
 
     render({ roomId }, { xyz = [] }) {
@@ -87,7 +98,7 @@ export class RoomSettings extends Component {
                 <span class="center">Room Access</span>
                 <select id="settings-resolution"
                     value=${state.roomSettings.accessType}
-                    onChange=${e => selectAccessType(e)}>
+                    onChange=${e => this.selectAccessType(e)}>
                   <option value="public">Public</option>
                   <option value="authenticated">Users</option>
                   <option value="invite">Invited Users only</option>
@@ -129,7 +140,7 @@ export class RoomSettings extends Component {
                             <td>
                                 <select id="settings-resolution"
                                     value=${state.roomSettings.resolution}
-                                    onChange=${e => selectResolution(e)}>
+                                    onChange=${e => this.selectResolution(e)}>
                                   <option value="1080">1080p</option>
                                   <option value="720">720p</option>
                                   <option value="480">480p</option>
@@ -143,7 +154,7 @@ export class RoomSettings extends Component {
                             <td>
                                 <select id="settings-framerate"
                                      value=${state.roomSettings.framerate}
-                                     onChange=${e => selectFramerate(e)}>
+                                     onChange=${e => this.selectFramerate(e)}>
                                     <option value="30">30 fps</option>
                                     <option value="25">25 fps</option>
                                     <option value="20">20 fps</option>
@@ -159,7 +170,7 @@ export class RoomSettings extends Component {
                             <td>
                                 <select id="settings-video-bitrate"
                                      value=${state.roomSettings.videoBitrate}
-                                     onChange=${e => selectVideoBitrate(e)}>
+                                     onChange=${e => this.selectVideoBitrate(e)}>
                                     <option value="2000">2 Mb/s</option>
                                     <option value="1000">1 Mb/s</option>
                                     <option value="500">0.5 Mb/s</option>
@@ -173,7 +184,7 @@ export class RoomSettings extends Component {
                             <td>
                                 <select id="settings-audio-bitrate"
                                     value=${state.roomSettings.audioBitrate}
-                                    onChange=${e => selectAudioBitrate(e)}>
+                                    onChange=${e => this.selectAudioBitrate(e)}>
                                   <option value="192">192 Kb/s</option>
                                   <option value="96">96 Kb/s</option>
                                   <option value="64">64 Kb/s</option>

@@ -38,7 +38,9 @@ export class Room extends Component {
         })
         connect(this.props.roomId)
         window.onbeforeunload = function() {
-            websocket.close();
+            if(websocket) {
+                websocket.close();
+            }
         }
     }
 
@@ -374,6 +376,19 @@ function connect(room) {
          	action : 'keepalive'
          });
      }, 30000);
+}
+
+export function sendRoomSettings(settings) {
+    sendMessage({
+    	action : 'room_settings_save',
+        token: state.roomToken,
+        accessType: settings.accessType,
+        centerRemote: settings.centerRemote,
+        resolution: settings.resolution,
+        framerate: settings.framerate,
+        videoBitrate: settings.videoBitrate,
+        audioBitrate: settings.audioBitrate
+    });
 }
 
 export function sendWorkerRestart() {

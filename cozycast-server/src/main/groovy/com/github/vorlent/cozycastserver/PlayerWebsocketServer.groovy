@@ -467,6 +467,79 @@ class PlayerWebsocketServer {
         }
     }
 
+    private void saveRoomSettings(Room room, WebSocketSession session, Map jsonMessage) {
+        def token = jsonMessage.token
+        if(token && jwtTokenValidator.validate(token)) {
+            if(jsonMessage.accessType) {
+                if(jsonMessage.accessType == "public") {
+                    room.inviteOnly = false
+                }
+                if(jsonMessage.accessType == "authenticated") {
+                    room.inviteOnly = true
+                }
+                if(jsonMessage.accessType == "invite") {
+                    room.inviteOnly = true
+                }
+            }
+
+            if(jsonMessage.resolution) {
+                def resolutions = [
+                    "1080": [ width: 1080, height: 1920 ],
+                    "720": [ width: 720, height: 1280 ],
+                    "480": [ width: 480, height: 640 ],
+                    "240": [ width: 240, height: 320 ],
+                    "144": [ width: 144, height: 256 ]
+                ]
+                def res = resolutions[jsonMessage.resolution.toString()]
+                if(res) {
+                    room.videoSettings.width = res.width
+                    room.videoSettings.height = res.height
+                }
+            }
+            if(jsonMessage.framerate) {
+                def fps = [
+                    "25": 25,
+                    "20": 20,
+                    "15": 15,
+                    "10": 10,
+                    "5": 5
+                ]
+                if(fps[jsonMessage.framerate.toString()]) {
+                    room.videoSettings.framerate = fps[jsonMessage.framerate.toString()]
+                }
+            }
+            if(jsonMessage.videoBitrate) {
+                def bitrates = [
+                    "2000": "2M",
+                    "1000": "1M",
+                    "500": "500k",
+                    "300": "300k"
+                ]
+                if(bitrates[jsonMessage.videoBitrate.toString()]) {
+                    room.videoSettings.videoBitrate = bitrates[jsonMessage.videoBitrate.toString()]
+                }
+            }
+            if(jsonMessage.audioBitrate) {
+                def bitrates = [
+                    "192": "192k",
+                    "96": "96k",
+                    "64": "64k",
+                    "48": "48k",
+                    "32": "32k"
+                ]
+                if(bitrates[jsonMessage.audioBitrate.toString()]) {
+                    room.videoSettings.audioBitrate = bitrates[jsonMessage.audioBitrate.toString()]
+                }
+            }
+            if(jsonMessage.centerRemote) {
+                room.centerRemote = true
+            } else {
+                room.centerRemote = false
+            }
+            // sendMessage(room.worker?.websocket, new RestartWorkerEvent())
+        }
+    }
+
     private void stop(Room room, String sessionId) {
         UserSession user = room.users.remove(sessionId)
         room.users.each { key, value ->
@@ -573,6 +646,9 @@ class PlayerWebsocketServer {
                     break;
                 case "worker_restart":
                     restartWorker(currentRoom, session, jsonMessage)
+                    break;
+                case "room_settings_save":
+                    saveRoomSettings(currentRoom, session, jsonMessage)
                     break;
                 case "onIceCandidate":
                     onIceCandidate(currentRoom, sessionId, jsonMessage)

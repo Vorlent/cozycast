@@ -13,7 +13,7 @@ export var SidebarState = {
 
 export var WorkerStatus = {
     STOPPED: "STOPPED",
-    STARTING: "STARTING"
+    STARTING: "STARTING",
     STARTED: "STARTED"
 }
 
@@ -50,7 +50,7 @@ export var state = {
     windowTitle: "CozyCast: Low latency screen capture via WebRTC",
     historyMode: false,
     fullscreen: false,
-    kicked: true
+    kicked: false
 };
 
 export function queryParams(params) {
