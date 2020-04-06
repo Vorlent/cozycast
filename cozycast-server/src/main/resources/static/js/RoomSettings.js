@@ -3,6 +3,8 @@ import { html } from '/js/libs/htm/preact/index.js'
 
 import { SidebarState, WorkerStatus, state, updateState } from '/js/index.js'
 
+import { sendWorkerRestart } from '/js/Room.js'
+
 import { Button } from '/js/Button.js'
 
 import { openInvite, InviteModal } from '/js/InviteModal.js'
@@ -40,16 +42,7 @@ export class RoomSettings extends Component {
     }
 
     restartWorker() {
-        var token = localStorage.getItem("adminToken");
-        if(state.roomSettings.workerStarted == WorkerStatus.STARTED) {
-            fetch('/api/room/{roomId}/worker/restart', {method: "POST", headers: { 'Authorization': "Bearer " + token }})
-                .then((e) => e.json()).then(function (e) {
-                updateState(function (state) {
-                    // TODO CHECK FOR FAILURE
-                    state.roomSettings.workerStarted = WorkerStatus.STOPPED
-                })
-            });
-        }
+        sendWorkerRestart()
     }
 
     toggleCenterRemote() {

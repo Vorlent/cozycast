@@ -57,31 +57,4 @@ class RoomController {
             return HttpResponse.notFound()
         }
     }
-
-    @Secured("ROLE_ADMIN")
-    @Post("/{name}/worker/start")
-    HttpResponse workerStart(String name) {
-        Room room = roomRegistry.getRoom(name)
-        log.info "Starting worker for room ${name}"
-
-        return HttpResponse.ok()
-    }
-
-    @Secured("ROLE_ADMIN")
-    @Post("/{name}/worker/stop")
-    HttpResponse workerStop(String name) {
-        Room room = roomRegistry.getRoom(name)
-        log.info "Stopping worker for room ${name}"
-
-        return HttpResponse.ok()
-    }
-
-    @Secured("ROLE_ADMIN")
-    @Post("/{name}/worker/restart")
-    HttpResponse workerRestart(String name) {
-        Room room = roomRegistry.getRoom(name)
-        log.info "Restarting worker for room ${name}"
-
-        return HttpResponse.ok()
-    }
 }

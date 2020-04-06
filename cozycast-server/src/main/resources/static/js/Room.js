@@ -376,6 +376,13 @@ function connect(room) {
      }, 30000);
 }
 
+export function sendWorkerRestart() {
+    sendMessage({
+    	action : 'worker_restart',
+        token: state.roomToken
+    });
+}
+
 function start() {
     sendMessage({
     	action : 'join',

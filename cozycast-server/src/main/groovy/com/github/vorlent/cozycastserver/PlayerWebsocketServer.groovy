@@ -190,6 +190,10 @@ class KickEvent {
     String session
 }
 
+class RestartWorkerEvent {
+    String action = "worker_restart"
+}
+
 @Slf4j
 @ServerWebSocket("/player/{room}")
 class PlayerWebsocketServer {
@@ -456,6 +460,13 @@ class PlayerWebsocketServer {
         }
     }
 
+    private void restartWorker(Room room, WebSocketSession session, Map jsonMessage) {
+        def token = jsonMessage.token
+        if(token && jwtTokenValidator.validate(token)) {
+            sendMessage(room.worker?.websocket, new RestartWorkerEvent())
+        }
+    }
+
     private void stop(Room room, String sessionId) {
         UserSession user = room.users.remove(sessionId)
         room.users.each { key, value ->
@@ -559,6 +570,9 @@ class PlayerWebsocketServer {
                     break;
                 case "drop_remote":
                     dropremote(currentRoom, session)
+                    break;
+                case "worker_restart":
+                    restartWorker(currentRoom, session, jsonMessage)
                     break;
                 case "onIceCandidate":
                     onIceCandidate(currentRoom, sessionId, jsonMessage)

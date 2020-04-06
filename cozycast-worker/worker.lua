@@ -262,6 +262,11 @@ function onmessage(ws, data)
         end
         return true
     end
+    if data.action == "worker_restart" then
+        print "Worker restart requested..."
+        ws:close()
+        return true
+    end
     if data.action == "keepalive" then
         -- skip keepalive response
         return true
