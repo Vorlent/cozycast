@@ -185,10 +185,10 @@ export class RoomSettings extends Component {
                                 <select id="settings-video-bitrate"
                                      value=${state.roomSettings.videoBitrate}
                                      onChange=${e => this.selectVideoBitrate(e)}>
-                                    <option value="2000">2 Mb/s</option>
-                                    <option value="1000">1 Mb/s</option>
-                                    <option value="500">0.5 Mb/s</option>
-                                    <option value="300">0.3 Mb/s</option>
+                                    <option value="2M">2 Mb/s</option>
+                                    <option value="1M">1 Mb/s</option>
+                                    <option value="500k">0.5 Mb/s</option>
+                                    <option value="300k">0.3 Mb/s</option>
                                 </select>
                             </td>
                         </tr>
@@ -199,11 +199,11 @@ export class RoomSettings extends Component {
                                 <select id="settings-audio-bitrate"
                                     value=${state.roomSettings.audioBitrate}
                                     onChange=${e => this.selectAudioBitrate(e)}>
-                                  <option value="192">192 Kb/s</option>
-                                  <option value="96">96 Kb/s</option>
-                                  <option value="64">64 Kb/s</option>
-                                  <option value="48">48 Kb/s</option>
-                                  <option value="32">32 Kb/s</option>
+                                  <option value="192k">192 Kb/s</option>
+                                  <option value="96k">96 Kb/s</option>
+                                  <option value="64k">64 Kb/s</option>
+                                  <option value="48k">48 Kb/s</option>
+                                  <option value="32k">32 Kb/s</option>
                                 </select>
                             </td>
                         </tr>

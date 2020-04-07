@@ -248,8 +248,7 @@ class PlayerWebsocketServer {
 
         String sdpOffer = jsonMessage.sdpOffer;
         String sdpAnswer = webRtcEndpoint.processOffer(sdpOffer)
-
-        sendMessage(session, new StartResponse(sdpAnswer: sdpAnswer, videoSettings: room.worker.videoSettings))
+        sendMessage(session, new StartResponse(sdpAnswer: sdpAnswer, videoSettings: room.videoSettings))
 
         webRtcEndpoint.gatherCandidates()
     }
@@ -522,10 +521,10 @@ class PlayerWebsocketServer {
             }
             if(jsonMessage.videoBitrate) {
                 def bitrates = [
-                    "2000": "2M",
-                    "1000": "1M",
-                    "500": "500k",
-                    "300": "300k"
+                    "2M": "2M",
+                    "1M": "1M",
+                    "500k": "500k",
+                    "300k": "300k"
                 ]
                 if(bitrates[jsonMessage.videoBitrate.toString()]) {
                     room.videoSettings.videoBitrate = bitrates[jsonMessage.videoBitrate.toString()]
@@ -533,11 +532,11 @@ class PlayerWebsocketServer {
             }
             if(jsonMessage.audioBitrate) {
                 def bitrates = [
-                    "192": "192k",
-                    "96": "96k",
-                    "64": "64k",
-                    "48": "48k",
-                    "32": "32k"
+                    "192k": "192k",
+                    "96k": "96k",
+                    "64k": "64k",
+                    "48k": "48k",
+                    "32k": "32k"
                 ]
                 if(bitrates[jsonMessage.audioBitrate.toString()]) {
                     room.videoSettings.audioBitrate = bitrates[jsonMessage.audioBitrate.toString()]

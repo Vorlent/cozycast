@@ -10,7 +10,6 @@ class WorkerSession {
     MediaPipeline mediaPipeline
     RtpEndpoint rtpEndpoint
     WebSocketSession websocket
-    VideoSettings videoSettings
 
     MediaPipeline getMediaPipeline(KurentoClient kurento) {
         if(mediaPipeline == null) {

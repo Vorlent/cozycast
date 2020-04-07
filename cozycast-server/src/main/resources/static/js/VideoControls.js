@@ -29,7 +29,6 @@ function getRemotePosition(e) {
         bottom: videoRect.bottom - padVt,
         left: videoRect.left + padHz
     };
-    console.log(state.viewPort.height)
     var x = (e.clientX - correctedRect.left) / (correctedRect.right - correctedRect.left) * state.viewPort.width;
     var y = (e.clientY - correctedRect.top) / (correctedRect.bottom - correctedRect.top) * state.viewPort.height;
     return { x: x, y: y }

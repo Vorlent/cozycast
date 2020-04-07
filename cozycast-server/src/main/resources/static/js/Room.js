@@ -468,18 +468,11 @@ function startResponse(message) {
     	}
     });
     updateState(function (state) {
-        var resolutions = {
-            "1080": { height: 1080, width: 1920 },
-            "720": { height: 720, width: 1280 },
-            "480": { height: 480, width: 853 },
-            "240": { height: 240, width: 426 },
-            "144": { height: 144, width: 256 }
-        }
         var settings = message.videoSettings
-        viewPort.width = resolutions[settings.desktopResolution].width
-        viewPort.height = resolutions[settings.desktopResolution].height
-        state.roomSettings.desktopResolution = settings.desktopResolution
-        state.roomSettings.streamResolution = settings.streamResolution
+        state.viewPort.width = settings.desktopWidth
+        state.viewPort.height = settings.desktopHeight
+        state.roomSettings.desktopResolution = settings.desktopHeight
+        state.roomSettings.streamResolution = settings.scaleHeight
         state.roomSettings.framerate = settings.framerate
         state.roomSettings.videoBitrate = settings.videoBitrate
         state.roomSettings.audioBitrate = settings.audioBitrate
