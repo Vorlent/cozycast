@@ -194,6 +194,12 @@ class RestartWorkerEvent {
     String action = "worker_restart"
 }
 
+class UpdateWorkerSettingsEvent {
+    String action = "worker_update_settings"
+    VideoSettings settings
+    Boolean restart
+}
+
 @Slf4j
 @ServerWebSocket("/player/{room}")
 class PlayerWebsocketServer {
@@ -481,19 +487,25 @@ class PlayerWebsocketServer {
                     room.inviteOnly = true
                 }
             }
-
-            if(jsonMessage.resolution) {
-                def resolutions = [
-                    "1080": [ width: 1080, height: 1920 ],
-                    "720": [ width: 720, height: 1280 ],
-                    "480": [ width: 480, height: 640 ],
-                    "240": [ width: 240, height: 320 ],
-                    "144": [ width: 144, height: 256 ]
-                ]
-                def res = resolutions[jsonMessage.resolution.toString()]
+            def resolutions = [
+                "1080": [ height: 1080, width: 1920 ],
+                "720": [ height: 720, width: 1280 ],
+                "480": [ height: 480, width: 853 ],
+                "240": [ height: 240, width: 426 ],
+                "144": [ height: 144, width: 256 ]
+            ]
+            if(jsonMessage.desktopResolution) {
+                def res = resolutions[jsonMessage.desktopResolution.toString()]
                 if(res) {
-                    room.videoSettings.width = res.width
-                    room.videoSettings.height = res.height
+                    room.videoSettings.desktopWidth = res.width
+                    room.videoSettings.desktopHeight = res.height
+                }
+            }
+            if(jsonMessage.streamResolution) {
+                def res = resolutions[jsonMessage.streamResolution.toString()]
+                if(res) {
+                    room.videoSettings.scaleWidth = res.width
+                    room.videoSettings.scaleHeight = res.height
                 }
             }
             if(jsonMessage.framerate) {
@@ -536,7 +548,7 @@ class PlayerWebsocketServer {
             } else {
                 room.centerRemote = false
             }
-            // sendMessage(room.worker?.websocket, new RestartWorkerEvent())
+            sendMessage(room.worker?.websocket, new UpdateWorkerSettingsEvent(settings: room.videoSettings, restart: true))
         }
     }
 
@@ -664,8 +676,12 @@ class PlayerWebsocketServer {
     }
 
     private void sendMessage(WebSocketSession session, Object message) {
-        session.send(message)
-            .subscribe({arg -> ""})
+        if(session) {
+            session.send(message)
+                .subscribe({arg -> ""})
+        } else {
+            log.error "session is null"
+        }
     }
 
     @OnClose

@@ -73,13 +73,15 @@ class WorkerWebsocketServer {
         }
         log.info "SDP Offer for room ${room}:\n${workerSDPOffer}"
 
+        def roomObj = roomRegistry.getRoom(room)
+        session.sendSync(new UpdateWorkerSettingsEvent(settings: roomObj.videoSettings, restart: false))
         session.sendSync(new SDPOffer(
             ip: System.getenv("KURENTO_IP"),
             videoPort: videoPort,
             audioPort: audioPort
         ))
-        roomRegistry.getRoom(room).close(true)
-        roomRegistry.getRoom(room).worker = worker
+        roomObj.close(true)
+        roomObj.worker = worker
     }
 
     private void windowtitle(Room room, WebSocketSession session, Map jsonMessage) {
@@ -104,15 +106,6 @@ class WorkerWebsocketServer {
             session.sendSync([
                 action: "keepalive"
             ])
-        }
-        if(answer.action == "video_settings") {
-            roomRegistry.getRoom(room).worker.videoSettings = new VideoSettings(
-                width: answer.video_settings.width,
-                height: answer.video_settings.height,
-                framerate: answer.video_settings.frame_rate,
-                videoBitrate: answer.video_settings.video_bitrate,
-                audioBitrate: answer.video_settings.audio_bitrate,
-            )
         }
         if(answer.action == "window_title") {
             windowtitle(roomRegistry.getRoom(room), session, answer)

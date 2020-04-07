@@ -12,7 +12,15 @@ class Room {
     String title
     Boolean inviteOnly = false
     Boolean centerRemote = false
-    VideoSettings videoSettings = new VideoSettings()
+    VideoSettings videoSettings = new VideoSettings(
+        desktopWidth: 1280,
+        desktopHeight: 720,
+        scaleWidth: 1280,
+        scaleHeight: 720,
+        framerate: 25,
+        videoBitrate: "1M",
+        audioBitrate: "96k"
+    )
 
     def close(restart = false) {
         worker?.close()

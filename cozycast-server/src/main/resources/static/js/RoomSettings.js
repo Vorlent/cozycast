@@ -54,35 +54,36 @@ export class RoomSettings extends Component {
     toggleCenterRemote() {
         updateState(function (state) {
             state.roomSettings.centerRemote = !state.roomSettings.centerRemote
-            console.log(state.roomSettings.centerRemote)
         })
     }
 
-    selectResolution(e) {
+    selectDesktopResolution(e) {
         updateState(function (state) {
-            state.roomSettings.resolution = e.target.value
-            console.log(state.roomSettings.resolution)
+            state.roomSettings.desktopResolution = e.target.value
+        })
+    }
+
+    selectStreamResolution(e) {
+        updateState(function (state) {
+            state.roomSettings.streamResolution = e.target.value
         })
     }
 
     selectFramerate(e) {
         updateState(function (state) {
             state.roomSettings.framerate = e.target.value
-            console.log(state.roomSettings.framerate)
         })
     }
 
     selectVideoBitrate(e) {
         updateState(function (state) {
             state.roomSettings.videoBitrate = e.target.value
-            console.log(state.roomSettings.videoBitrate)
         })
     }
 
     selectAudioBitrate(e) {
         updateState(function (state) {
             state.roomSettings.audioBitrate = e.target.value
-            console.log(state.roomSettings.audioBitrate)
         })
     }
 
@@ -135,12 +136,25 @@ export class RoomSettings extends Component {
                 <table id="stream-settings">
                     <tbody>
                         <tr>
-
-                            <td>Resolution</td>
+                            <td>Desktop Resolution</td>
                             <td>
-                                <select id="settings-resolution"
-                                    value=${state.roomSettings.resolution}
-                                    onChange=${e => this.selectResolution(e)}>
+                                <select id="settings-desktop-resolution"
+                                    value=${state.roomSettings.desktopResolution}
+                                    onChange=${e => this.selectDesktopResolution(e)}>
+                                  <option value="1080">1080p</option>
+                                  <option value="720">720p</option>
+                                  <option value="480">480p</option>
+                                  <option value="240">240p</option>
+                                  <option value="144">144p</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Stream Resolution</td>
+                            <td>
+                                <select id="settings-stream-resolution"
+                                    value=${state.roomSettings.streamResolution}
+                                    onChange=${e => this.selectStreamResolution(e)}>
                                   <option value="1080">1080p</option>
                                   <option value="720">720p</option>
                                   <option value="480">480p</option>

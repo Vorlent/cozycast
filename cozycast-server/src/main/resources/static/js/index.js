@@ -33,12 +33,16 @@ export var state = {
     volume: 100,
     videoPaused: true,
     videoLoading: false,
-    videoSettings: null,
+    viewPort: {
+        width: 1280,
+        height: 720,
+    },
     roomSidebar: SidebarState.CHAT,
     workerStatus: WorkerStatus.STARTED,
     roomSettings: {
         workerStarted: true,
-        resolution: 720,
+        desktopResolution: 720,
+        streamResolution: 720,
         framerate: 25,
         videoBitrate: 1000,
         audioBitrate: 96,

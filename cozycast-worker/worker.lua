@@ -73,8 +73,10 @@ function wait_for_pulseaudio()
 end
 
 local video_settings = {
-    width = 1280,
-    height =  720,
+    desktop_width = 1280,
+    desktop_height =  720,
+    scale_width = 1280,
+    scale_height =  720,
     frame_rate = 25,
     video_bitrate = "1M",
     audio_bitrate = "192k"
@@ -83,19 +85,26 @@ local video_settings = {
 function capture(data, ws)
     wait_for_pulseaudio()
 
+    local scale = ""
+    if video_settings.scale_width ~= video_settings.desktop_width
+        and video_settings.scale_height ~= video_settings.desktop_height then
+        scale = "-vf scale="..video_settings.scale_width..":"..video_settings.scale_height
+    end
+
     local options = {
         "-thread_queue_size 512",
         "-f alsa",
         "-ac 2",
         "-channel_layout stereo",
         "-i pulse",
-        "-s "..video_settings.width.."x"..video_settings.height,
+        "-s "..video_settings.desktop_width.."x"..video_settings.desktop_height,
         "-r "..video_settings.frame_rate,
         "-f x11grab",
         "-i $DISPLAY.0+0,0",
         "-vsync 1 -async 1",
         "-c:v libvpx",
         "-quality realtime",
+        scale,
         "-crf 10",
         "-b:v "..video_settings.video_bitrate,
         "-pix_fmt yuv420p",
@@ -267,6 +276,21 @@ function onmessage(ws, data)
         ws:close()
         return true
     end
+    if data.action == "worker_update_settings" then
+        print "Updating video settings and restarting worker..."
+
+        video_settings.scale_width = data.settings.scaleWidth
+        video_settings.scale_height = data.settings.scaleHeight
+        video_settings.desktop_width = data.settings.desktopWidth
+        video_settings.desktop_height = data.settings.desktopHeight
+        video_settings.frame_rate = data.settings.framerate
+        video_settings.video_bitrate = data.settings.videoBitrate
+        video_settings.audio_bitrate = data.settings.audioBitrate
+        if data.restart then
+            ws:close()
+        end
+        return true
+    end
     if data.action == "keepalive" then
         -- skip keepalive response
         return true
@@ -280,10 +304,6 @@ function start_server()
     local url = "ws://"..server..":80/worker/"..room
     local ws = websocket.new_from_uri(url)
     ws:connect()
-    ws:send(lunajson.encode{
-        action = "video_settings",
-        video_settings = video_settings
-    })
     while true do
         local msg, error, errno = ws:receive(5)
         if errno == 107 or errno == 32 or (not msg and not error and not errno) then
@@ -320,7 +340,7 @@ function start_server()
 
     ws:close()
 end
-os.execute ("Xvfb $DISPLAY -screen 0 "..video_settings.width.."x"..video_settings.height.."x24 -nolisten tcp & echo $! >> /worker.pid")
+os.execute ("Xvfb $DISPLAY -screen 0 "..video_settings.desktop_width.."x"..video_settings.desktop_height.."x24 -nolisten tcp & echo $! >> /worker.pid")
 os.execute ("sudo -u cozycast xfce4-session & echo $! >> /worker.pid")
 while true do
     print(pcall(start_server))
