@@ -457,6 +457,12 @@ class PlayerWebsocketServer {
     }
 
     private void dropremote(Room room, WebSocketSession session) {
+        if(room.centerRemote) {
+
+            sendMessage(room.worker?.websocket, new MouseMoveEvent(
+                mouseX: room.videoSettings.desktopWidth / 2,
+                mouseY: room.videoSettings.desktopHeight / 2))
+        }
         room.remote = null
         room.users.each { key, value ->
             sendMessage(value.webSocketSession, new DropRemoteEvent(
