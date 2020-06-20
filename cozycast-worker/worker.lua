@@ -90,7 +90,6 @@ function capture(data, ws)
         and video_settings.scale_height ~= video_settings.desktop_height then
         scale = "-vf scale="..video_settings.scale_width..":"..video_settings.scale_height
     end
-
     local options = {
         "-thread_queue_size 512",
         "-f alsa",
@@ -101,7 +100,6 @@ function capture(data, ws)
         "-r "..video_settings.frame_rate,
         "-f x11grab",
         "-i $DISPLAY.0+0,0",
-        "-vsync 1 -async 1",
         "-c:v libvpx",
         "-quality realtime",
         scale,
@@ -111,6 +109,7 @@ function capture(data, ws)
         "-sdp_file /home/cozycast/sdp_answer",
         "-an -f rtp rtp://"..data.ip..":"..data.audioPort,
         "-c:a libopus",
+        "-af aresample=async=1000:first_pts=0",
         "-b:a "..video_settings.audio_bitrate,
         "-vn -sdp_file /home/cozycast/sdp_answer",
         "-f rtp rtp://"..data.ip..":"..data.videoPort
