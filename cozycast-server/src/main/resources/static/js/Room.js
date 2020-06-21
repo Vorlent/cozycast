@@ -19,6 +19,7 @@ export class Room extends Component {
         updateState(function (state) {
             state.roomToken = localStorage.getItem("room-" + roomId + "-token");
             state.username = localStorage.getItem("username");
+            state.banned = localStorage.getItem("banned");
             if(!state.username) {
                 state.username = "Anonymous"
             }
@@ -55,6 +56,9 @@ export class Room extends Component {
     render({ roomId }, { xyz = [] }) {
     return html`
         <div id="pagecontent">
+
+            ${isBanned() && html`Banned until ${state.banned}`}
+            ${!isBanned() && html`
             <${VideoControls} state=${state}/>
             <div id="pagetoolbar">
                 <div id="controls">
@@ -76,6 +80,7 @@ export class Room extends Component {
             <${RoomSidebar} state=${state}/>
 
             <${ProfileModal} state=${state}/>
+            `}
         </div>
     `;
     }
@@ -250,18 +255,37 @@ function leave(parsedMessage) {
     })
 }
 
-function kick(parsedMessage) {
+function ban(parsedMessage) {
     if(parsedMessage.session == state.session) {
         updateState(function (state) {
-            state.kicked = true
+            localStorage.setItem("banned", parsedMessage.expiration);
+            state.banned = parsedMessage.expiration
+            websocket.close();
         })
     }
+}
+
+function isBanned() {
+    if(state.banned == null) {
+        return false;
+    }
+    if(state.banned == "unlimited") {
+        return true
+    } else {
+        var expiration = new Date(state.banned)
+        console.log(new Date().getTime())
+        console.log(expiration.getTime())
+        if(new Date().getTime() < expiration.getTime()) {
+            return true
+        }
+    }
+    return false
 }
 
 var keepAlive;
 
 function connect(room) {
-    if(state.kicked) {
+    if(isBanned()) {
         return;
     }
     updateState(function (state) {
@@ -274,8 +298,8 @@ function connect(room) {
     	switch (parsedMessage.action) {
             case 'keepalive':
     			break;
-            case 'kick':
-                kick(parsedMessage)
+            case 'ban':
+                ban(parsedMessage)
     			break;
             case 'session_id':
                 updateState(function (state) {

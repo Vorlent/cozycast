@@ -317,9 +317,9 @@ html, body, #pagecontent, #videosizer {
     }
 }
 
-/* ProfileModal.js START */
+/* Modal.js START */
 
-#profile-modal-background {
+#pagecontent > .modal-background, .modal-background {
     position: fixed;
     z-index: 3;
     left: 0;
@@ -329,7 +329,7 @@ html, body, #pagecontent, #videosizer {
     background-color: rgba(0, 0, 0, 0.7)
 }
 
-#profile-modal {
+.modal {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -343,26 +343,25 @@ html, body, #pagecontent, #videosizer {
     color: #fff;
 }
 
-#profile-modal > .title {
+.modal > .title {
     display: flex;
     align-self: stretch;
 }
 
-#profile-modal > .title > div {
+.modal > .title > div {
     text-align: center;
     flex-grow: 1;
 }
 
-.profile-modal-row {
+.modal-row {
     padding: 5px 0 5px 0px;
 }
 
-.profile-modal-widget {
+.modal-widget {
     widget: 100%;
 }
 
-
-#profile-modal-close {
+.modal-close {
     width: 1.5em; height: 1.5em;
     color: #fff;
     font-weight: bold;
@@ -372,26 +371,31 @@ html, body, #pagecontent, #videosizer {
     box-shadow: 0 0 3px black inset;
 }
 
-#profile-modal-close:hover {
+.modal-close:hover {
     color: #337ab7;
 }
 
-#profile-modal-username {
-    background: #2c3e50;
-    border: 1px solid #fff;
-    padding: 5px;
-}
-
-#profile-modal .title{
+.modal .title {
     display: flex;
     font-size: 2em;
 }
 
-#profile-modal .btn {
+.modal .btn {
     margin-top: .5em;
 }
 
-/* ProfileModal.js END */
+.modal-username {
+    border-radius: 5px;
+    background: #fff;
+    border: 1px solid #fff;
+    padding: 5px;
+}
+
+.profile.modal .btn-primary {
+    padding: 5px 15px 5px 15px;
+}
+
+/* Modal.js END */
 
 .image {
     background-size: cover;

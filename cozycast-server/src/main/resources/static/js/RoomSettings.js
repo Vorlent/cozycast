@@ -9,15 +9,10 @@ import { Button } from '/js/Button.js'
 
 import { openInvite, InviteModal } from '/js/InviteModal.js'
 
+
+import { openBanModal, BanModal } from '/js/BanModal.js'
+
 export class RoomSettings extends Component {
-
-    openKickModal() {
-        console.log("openKickModal")
-    }
-
-    openBanModal() {
-        console.log("openBanModal")
-    }
 
     toggleWorker() {
         var token = localStorage.getItem("adminToken");
@@ -95,6 +90,7 @@ export class RoomSettings extends Component {
         return html`
             <div id="settings">
                 <${InviteModal} state=${state}/>
+                <${BanModal} state=${state}/>
 
                 <span class="center">Room Access</span>
                 <select id="settings-resolution"
@@ -109,20 +105,16 @@ export class RoomSettings extends Component {
                     Create Invite
                 <//>
 
-                <${Button} onclick=${e => this.openKickModal(roomId)}>
-                    Kick User
-                <//>
-
-                <${Button} onclick=${e => this.openBanModal(roomId)}>
+                <${Button} onclick=${e => openBanModal(state.roomId)}>
                     Ban User
                 <//>
 
                 <${Button} enabled=${state.workerStarted}
-                    onclick=${e => this.toggleWorker(roomId)}>
+                    onclick=${e => this.toggleWorker(state.roomId)}>
                     ${state.workerStarted ? 'Stop' : 'Start'}
                 <//>
 
-                <${Button} onclick=${e => this.restartWorker(roomId)}>
+                <${Button} onclick=${e => this.restartWorker(state.roomId)}>
                     Restart
                 <//>
 

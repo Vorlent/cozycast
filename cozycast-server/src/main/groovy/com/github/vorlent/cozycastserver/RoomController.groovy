@@ -39,22 +39,4 @@ class RoomController {
         roomRegistry.delete(name)
         return HttpResponse.ok()
     }
-
-    /*@Secured("ROLE_ADMIN")
-    @Post("/{name}/kick/{sessionId}")
-    HttpResponse kick(String name, String sessionId) {
-        Room room = roomRegistry.getRoom(name)
-        UserSession user = room?.users.get(sessionId)
-        if(user) {
-            room?.users.remove(sessionId)
-            user.webSocketSession.send(new KickEvent(session: user.webSocketSession.getId()))
-                .subscribe({arg -> ""})
-            user.webSocketSession.close(CloseReason.POLICY_VIOLATION)
-            user.release()
-            log.info "Kicked user with session ${sessionId}"
-            return HttpResponse.ok()
-        } else {
-            return HttpResponse.notFound()
-        }
-    }*/
 }

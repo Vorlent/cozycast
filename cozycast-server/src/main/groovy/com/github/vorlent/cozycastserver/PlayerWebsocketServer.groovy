@@ -185,9 +185,10 @@ class SessonIdEvent {
     String session
 }
 
-class KickEvent {
-    String action = "kick"
+class BanEvent {
+    String action = "ban"
     String session
+    String expiration
 }
 
 class RestartWorkerEvent {
@@ -557,6 +558,31 @@ class PlayerWebsocketServer {
         }
     }
 
+    private void ban(Room room, WebSocketSession session, Map jsonMessage) {
+        def token = jsonMessage.token
+        def bannedSession = jsonMessage.session
+        if(token && jwtTokenValidator.validate(token)) {
+            jwtTokenValidator.validateToken(token).subscribe{ auth ->
+                if(auth.getAttributes().roles.contains('ROLE_ADMIN')) {
+                    UserSession user = room.users.get(bannedSession)
+                    def expiration = "unlimited"
+                    if(jsonMessage.expiration.isInteger() && jsonMessage.expiration.toLong() > 0) {
+                        def expirationDate = ZonedDateTime.now(ZoneId.of("UTC"))
+                        expirationDate = expirationDate.plusMinutes(jsonMessage.expiration.toLong())
+                        expiration = expirationDate.toOffsetDateTime().toString()
+                    }
+                    sendMessage(user.webSocketSession, new BanEvent(
+                        session: bannedSession,
+                        expiration: expiration))
+                } else {
+                    def banSource = room.users.get(session.getId()).username
+                    def banTarget = room.users.get(bannedSession).username
+                    log.info "${banSource} attempted to ban ${banTarget} without admin rights"
+                }
+            }
+        }
+    }
+
     private void stop(Room room, String sessionId) {
         UserSession user = room.users.remove(sessionId)
         room.users.each { key, value ->
@@ -666,6 +692,9 @@ class PlayerWebsocketServer {
                     break;
                 case "room_settings_save":
                     saveRoomSettings(currentRoom, session, jsonMessage)
+                    break;
+                case "ban":
+                    ban(currentRoom, session, jsonMessage)
                     break;
                 case "onIceCandidate":
                     onIceCandidate(currentRoom, sessionId, jsonMessage)

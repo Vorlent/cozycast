@@ -71,13 +71,13 @@ export function openProfile() {
 export class ProfileModal extends Component {
     render({ state }, { xyz = [] }) {
         return html`${state.profileModal && html`
-            <div id="profile-modal-background">
-                <div id="profile-modal">
+            <div class="modal-background">
+                <div class="profile modal">
                     <div class="title">
                         <div>
                             Profile
                         </div>
-                        <button type="button" id="profile-modal-close" onclick=${closeProfile}>X</button>
+                        <button type="button" class="modal-close" onclick=${closeProfile}>X</button>
                     </div>
                     <div class="image avatar big" style="background-image: url('${state.profileModal.avatarUrl}');">
                         <div class="uploader-overlay" onclick=${openAvatarUpload}>
@@ -88,10 +88,10 @@ export class ProfileModal extends Component {
                     <div>
                         Username
                     </div>
-                    <input class="profile-modal-username" type="text"
+                    <input class="modal-username" type="text"
                         onInput=${e => updateProfileUsername(e.target.value)}
                         name="username" maxlength="12" value="${state.profileModal.username}"/>
-                    <div>Mute Chat Notification: <input class="profile-modal-username" type="checkbox"
+                    <div>Mute Chat Notification: <input class="modal-username" type="checkbox"
                         onInput=${e => updateProfileMuteChatNotification(e.target.checked)}
                         name="muteChatNotification" checked="${state.profileModal.muteChatNotification}"/></div>
                     <button class="btn btn-primary" onclick=${saveProfile}>Save</button>

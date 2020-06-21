@@ -61,19 +61,19 @@ export class InviteModal extends Component {
 
     render({ state }, { xyz = [] }) {
         return html`${state.inviteModal && html`
-            <div id="profile-modal-background">
-                <div id="profile-modal">
+            <div class="modal-background">
+                <div class="invite modal">
                     <div class="title">
                         <div>
                             Invite Link
                         </div>
-                        <button type="button" id="profile-modal-close" onclick=${closeInvite}>X</button>
+                        <button type="button" class="modal-close" onclick=${closeInvite}>X</button>
                     </div>
-                    <div class="profile-modal-row">
-                        <div class="profile-modal-label">
+                    <div class="modal-row">
+                        <div class="modal-label">
                             Max Uses
                         </div>
-                        <div class="profile-modal-widget">
+                        <div class="modal-widget">
                             <select value=${state.inviteModal.maxUses}
                                 onChange=${e => selectMaxUses(e)}>
                                 <option value="1">1</option>
@@ -83,11 +83,11 @@ export class InviteModal extends Component {
                             </select>
                         </div>
                     </div>
-                    <div class="profile-modal-row">
-                        <div class="profile-modal-label">
+                    <div class="modal-row">
+                        <div class="modal-label">
                             Expiration
                         </div>
-                        <div class="profile-modal-widget">
+                        <div class="modal-widget">
                             <select value=${state.inviteModal.expiration}
                                 onChange=${e => selectExpiration(e)}>
                                  <option value="5">5 minutes</option>
@@ -97,11 +97,11 @@ export class InviteModal extends Component {
                             </select>
                         </div>
                     </div>
-                    <div class="profile-modal-row">
-                        <input id="invite-modal-code" class="profile-modal-username" type="text"
+                    <div class="modal-row">
+                        <input id="invite-modal-code" class="modal-username" type="text"
                             name="code" value="${state.inviteModal.code}"/>
                     </div>
-                    <div class="profile-modal-row">
+                    <div class="modal-row">
                         <button class="btn btn-primary" onclick=${e => generateInvite()}>Generate</button>
                     </div>
                 </div>
