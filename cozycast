@@ -70,7 +70,13 @@ case $1 in
         )
         ;;
     *)
-        printf "Usage: %s: <start|stop|builds>\n" $0
+        printf "Usage: %s: <start|stop|build|dev|db>\n" $0
+        printf "\n"
+        printf "    start   Starts cozycast containers with the latest docker image\n"
+        printf "    stop    Stops all cozycast containers\n"
+        printf "    build   Builds all cozycast docker images\n"
+        printf "    dev     Start cozycast in live edit mode\n"
+        printf "    db      Connect to postgres via psql\n"
         exit 2
         ;;
 esac
