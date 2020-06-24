@@ -97,7 +97,7 @@ function capture(data, ws)
         "-channel_layout stereo",
         "-i pulse",
         "-s "..video_settings.desktop_width.."x"..video_settings.desktop_height,
-        "-r "..video_settings.frame_rate,
+        "-framerate "..video_settings.frame_rate,
         "-f x11grab",
         "-i $DISPLAY.0+0,0",
         "-c:v libvpx",
