@@ -43,7 +43,9 @@ services:
         shm_size: 2g
         environment:
             COZYCAST_IP: $COZYCAST_IP
+            DUCKDNS_DOMAIN: $DUCKDNS_DOMAIN
             COZYCAST_ROOM: default
+            FORCE_HTTPS: $FORCE_HTTPS
         volumes:
             - "../data/cozycast-worker/cozycast:/home/cozycast"
         restart: unless-stopped
@@ -61,7 +63,11 @@ services:
             COZYCAST_DB_PASS: $COZYCAST_DB_PASS
             COZYCAST_JWT_SECRET: $COZYCAST_JWT_SECRET
             COZYCAST_INIT_ADMIN_PASSWORD: $COZYCAST_INIT_ADMIN_PASSWORD
+            MICRONAUT_ENVIRONMENTS: $MICRONAUT_ENVIRONMENTS
+            KEYSTORE_PASSWORD: $KEYSTORE_PASSWORD
+            DUCKDNS_DOMAIN: $DUCKDNS_DOMAIN
         volumes:
             - "../data/cozycast-server/avatar:/var/cozycast/avatar/"
             - "../data/cozycast-server/image:/var/cozycast/image/"
+            - "../data/certbot/live/:/etc/cozycast/"
         restart: unless-stopped

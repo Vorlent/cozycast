@@ -299,10 +299,20 @@ end
 
 function start_server()
     local server = os.getenv("COZYCAST_IP")
+    if os.getenv("DUCKDNS_DOMAIN") ~= "" then
+        server = os.getenv("DUCKDNS_DOMAIN")
+    end
     local room = os.getenv("COZYCAST_ROOM") or "default"
-    local url = "ws://"..server..":80/worker/"..room
+    local url = "ws://"..server.."/worker/"..room
+    if os.getenv("FORCE_HTTPS") then
+        url = "wss://"..server..":8443/worker/"..room
+    end
+    print(url)
     local ws = websocket.new_from_uri(url)
     ws:connect()
+
+    io.stdout:flush()
+
     while true do
         local msg, error, errno = ws:receive(5)
         if errno == 107 or errno == 32 or (not msg and not error and not errno) then

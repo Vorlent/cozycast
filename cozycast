@@ -53,6 +53,40 @@ case $1 in
         sudo docker exec -it cozycast_postgres_1 psql -U cozycast
         exit;
         ;;
+    ssl)
+        case $2 in
+            certbot)
+                sudo -E docker run --rm -it -v $(realpath data/certbot):/etc/letsencrypt/ certbot/certbot \
+                    --server https://acme-v02.api.letsencrypt.org/directory -d $DUCKDNS_DOMAIN --manual --preferred-challenges dns-01 certonly
+                exit;
+                ;;
+            duckdns)
+                TXT_SECRET=$2
+                curl "https://www.duckdns.org/update?domains=$DUCKDNS_DOMAIN&token=$DUCKDNS_TOKEN&txt=$TXT_SECRET"
+                exit;
+                ;;
+            keystore)
+                DIRECTORY=$(sudo -E realpath data/certbot/live/$DUCKDNS_DOMAIN)
+                echo $DIRECTORY
+                sudo -E openssl pkcs12 -export \
+                         -in $DIRECTORY/cert.pem \
+                         -inkey $DIRECTORY/privkey.pem \
+                         -out $DIRECTORY/server.p12 \
+                         -CAfile $DIRECTORY/chain.pem -chain \
+                         -name $DUCKDNS_DOMAIN \
+                         -passout 'env:KEYSTORE_PASSWORD'
+                exit;
+                ;;
+            *)
+                printf "Usage: $0 $1: <certbot|duckdns|keystore>\n"
+                printf "\n"
+                printf "    certbot   Request certificate via certbot\n"
+                printf "    duckdns   Update TXT record of duckdns domain \n"
+                printf "    keystore  Convert certificate to .p12 keystore \n"
+                exit 2
+                ;;
+        esac
+        ;;
     gvisor)
         (
           set -e

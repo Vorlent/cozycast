@@ -291,7 +291,11 @@ function connect(room) {
     updateState(function (state) {
         state.roomId = room;
     })
-    websocket = new WebSocket('ws://' + location.host + '/player/' + room);
+    var wsProtocol = 'wss'
+    if(document.location.protocol != 'https:') {
+        wsProtocol = 'ws'
+    }
+    websocket = new WebSocket(wsProtocol + '://' + location.host + '/player/' + room);
     websocket.onmessage = function(message) {
     	var parsedMessage = JSON.parse(message.data);
         console.log(parsedMessage)

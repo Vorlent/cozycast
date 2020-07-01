@@ -16,14 +16,6 @@ sudo systemctl start docker.socket
 
 See https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/ for ubuntu instructions.
 
-Test docker installation
-
-```
-sudo docker info | grep "Storage Driver"
-```
-
-Make sure you have overlay or overlay2 as storage driver. overlay2 usually is the default. (other storage drivers can be buggy, be very careful with those)
-
 Create the .env file:
 
 ```
@@ -46,6 +38,16 @@ export COZYCAST_INIT_ADMIN_PASSWORD=<admin_password>
 
 ```
 
+Optional but recommended for https:
+
+```
+export MICRONAUT_ENVIRONMENTS=ssl
+export DUCKDNS_TOKEN=<token to set txt record>
+export DUCKDNS_DOMAIN=<duck dns domain>
+export KEYSTORE_PASSWORD=<arbitrary_secret_value>
+export FORCE_HTTPS=true
+```
+
 If you have made modifications to the source code then it is recommended to set SOURCE_URL to point to the modified source code (e.g. git/github repository or downloadable zip file) to ensure compliance with the AGPL. If you have not made any modifications then you can simply set it to https://github.com/Vorlent/cozycast.
 
 # Start cozycast
@@ -56,39 +58,7 @@ If you have made modifications to the source code then it is recommended to set 
 ./cozycast stop
 ```
 
-# Old Method:
-
-Start coturn
-
-```
-cd coturn
-./run.sh
-```
-
-Start kurento
-
-```
-cd kurento
-./run.sh
-```
-
-Start cozycast-worker
-
-```
-cd cozycast-worker
-./build.sh
-./run.sh
-```
-
-Start cozycast-server
-
-```
-cd cozycast-server
-./build.sh
-./run.sh
-```
-
-Start cozycast-server for development
+# Start cozycast-server for development
 
 ```
 source .env
