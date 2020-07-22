@@ -304,7 +304,7 @@ function start_server()
     end
     local room = os.getenv("COZYCAST_ROOM") or "default"
     local url = "ws://"..server.."/worker/"..room
-    if os.getenv("FORCE_HTTPS") then
+    if os.getenv("FORCE_HTTPS") == "true" then
         url = "wss://"..server..":8443/worker/"..room
     end
     print(url)
