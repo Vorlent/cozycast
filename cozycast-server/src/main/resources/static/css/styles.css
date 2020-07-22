@@ -17,6 +17,15 @@
     background: #235;
 }
 
+input:focus,
+select:focus,
+textarea:focus,
+button:focus,
+video:focus,
+div:focus {
+    outline: none;
+}
+
 html, body, #pagecontent, #videosizer {
     height: 100%;
     width: 100%;
