@@ -71,3 +71,6 @@ services:
             - "../data/cozycast-server/image:/var/cozycast/image/"
             - "../data/certbot/live/:/etc/cozycast/"
         restart: unless-stopped
+    certbot:
+        build: ../certbot
+        image: cozycast-certbot

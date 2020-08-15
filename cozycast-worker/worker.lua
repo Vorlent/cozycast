@@ -298,16 +298,19 @@ function onmessage(ws, data)
 end
 
 function start_server()
+    print("Starting Worker")
+
     local server = os.getenv("COZYCAST_IP")
     if os.getenv("DUCKDNS_DOMAIN") ~= "" then
         server = os.getenv("DUCKDNS_DOMAIN")
     end
+    print("env "..os.getenv("COZYCAST_ROOM"))
     local room = os.getenv("COZYCAST_ROOM") or "default"
     local url = "ws://"..server.."/worker/"..room
     if os.getenv("FORCE_HTTPS") == "true" then
         url = "wss://"..server..":8443/worker/"..room
     end
-    print(url)
+    print("Connecting to "..url.. " Room: "..room)
     local ws = websocket.new_from_uri(url)
     ws:connect()
 

@@ -35,6 +35,11 @@ case $1 in
         sudo -E docker-compose -p cozycast -f docker-compose.yml down
         exit;
         ;;
+    connect)
+        cd docker-compose
+        sudo -E docker-compose -p cozycast_2 -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.connect.yml up -d cozycast-worker
+        exit;
+        ;;
     build)
         cd docker-compose
         sudo -E docker-compose -p cozycast -f docker-compose.yml build
@@ -56,13 +61,42 @@ case $1 in
     ssl)
         case $2 in
             certbot)
-                sudo -E docker run --rm -it -v $(realpath data/certbot):/etc/letsencrypt/ certbot/certbot \
-                    --server https://acme-v02.api.letsencrypt.org/directory -d $DUCKDNS_DOMAIN --manual --preferred-challenges dns-01 certonly
+                sudo -E docker run --rm -it -v $(realpath data/certbot2):/etc/letsencrypt/ certbot/certbot \
+                    --server https://acme-staging-v02.api.letsencrypt.org/directory -d $DUCKDNS_DOMAIN --manual --preferred-challenges dns-01 certonly
                 exit;
                 ;;
+            renew)
+                # --force-renewal
+                RELOAD_TRIGGER=./data/certbot/RELOAD
+                sudo rm -rf $RELOAD_TRIGGER
+                sudo -E docker run --rm -it \
+                    -v $(realpath data/certbot):/etc/letsencrypt/  \
+                    -v $(realpath cozycast):/cozycast \
+                    -v $(realpath .env):/opt/certbot/.env \
+                    cozycast-certbot \
+                    renew --server https://acme-v02.api.letsencrypt.org/directory \
+                        --preferred-challenges dns-01 \
+                        --manual-auth-hook="sh /cozycast ssl duckdns \$CERTBOT_VALIDATION" \
+                        --manual-cleanup-hook="sh /cozycast ssl duckdns clear \$CERTBOT_VALIDATION" \
+                        --deploy-hook "touch /etc/letsencrypt/RELOAD"
+
+                if test -f "$RELOAD_TRIGGER"; then
+                    echo "$RELOAD_TRIGGER exists."
+                    ./cozycast ssl keystore
+                    echo "sudo docker restart cozycast_cozycast-server_1"
+                    sudo rm -rf $RELOAD_TRIGGER
+                fi
+                exit
+                ;;
             duckdns)
-                TXT_SECRET=$2
-                curl "https://www.duckdns.org/update?domains=$DUCKDNS_DOMAIN&token=$DUCKDNS_TOKEN&txt=$TXT_SECRET"
+                if [ "$3" == "clear" ]; then
+                    TXT_SECRET=$4
+                    curl "https://www.duckdns.org/update?domains=$DUCKDNS_DOMAIN&token=$DUCKDNS_TOKEN&txt=$TXT_SECRET&clear=true"
+                else
+                    TXT_SECRET=$3
+                    curl "https://www.duckdns.org/update?domains=$DUCKDNS_DOMAIN&token=$DUCKDNS_TOKEN&txt=$TXT_SECRET"
+                fi
+                sleep 60
                 exit;
                 ;;
             keystore)
@@ -78,7 +112,7 @@ case $1 in
                 exit;
                 ;;
             *)
-                printf "Usage: $0 $1: <certbot|duckdns|keystore>\n"
+                printf "Usage: $0 $1: <certbot|duckdns|keystore|reload>\n"
                 printf "\n"
                 printf "    certbot   Request certificate via certbot\n"
                 printf "    duckdns   Update TXT record of duckdns domain \n"
