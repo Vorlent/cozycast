@@ -69,7 +69,7 @@ case $1 in
                 # --force-renewal
                 RELOAD_TRIGGER=./data/certbot/RELOAD
                 sudo rm -rf $RELOAD_TRIGGER
-                sudo -E docker run --rm -it \
+                sudo -E docker run --rm -i \
                     -v $(realpath data/certbot):/etc/letsencrypt/  \
                     -v $(realpath cozycast):/cozycast \
                     -v $(realpath .env):/opt/certbot/.env \
