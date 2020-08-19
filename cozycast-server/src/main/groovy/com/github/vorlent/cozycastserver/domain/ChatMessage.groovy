@@ -19,7 +19,7 @@ class ChatMessage {
         if(this.image) {
             String imageDirectory = "/var/cozycast/image"
             try {
-                File file = new File(imageDirectory, this.image)
+                File file = new File(imageDirectory, this.image?.replaceAll("/image/asset/",""))
                 file.delete()
                 log.info "Deleted file: $file"
             } catch(IOException e) {
