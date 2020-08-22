@@ -69,6 +69,7 @@ function imageSelected(e) {
                 username: state.username
             });
         });
+        e.target.value = "";
     }
 }
 
