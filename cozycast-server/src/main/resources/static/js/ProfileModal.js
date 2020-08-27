@@ -53,7 +53,9 @@ function avatarSelected(e) {
     formData.append("avatar", e.target.files[0]);
     fetch('/avatar/upload', {method: "POST", body: formData}).then((e) => e.json()).then(function (e) {
         updateState(function (state) {
-            state.profileModal.avatarUrl = e.url;
+            if(e.url) {
+                state.profileModal.avatarUrl = e.url;
+            }
         })
     });
 }
@@ -81,7 +83,7 @@ export class ProfileModal extends Component {
                     </div>
                     <div class="image avatar big" style="background-image: url('${state.profileModal.avatarUrl}');">
                         <div class="uploader-overlay" onclick=${openAvatarUpload}>
-                            <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg, image/gif" onchange=${avatarSelected}/>
+                            <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg, image/webp" onchange=${avatarSelected}/>
                             <div class="center">Upload</div>
                         </div>
                     </div>

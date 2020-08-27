@@ -73,6 +73,8 @@ class ImageController {
                 return ".png"
             case "image/gif":
                 return ".gif"
+            case "image/webp":
+                return ".webp"
             default:
                 return null
         }

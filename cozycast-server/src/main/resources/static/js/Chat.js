@@ -171,7 +171,7 @@ export class Chat extends Component {
                         ${state.chatBox}
                     </textarea>
                     <div class="image-uploader-button-wrapper">
-                        <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm" onchange=${imageSelected}/>
+                        <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange=${imageSelected}/>
                         ${state.chatBox.length == 0 &&
                             html`<img class="image-uploader-button" src="/svg/image_upload.svg" onclick=${openPictureUpload}/>`}
                     </div>

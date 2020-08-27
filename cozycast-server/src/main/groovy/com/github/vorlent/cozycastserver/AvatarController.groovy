@@ -59,8 +59,8 @@ class AvatarController {
                 return ".jpg"
             case "image/png":
                 return ".png"
-            case "image/gif":
-                return ".gif"
+            case "image/webp":
+                return ".webp"
             default:
                 return null
         }
