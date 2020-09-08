@@ -356,6 +356,7 @@ outline: 0;
     box-shadow: 0 0 1em black;
     width: 30%;
     color: #fff;
+    min-width: 250px;
 }
 
 .modal > .title {
@@ -583,7 +584,7 @@ outline: 0;
     #pagecontent {
         grid:
         "video" 40%
-        "toolbar" 10em
+        "toolbar" 8em
         "sidebar" 1fr;
     }
 
@@ -594,7 +595,7 @@ outline: 0;
     }
 
     #sidebar {
-        overflow-y: scroll;
+        overflow: hidden;
     }
 
     .volumeSlider {
@@ -606,11 +607,16 @@ outline: 0;
         height: 30px;
     }
 
+    .avatar {
+        width: 30px;
+        height: 30px;
+    }
+
     #messages {
         scrollbar-width: thin;
     }
 
     .user {
-        padding-bottom: 10px;
+        font-size: 0.75em;
     }
 }
