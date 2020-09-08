@@ -37,7 +37,7 @@ html, body, #pagecontent, #videosizer {
     display: grid;
     grid:
     "video sidebar" 1fr
-    "toolbar sidebar" 5em
+    "toolbar sidebar" 5.3em
     / 1fr 15em;
 }
 
@@ -249,14 +249,20 @@ html, body, #pagecontent, #videosizer {
     margin: auto;
     align-self: center;
     -webkit-appearance: none;
+
     appearance: none;
     width: 100%;
+    max-width: 100px;
     height: 5px;
     background: #346;
     outline: none;
     opacity: 0.7;
     -webkit-transition: .2s;
     transition: opacity .2s;
+}
+
+.volumeSlider:focus {
+outline: 0;
 }
 
 .volumeSlider::-moz-range-thumb, .volumeSlider::-webkit-slider-thumb {
@@ -589,6 +595,15 @@ html, body, #pagecontent, #videosizer {
 
     #sidebar {
         overflow-y: scroll;
+    }
+
+    .volumeSlider {
+        height: 2em;
+    }
+
+    .volumeSlider::-moz-range-thumb, .volumeSlider::-webkit-slider-thumb {
+        width: 30px;
+        height: 30px;
     }
 
     #messages {

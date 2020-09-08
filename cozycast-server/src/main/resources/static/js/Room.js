@@ -7,7 +7,7 @@ import { ProfileModal, openProfile } from '/js/ProfileModal.js'
 import { Userlist } from '/js/Userlist.js'
 import { VideoControls } from '/js/VideoControls.js'
 import { Button } from '/js/Button.js'
-import { state, updateState } from '/js/index.js'
+import { SidebarState, state, updateState } from '/js/index.js'
 
 var webRtcPeer;
 var websocket;
@@ -53,6 +53,16 @@ export class Room extends Component {
         document.title = state.windowTitle
     }
 
+    toggleRoomSettings() {
+        updateState(function (state) {
+            if(state.roomSidebar != SidebarState.SETTINGS) {
+                state.roomSidebar = SidebarState.SETTINGS
+            } else {
+                state.roomSidebar = SidebarState.CHAT
+            }
+        })
+    }
+
     render({ roomId }, { xyz = [] }) {
     return html`
         <div id="pagecontent">
@@ -74,6 +84,11 @@ export class Room extends Component {
                     <//>
                     <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider" oninput=${changeVolume}/>
                     <a id="copyright" href="/license" target="_blank">Copyright (C) 2019 Vorlent</a>
+                    ${state.roomToken
+                    && html`<${Button} enabled=${state.roomSidebar == SidebarState.SETTINGS}
+                            onclick=${e => this.toggleRoomSettings(roomId)}>
+                            <img class="room-settings-icon" src="/png/settings.png"/>
+                        <//>`}
                 </div>
                 <${Userlist} state=${state}/>
             </div>
@@ -118,6 +133,7 @@ export function pauseVideo(e) {
 
 function changeVolume(e) {
     updateState(function(state) {
+        console.log(e.target.value)
         state.volume = e.target.value;
     })
 }
