@@ -9,12 +9,25 @@ import { VideoControls } from '/js/VideoControls.js'
 import { Button } from '/js/Button.js'
 import { SidebarState, state, updateState } from '/js/index.js'
 
+var favicon = new Favico({
+    animation:'none'
+});
+
 var webRtcPeer;
 var websocket;
 
 export class Room extends Component {
 
     componentDidMount() {
+        document.onvisibilitychange = function functionName() {
+            updateState(function (state) {
+                if(!document.hidden) {
+                    state.newMessageCount = 0
+                    favicon.badge(state.newMessageCount);
+                }
+            })
+        }
+
         var roomId = this.props.roomId
         updateState(function (state) {
             state.roomToken = localStorage.getItem("room-" + roomId + "-token");
@@ -224,6 +237,12 @@ function chatmessage(parsedMessage, skip_notifications) {
         var audio = new Audio('/audio/pop.wav');
         audio.play();
     }
+    updateState(function (state) {
+        if(document.hidden) {
+            state.newMessageCount++;
+            favicon.badge(state.newMessageCount);
+        }
+    })
 }
 
 function join(parsedMessage) {

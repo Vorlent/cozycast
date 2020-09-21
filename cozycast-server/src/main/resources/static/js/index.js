@@ -54,7 +54,8 @@ export var state = {
     windowTitle: "CozyCast: Low latency screen capture via WebRTC",
     historyMode: false,
     fullscreen: false,
-    kicked: false
+    kicked: false,
+    newMessageCount: 0
 };
 
 export function queryParams(params) {
