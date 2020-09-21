@@ -127,7 +127,7 @@ html, body, #pagecontent, #videosizer {
 
 .message > div:not(.username) {
 	margin-left: .5em;
-	font-size: 1em;
+	font-size: 0.9em;
 }
 
 #videocontrols {
