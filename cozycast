@@ -11,7 +11,7 @@ function liquibase_update {
         -v $(readlink -f ../liquibase/changelog.xml):/changelog.xml \
         -v $(readlink -f ../liquibase/driver):/liquibase/jdbc \
         --network host \
-        liquibase/liquibase \
+        liquibase/liquibase:3.10.x \
         --driver=org.postgresql.Driver \
         --classpath=/liquibase/jdbc/postgresql-42.2.9.jre7.jar \
         --url="jdbc:postgresql://$COZYCAST_DB_HOST:5432/cozycast" \
