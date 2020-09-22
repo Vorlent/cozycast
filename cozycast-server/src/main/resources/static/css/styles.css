@@ -6,7 +6,7 @@
 :root {
     --cozycast-noise: url("/png/noise_128.png");
     --cozycast-dpr: 1;
-    font-family: "DejaVu Sans", "Helvetica", "Arial", "sans-serif";
+    font-family: "Arial", "sans-serif";
 }
 
 ::-webkit-scrollbar {
@@ -127,7 +127,7 @@ html, body, #pagecontent, #videosizer {
 
 .message > div:not(.username) {
 	margin-left: .5em;
-	font-size: 1em;
+	font-size: 0.9em;
 }
 
 #videocontrols {
@@ -184,9 +184,9 @@ html, body, #pagecontent, #videosizer {
     width: 100%;
     border-radius: 5px;
     border-color: #124;
-    font-size: 1em;
+    font-size: 0.9em;
     padding: .3em;
-    height: 5em;
+    height: 4em;
 }
 
 .image-uploader {
