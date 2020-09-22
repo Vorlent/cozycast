@@ -89,9 +89,6 @@ html, body, #pagecontent, #videosizer {
     color: white;
     border-radius: 0.2em;
     transition: background-color 0.2s;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
 }
 
 .btn-primary {
