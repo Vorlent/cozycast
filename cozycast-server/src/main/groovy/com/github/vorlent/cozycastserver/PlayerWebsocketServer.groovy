@@ -277,6 +277,8 @@ class PlayerWebsocketServer {
             ChatMessage.where { room == room.name &&
                 timestamp < ZonedDateTime.now(ZoneId.of("UTC")).minusHours(1)
             }.list().each { it.delete() }
+            ChatMessage.where { room == room.name }
+                .list(sort: 'timestamp', order: 'desc', offset: 1000).each { it.delete() }
             def chatMessage = new ChatMessage(
                 room: room.name,
                 message: jsonMessage.message,
