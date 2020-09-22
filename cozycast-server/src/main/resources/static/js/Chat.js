@@ -73,10 +73,40 @@ function imageSelected(e) {
     }
 }
 
+var lastUpload = Date.now()
+
 export class Chat extends Component {
     constructor() {
         super()
         this.typingInterval = null;
+    }
+
+    pasteFile(e) {
+        if(e.clipboardData) {
+            var items = e.clipboardData.items
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf("image") == -1) continue
+                var blob = items[i].getAsFile()
+
+                var now = Date.now();
+                if(now - lastUpload < 3000) {
+                    return
+                }
+                lastUpload = now
+
+                let formData = new FormData();
+                formData.append("image", blob);
+                fetch('/image/upload', {method: "POST", body: formData}).then((e) => e.json()).then(function (e) {
+                    sendMessage({
+                        action: 'chatmessage',
+                        image: e.url,
+                        type: e.type,
+                        message: "",
+                        username: state.username
+                    });
+                });
+           }
+        };
     }
 
     componentDidMount() {
@@ -167,12 +197,12 @@ export class Chat extends Component {
                     `}
                 </div>
                 <div class="image-uploader">
-                    <textarea id="chatbox-textarea" oninput=${chatInput} onkeypress=${chatEnter}>
+                    <textarea id="chatbox-textarea" oninput=${chatInput} onkeypress=${chatEnter} onpaste=${this.pasteFile}>
                         ${state.chatBox}
                     </textarea>
                     <div class="image-uploader-button-wrapper">
                         <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange=${imageSelected}/>
-                        ${state.chatBox.length == 0 &&
+                        ${(state.chatBox.length == 0) &&
                             html`<img class="image-uploader-button" src="/svg/image_upload.svg" onclick=${openPictureUpload}/>`}
                     </div>
                 </div>
