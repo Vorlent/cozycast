@@ -85,6 +85,10 @@ html, body, #pagecontent, #videosizer {
     grid-template-columns: 1fr 1fr 3em 3em 1fr;
 }
 
+#controls {
+    max-height: 30px;
+}
+
 .btn {
     color: white;
     border-radius: 0.2em;

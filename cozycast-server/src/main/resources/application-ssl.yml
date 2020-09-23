@@ -2,6 +2,7 @@ micronaut:
     ssl:
         enabled: true
         keyStore:
-            path: file:/etc/cozycast/${DUCKDNS_DOMAIN}/server.p12 
+            path: file:/etc/cozycast/${DUCKDNS_DOMAIN}/server.p12
             password: ${KEYSTORE_PASSWORD}
             type: PKCS12
+        port: 443
