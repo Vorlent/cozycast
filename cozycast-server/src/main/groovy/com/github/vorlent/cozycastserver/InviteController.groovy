@@ -49,7 +49,7 @@ class InviteController {
         }
     }
 
-    //@Secured("ROLE_ADMIN")
+    @Secured("ROLE_ADMIN")
     @Get("/new")
     Object create(@NotBlank @QueryValue("room") String room,
         @QueryValue(value = "maxUses", defaultValue = "-1") Integer maxUses,

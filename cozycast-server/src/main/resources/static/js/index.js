@@ -5,6 +5,7 @@ import Router from '/js/libs/preact-router/index.js'
 import { RoomList } from '/js/RoomList.js'
 import { Room } from '/js/Room.js'
 import { Invite } from '/js/Invite.js'
+import { Admin } from '/js/Admin.js'
 
 export var SidebarState = {
     CHAT: "CHAT",
@@ -55,7 +56,16 @@ export var state = {
     historyMode: false,
     fullscreen: false,
     kicked: false,
-    newMessageCount: 0
+    newMessageCount: 0,
+    admin: {
+        username: "",
+        password: ""
+    },
+    scheduleSidebar: false,
+    scheduleMenu: "ROOM_AVAILABILITY",
+    editSchedule: {
+        days: []
+    }
 };
 
 export function queryParams(params) {
@@ -65,8 +75,10 @@ export function queryParams(params) {
 }
 
 export function updateState(fun) {
-    fun(state)
-    globalVar.callback(state);
+    var result = fun(state)
+    if(result !== false)  {
+        globalVar.callback(state);
+    }
 }
 
 class App extends Component {
@@ -80,6 +92,7 @@ class App extends Component {
                 <${Room} state=${state} path="/room/:roomId"/>
                 <${Invite} state=${state} path="/invite/:code"/>
                 <${RoomList} state=${state} path="/management/"/>
+                <${Admin} state=${state} path="/admin/"/>
             <//>
         `;
     }

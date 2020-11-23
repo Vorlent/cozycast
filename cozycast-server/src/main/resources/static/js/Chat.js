@@ -112,9 +112,15 @@ export class Chat extends Component {
     componentDidMount() {
          this.typingInterval = setInterval(function() {
              updateState(function (state) {
-                 state.typingUsers = state.typingUsers.filter(function(user) {
+                 var newTypingUsers = state.typingUsers.filter(function(user) {
                      return user.lastTypingTime.isAfter(moment().subtract(3, 'seconds'));
                  });
+                 if(newTypingUsers.length != state.typingUsers.length) {
+                     state.typingUsers = newTypingUsers
+                 } else {
+                     // no change, no update
+                     return false
+                 }
              })
          }, 1000);
     }

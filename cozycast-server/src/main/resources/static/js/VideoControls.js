@@ -167,7 +167,7 @@ export class VideoControls extends Component {
     }
 
     render({ state }, { xyz = [] }) {
-        return html`<div id="videoBig">
+        return html`<div id="videoBig" class="${state.scheduleSidebar ? 'hidden': ''}">
             <div id="videocontrols" tabindex="0"
               oncontextmenu=${disableContextmenu}
               onmousemove=${videoMousemove}

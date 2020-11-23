@@ -33,6 +33,10 @@ html, body, #pagecontent, #videosizer {
     padding: 0;
 }
 
+.hidden {
+    display: none;
+}
+
 #pagecontent {
     display: grid;
     grid:
@@ -82,7 +86,7 @@ html, body, #pagecontent, #videosizer {
     display: grid;
     grid-gap: .5em;
     padding: .5em;
-    grid-template-columns: 1fr 1fr 3em 3em 1fr;
+    grid-template-columns: 1fr 1fr 1fr 3em 3em 1fr;
 }
 
 #controls {
@@ -266,7 +270,7 @@ html, body, #pagecontent, #videosizer {
 }
 
 .volumeSlider:focus {
-outline: 0;
+    outline: 0;
 }
 
 .volumeSlider::-moz-range-thumb, .volumeSlider::-webkit-slider-thumb {
@@ -516,7 +520,6 @@ outline: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.7);
 }
 
 .room-list {
@@ -583,6 +586,188 @@ outline: 0;
     padding: 16px;
 }
 /* RoomSettings.js END */
+
+/* Admin.js Start*/
+
+.admin-background {
+    background-color: #123;
+    color: white;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.admin-modal {
+    border: 1px solid black;
+    border-radius: 1em;
+    background: #123 var(--cozycast-noise);
+    margin: 0 auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.admin-title {
+    font-size: 2em;
+}
+
+.admin-table {
+    width: 90%
+}
+
+.admin-entry-name a {
+    color: white;
+}
+
+.admin-entry-usercount {
+}
+
+/* Admin.js End */
+
+/* ScheduleSidebar.js */
+
+#schedule .content {
+    flex: 1;
+}
+
+#schedule {
+	grid-area: video;
+	position: relative;
+    background-color: #123;
+    color: #fff;
+    display: flex;
+}
+
+#schedule .title {
+    display: flex;
+    align-self: stretch;
+    font-size: 4em;
+}
+
+#schedule .title > div {
+    text-align: center;
+    flex-grow: 1;
+}
+
+#schedule table {
+    width: 80%;
+    margin: 0 auto;
+}
+
+#schedule th {
+    text-align: center;
+    width: 10em;
+}
+
+#schedule td {
+    text-align: center;
+}
+
+.availability td div {
+	width: 80%;
+	margin: 0 auto;
+}
+
+#schedule .none {
+    background-color: #257dd5
+}
+
+#schedule .one {
+    background-color: #ec8f2b
+}
+
+#schedule .few {
+    background-color: #e1651a
+}
+
+#schedule .many {
+    background-color: #e64b27
+}
+
+#schedule .navigation {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5em;
+}
+
+#schedule .navigation .btn {
+    margin: 0.25em;
+}
+
+/* ScheduleSidebar.js End */
+
+/* ScheduleCalendar.js */
+
+.calendar .entry {
+    margin: 1em;
+    padding: 1em;
+}
+
+/* ScheduleCalendar.js End */
+
+/* ScheduleEditAvailability.js */
+
+.edit.availability {
+    width: 80%;
+    margin: auto;
+    height: 90%;
+    display: flex;
+    flex-direction: column;
+}
+
+.edit.availability .days {
+    display: flex;
+    flex: 1;
+    height: 100%;
+}
+
+.edit.availability .day {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    align-items: center;
+}
+
+.edit.availability .header {
+    margin: 1em;
+}
+
+.edit.availability .selectable {
+    flex-grow: 1;
+    position: relative;
+    width: 80%;
+    background-color: #257dd5;
+}
+
+.edit.availability .range {
+    width: 100%;
+    background-color: #ec8f2b;
+    position: absolute;
+	grid: "top" 1.5em "body" 1fr "bottom" 1.5em;
+    display: grid;
+    font-size: 0.75em;
+    overflow: hidden;
+}
+
+.edit.availability .range .body {
+    background-color: #e64b27;
+}
+
+.edit.availability .range * {
+    width: 100%;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* ScheduleEditAvailability.js End */
+
 
 @media (max-width: 780px) {
     #pagecontent {

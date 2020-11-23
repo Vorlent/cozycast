@@ -4,6 +4,7 @@ import { html } from '/js/libs/htm/preact/index.js'
 import { Chat } from '/js/Chat.js'
 import { RoomSidebar } from '/js/RoomSidebar.js'
 import { ProfileModal, openProfile } from '/js/ProfileModal.js'
+import { ScheduleSidebar, openSchedule } from '/js/ScheduleSidebar.js'
 import { Userlist } from '/js/Userlist.js'
 import { VideoControls } from '/js/VideoControls.js'
 import { Button } from '/js/Button.js'
@@ -76,19 +77,32 @@ export class Room extends Component {
         })
     }
 
+    toggleSchedule() {
+        updateState(function (state) {
+            if(state.scheduleSidebar) {
+                state.scheduleSidebar = true
+            } else {
+                state.scheduleSidebar = false
+            }
+        })
+    }
+
     render({ roomId }, { xyz = [] }) {
     return html`
         <div id="pagecontent">
-
             ${isBanned() && html`Banned until ${state.banned}`}
             ${!isBanned() && html`
+
             <${VideoControls} state=${state}/>
+            ${state.scheduleSidebar && html`
+                <${ScheduleSidebar} state=${state}/>`}
             <div id="pagetoolbar">
                 <div id="controls">
+                    <${Button} enabled=${state.scheduleSidebar} onclick=${openSchedule}>Schedule<//>
                     <${Button} enabled=${state.profileModal} onclick=${openProfile}>Profile<//>
                     <${Button} enabled=${state.remote} onclick=${remote}>Remote<//>
-                    <${Button} enabled=${state.videoPaused}
-                        title="${state.videoPaused ? 'Pause' : 'Play'}" onclick=${pauseVideo}>
+                    <${Button} enabled=${state.videoPaused} onclick=${pauseVideo}
+                        title="${state.videoPaused ? 'Pause' : 'Play'}">
                         <img class="video-control-icon" src="${state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}"/>
                     <//>
                     <${Button} enabled=${state.fullscreen}
@@ -146,7 +160,6 @@ export function pauseVideo(e) {
 
 function changeVolume(e) {
     updateState(function(state) {
-        console.log(e.target.value)
         state.volume = e.target.value;
     })
 }
@@ -308,8 +321,6 @@ function isBanned() {
         return true
     } else {
         var expiration = new Date(state.banned)
-        console.log(new Date().getTime())
-        console.log(expiration.getTime())
         if(new Date().getTime() < expiration.getTime()) {
             return true
         }
