@@ -4,7 +4,7 @@ ENV REPO="xenial"
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install -y ffmpeg xvfb lua5.3 libssl-dev m4 luarocks xdotool pulseaudio \
-    firefox flashplugin-installer sudo xfce4 xfce4-terminal xclip fonts-wqy-microhei inotify-tools vlc && \
+    firefox libnss3 libcurl3-gnutls sudo xfce4 xfce4-terminal xclip fonts-wqy-microhei inotify-tools vlc && \
     apt-get remove -y xscreensaver
 
 ENV UNAME cozycast
@@ -19,8 +19,8 @@ RUN export UNAME=$UNAME UID=1000 GID=1000 && \
     chown ${UID}:${GID} -R /home/${UNAME} && \
     gpasswd -a ${UNAME} audio
 
-ENV TINI_VERSION v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+ENV TINI_VERSION="v0.19.0"
+ADD https://github.com/krallin/tini/releases/download/v0.19.0/tini /tini
 RUN chmod +x /tini
 ENTRYPOINT ["/tini", "--"]
 
