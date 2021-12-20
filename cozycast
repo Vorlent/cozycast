@@ -1,6 +1,48 @@
 #!/bin/bash
 source .env
 
+function setup_env {
+    mkdir -p data
+    FILE=/etc/resolv.conf
+    if [ -f "data/TURN_SECRET" ]; then
+        export TURN_SECRET=$(cat data/TURN_SECRET)
+    else
+        export TURN_SECRET=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
+        echo $TURN_SECRET > data/TURN_SECRET
+    fi
+
+    export KURENTO_USERNAME=2139323074:kurento
+    export KURENTO_PASSWORD=$(echo -n "$KURENTO_USERNAME" | openssl dgst -sha1 -hmac "$TURN_SECRET" -binary | base64)
+
+    export PUBLIC_IP=$(curl ifconfig.me)
+    export PRIVATE_IP=192.168.178.26
+    export TURN_IP=$PUBLIC_IP
+    export KURENTO_IP=kurento
+    export COZYCAST_IP=$PRIVATE_IP
+
+    if [ -f "data/COZYCAST_JWT_SECRET" ]; then
+        export COZYCAST_JWT_SECRET=$(cat data/COZYCAST_JWT_SECRET)
+    else
+        export COZYCAST_JWT_SECRET=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 256 | head -n 1)
+        echo $COZYCAST_JWT_SECRET > data/COZYCAST_JWT_SECRET
+    fi
+
+    if [ -f "data/COZYCAST_DB_PASS" ]; then
+        export COZYCAST_DB_PASS=$(cat data/COZYCAST_DB_PASS)
+    else
+        export COZYCAST_DB_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
+        echo $COZYCAST_DB_PASS > data/COZYCAST_DB_PASS
+    fi
+
+    if [ -f "data/COZYCAST_INIT_ADMIN_PASSWORD" ]; then
+        export COZYCAST_INIT_ADMIN_PASSWORD=$(cat data/COZYCAST_INIT_ADMIN_PASSWORD)
+    else
+        export COZYCAST_INIT_ADMIN_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
+        echo $COZYCAST_INIT_ADMIN_PASSWORD > data/COZYCAST_INIT_ADMIN_PASSWORD
+    fi
+}
+setup_env
+
 function coturn_add_kurento_user {
     sudo -E docker exec -it cozycast-coturn-1 \
         turnadmin -a -u kurento -p $KURENTO_PASSWORD -r kurento.org
