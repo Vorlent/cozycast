@@ -7,7 +7,8 @@ services:
             POSTGRES_DB: cozycast
             POSTGRES_USER: cozycast
             POSTGRES_PASSWORD: $COZYCAST_DB_PASS
-        network_mode: 'host'
+        networks:
+            - cozycast
         restart: unless-stopped
         volumes:
             - "../data/postgres:/var/lib/postgresql/data"
@@ -31,7 +32,8 @@ services:
         restart: unless-stopped
     kurento:
         image: kurento/kurento-media-server:6.12
-        network_mode: 'host'
+        networks:
+            - cozycast
         environment:
             KMS_TURN_URL: "$KURENTO_USERNAME:$KURENTO_PASSWORD@$TURN_IP:3478"
             GST_DEBUG: "Kurento*:4,kms*:4,kmsremb:3"
@@ -39,7 +41,8 @@ services:
     cozycast-worker:
         build: ../cozycast-worker
         image: cozycast-worker
-        network_mode: 'host'
+        networks:
+            - cozycast
         shm_size: 2g
         environment:
             COZYCAST_IP: $COZYCAST_IP
@@ -52,7 +55,11 @@ services:
     cozycast-server:
         build: ../cozycast-server
         image: cozycast-server
-        network_mode: 'host'
+        networks:
+            - cozycast
+        ports:
+            - "80:80"
+            - "443:443"
         shm_size: 2g
         environment:
             TURN_SECRET: $TURN_SECRET
@@ -74,3 +81,5 @@ services:
     certbot:
         build: ../certbot
         image: cozycast-certbot
+networks:
+    cozycast:

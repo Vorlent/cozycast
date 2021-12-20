@@ -10,6 +10,6 @@ import org.kurento.client.KurentoClient
 class KurentoFactory {
     @Singleton
     KurentoClient kurentoClient() {
-        return KurentoClient.create()
+        return KurentoClient.create("ws://${System.getenv("KURENTO_IP")}:8888/kurento")
     }
 }

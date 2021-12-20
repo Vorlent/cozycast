@@ -2,7 +2,7 @@
 source .env
 
 function coturn_add_kurento_user {
-    sudo -E docker exec -it cozycast_coturn_1 \
+    sudo -E docker exec -it cozycast-coturn-1 \
         turnadmin -a -u kurento -p $KURENTO_PASSWORD -r kurento.org
 }
 
@@ -10,7 +10,7 @@ function liquibase_update {
     sudo docker run --rm -it \
         -v $(readlink -f ../liquibase/changelog.xml):/changelog.xml \
         -v $(readlink -f ../liquibase/driver):/liquibase/jdbc \
-        --network host \
+        --network cozycast_cozycast \
         liquibase/liquibase:3.10.x \
         --driver=org.postgresql.Driver \
         --classpath=/liquibase/jdbc/postgresql-42.2.9.jre7.jar \
@@ -55,7 +55,7 @@ case $1 in
         exit;
         ;;
     db)
-        sudo docker exec -it cozycast_postgres_1 psql -U cozycast
+        sudo docker exec -it cozycast-postgres-1 psql -U cozycast
         exit;
         ;;
     ssl)
