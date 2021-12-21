@@ -14,6 +14,7 @@ dependencies = {
     "lua >= 5.1, < 5.4",
     "http >= 0.2-0",
     "lunajson >= 1.2-0",
+    "luaffi = scm-1"
 }
 build = {
     type = "builtin",

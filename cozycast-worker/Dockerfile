@@ -25,7 +25,7 @@ RUN chmod +x /tini
 ENTRYPOINT ["/tini", "--"]
 
 COPY cozycast-worker-1.0-1.rockspec .
-RUN luarocks make
+RUN luarocks install --server=https://luarocks.org/dev luaffi && luarocks make
 COPY . .
 
 #USER $UNAME

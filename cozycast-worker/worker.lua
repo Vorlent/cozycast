@@ -1,5 +1,50 @@
 local websocket = require "http.websocket"
 local lunajson = require 'lunajson'
+local ffi = require("ffi")
+local libxdo = ffi.load("libxdo.so.3")
+
+ffi.cdef[[
+typedef unsigned int useconds_t;
+typedef unsigned long XID;
+typedef XID KeySym;
+typedef unsigned char KeyCode;
+typedef XID Window;
+typedef struct Display {
+} Display;
+typedef struct charcodemap {
+  wchar_t key;
+  KeyCode code;
+  KeySym symbol;
+  int group;
+  int modmask;
+  int needs_binding;
+} charcodemap_t;
+typedef struct xdo {
+    Display *xdpy;
+    char *display_name;
+    charcodemap_t *charcodes;
+    int charcodes_len;
+    int keycode_high;
+    int keycode_low;
+    int keysyms_per_keycode;
+    int close_display_when_freed;
+    int quiet;
+    int debug;
+    int features_mask;
+} xdo_t;
+xdo_t* xdo_new(const char *display);
+int xdo_move_mouse(const xdo_t *xdo, int x, int y, int screen);
+int xdo_click_window(const xdo_t *xdo, Window window, int button);
+int xdo_mouse_down(const xdo_t *xdo, Window window, int button);
+int xdo_mouse_up(const xdo_t *xdo, Window window, int button);
+int xdo_send_keysequence_window(const xdo_t *xdo, Window window,
+                    const char *keysequence, useconds_t delay);
+int xdo_send_keysequence_window_up(const xdo_t *xdo, Window window,
+                       const char *keysequence, useconds_t delay);
+int xdo_send_keysequence_window_down(const xdo_t *xdo, Window window,
+                        const char *keysequence, useconds_t delay);
+void xdo_free(xdo_t *xdo);
+]]
 
 local mouse_web_to_xdo = {
     [0] = 1,
@@ -166,7 +211,7 @@ function worker.mouse_move(mouseX, mouseY)
         and mouseY ~= 0
         and mouseX >= 0
         and mouseY >= 0 then
-        os.execute ("xdotool mousemove "..mouseX.." "..mouseY)
+        libxdo.xdo_move_mouse(xdo, mouseX, mouseY, 0)
     end
 end
 
@@ -174,7 +219,7 @@ function worker.mouse_up(mouseX, mouseY, button)
     worker.mouse_move(mouseX, mouseY)
     local xdo_button = (mouse_web_to_xdo[button])
     if xdo_button then
-        os.execute ("xdotool mouseup "..xdo_button)
+        libxdo.xdo_mouse_up(xdo, 0, xdo_button)
     end
 end
 
@@ -182,22 +227,22 @@ function worker.mouse_down(mouseX, mouseY, button)
     worker.mouse_move(mouseX, mouseY)
     local xdo_button = (mouse_web_to_xdo[button])
     if xdo_button then
-        os.execute ("xdotool mousedown "..xdo_button)
+        libxdo.xdo_mouse_down(xdo, 0, xdo_button)
     end
 end
 
 function worker.clipboard_write(text)
-    local xdotool = io.popen("xclip -selection clipboard", 'w')
-    xdotool:write(text or "")
-    xdotool:close()
-    os.execute ("xdotool key ctrl+v")
+    local xclip = io.popen("xclip -selection clipboard", 'w')
+    xclip:write(text or "")
+    xclip:close()
+    libxdo.xdo_send_keysequence_window(xdo, 0, "ctrl+v", 0);
 end
 
 function worker.key_up(key)
     key = keyboard_web_to_xdo[key] or key
     pressed_keys[key] = nil
     if key then
-        os.execute ("xdotool keyup "..key)
+        libxdo.xdo_send_keysequence_window_up(xdo, 0, key, 0);
     end
 end
 
@@ -205,25 +250,25 @@ function worker.key_down(key)
     key = keyboard_web_to_xdo[key] or key
     pressed_keys[key] = true
     if key then
-        os.execute ("xdotool keydown "..key)
+        libxdo.xdo_send_keysequence_window_down(xdo, 0, key, 0);
     end
 end
 
 function worker.keyboard_reset(key)
     for key, pressed in pairs(pressed_keys) do
         if key then
-            os.execute ("xdotool keyup "..key)
+            libxdo.xdo_send_keysequence_window_up(xdo, 0, key, 0);
             pressed_keys[key] = nil
         end
     end
 end
 
 function worker.scroll_up()
-    os.execute ("xdotool click 4")
+    libxdo.xdo_click_window(xdo, 0, 4);
 end
 
 function worker.scroll_down()
-    os.execute ("xdotool click 5")
+    libxdo.xdo_click_window(xdo, 0, 5);
 end
 
 function onmessage(ws, data)
@@ -354,8 +399,11 @@ function start_server()
 end
 os.execute ("Xvfb $DISPLAY -screen 0 "..video_settings.desktop_width.."x"..video_settings.desktop_height.."x24 -nolisten tcp & echo $! >> /worker.pid")
 os.execute ("sudo -u cozycast xfce4-session & echo $! >> /worker.pid")
+os.execute("sleep 1")
+xdo = libxdo.xdo_new(nil)
 while true do
     print(pcall(start_server))
     print("Restarting lua worker in 5 seconds")
     os.execute("sleep 5")
 end
+libxdo.xdo_free(xdo)
