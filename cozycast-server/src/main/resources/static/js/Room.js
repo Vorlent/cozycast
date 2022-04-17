@@ -98,7 +98,6 @@ export class Room extends Component {
                 <${ScheduleSidebar} state=${state}/>`}
             <div id="pagetoolbar">
                 <div id="controls">
-                    <${Button} enabled=${state.scheduleSidebar} onclick=${openSchedule}>Schedule<//>
                     <${Button} enabled=${state.profileModal} onclick=${openProfile}>Profile<//>
                     <${Button} enabled=${state.remote} onclick=${remote}>Remote<//>
                     <${Button} enabled=${state.videoPaused} onclick=${pauseVideo}
@@ -210,12 +209,15 @@ function chatmessage(parsedMessage, skip_notifications) {
         var remaining = msg;
         urls.forEach(function(element) {
             var end = remaining.indexOf(element.value, offset);
-            queuedMessages.push({ "type": "text", "message": remaining.substring(offset, end) });
-            offset = end + element.value.length;
-            if(element.value.indexOf("http") == -1) {
-                element.value = "http://" + element.value
+            if(offset != end) {
+                queuedMessages.push({ "type": "text", "message": remaining.substring(offset, end) });
             }
-            queuedMessages.push({ "type": "url", "href": element.value });
+            if(element.value.indexOf("http") != -1) {
+                queuedMessages.push({ "type": "url", "href": element.value });
+            } else {
+                queuedMessages.push({ "type": "text", "message": element.value });
+            }
+            offset = end + element.value.length;
         });
         if(offset < remaining.length) {
         	queuedMessages.push({ "type": "text", "message": remaining.substring(offset, remaining.length) });
@@ -419,7 +421,9 @@ function connect(room) {
     				if (error) {
     					console.log('Error iceCandidate: ' + error);
     					return;
-    				}
+    				} else {
+                        console.log("Successful iceCandidate")
+                    }
     			});
     			break;
     		default:
