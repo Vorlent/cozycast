@@ -13,11 +13,12 @@ function setup_env {
 
     export KURENTO_USERNAME=2139323074:kurento
     export KURENTO_PASSWORD=$(echo -n "$KURENTO_USERNAME" | openssl dgst -sha1 -hmac "$TURN_SECRET" -binary | base64)
+    sudo docker network create cozycast_cozycast
+    export KURENTO_IP=$(sudo docker network inspect cozycast_cozycast --format="{{(index (index .).IPAM.Config 0).Gateway}}")
 
     export PUBLIC_IP=$(curl ifconfig.me)
     export PRIVATE_IP=192.168.178.26
     export TURN_IP=$PUBLIC_IP
-    export KURENTO_IP=kurento
     export COZYCAST_IP=$PRIVATE_IP
 
     if [ -f "data/COZYCAST_JWT_SECRET" ]; then
@@ -40,11 +41,13 @@ function setup_env {
         export COZYCAST_INIT_ADMIN_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
         echo $COZYCAST_INIT_ADMIN_PASSWORD > data/COZYCAST_INIT_ADMIN_PASSWORD
     fi
+
+    export COMPOSE_COMPATIBILITY=true
 }
 setup_env
 
 function coturn_add_kurento_user {
-    sudo -E docker exec -it cozycast-coturn-1 \
+    sudo -E docker exec -it cozycast_coturn_1 \
         turnadmin -a -u kurento -p $KURENTO_PASSWORD -r kurento.org
 }
 
@@ -97,7 +100,7 @@ case $1 in
         exit;
         ;;
     db)
-        sudo docker exec -it cozycast-postgres-1 psql -U cozycast
+        sudo docker exec -it cozycast_postgres_1 psql -U cozycast
         exit;
         ;;
     ssl)
