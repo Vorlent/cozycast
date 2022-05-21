@@ -232,6 +232,12 @@ class PlayerWebsocketServer {
 
         MediaPipeline pipeline = room.worker.getMediaPipeline(kurento)
         WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build()
+        if(System.getenv("NETWORK_INTERFACES") != null) {
+            webRtcEndpoint.setNetworkInterfaces(System.getenv("NETWORK_INTERFACES"));
+        }
+        if(System.getenv("EXTERNAL_IPV4") != null) {
+            webRtcEndpoint.setExternalIPv4(System.getenv("EXTERNAL_IPV4"));
+        }
         user.webRtcEndpoint = webRtcEndpoint
 
         room.worker.rtpEndpoint.connect(webRtcEndpoint)

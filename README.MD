@@ -29,6 +29,7 @@ export COZYCAST_IP=$PRIVATE_IP
 export SOURCE_URL=<url>
 
 export COZYCAST_DB_HOST=localhost
+export NETWORK_INTERFACES=eth0
 ```
 
 Optional but recommended for https:
