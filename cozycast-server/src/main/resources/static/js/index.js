@@ -65,7 +65,9 @@ export var state = {
     scheduleMenu: "ROOM_AVAILABILITY",
     editSchedule: {
         days: []
-    }
+    },
+    chatHidden: false,
+    userlistHidden: false
 };
 
 export function queryParams(params) {

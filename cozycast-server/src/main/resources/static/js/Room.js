@@ -77,6 +77,25 @@ export class Room extends Component {
         })
     }
 
+    hideChat() {
+        updateState(function (state) {
+            state.chatHidden = !state.chatHidden
+        })
+    }
+
+    hideUserlist(){
+        updateState(function (state) {
+            state.userlistHidden = !state.userlistHidden
+        })
+    }
+
+    setGrid() {
+        const hideChat = state.chatHidden && state.roomSidebar == SidebarState.CHAT
+        return `"video${hideChat ? "" : " sidebar"}" 1fr    
+             ${state.fullscreen ? "" : `"toolbar${hideChat ? "" : " sidebar"}" ${state.userlistHidden ? "3.7" : "5.3"}em`}
+            / 1fr${hideChat ? "" : " 15em"}`
+    }
+
     toggleSchedule() {
         updateState(function (state) {
             if(state.scheduleSidebar) {
@@ -89,14 +108,14 @@ export class Room extends Component {
 
     render({ roomId }, { xyz = [] }) {
     return html`
-        <div id="pagecontent">
+        <div id="pagecontent" style="grid: ${this.setGrid()}">
             ${isBanned() && html`Banned until ${state.banned}`}
             ${!isBanned() && html`
 
             <${VideoControls} state=${state}/>
             ${state.scheduleSidebar && html`
                 <${ScheduleSidebar} state=${state}/>`}
-            <div id="pagetoolbar">
+            ${!state.fullscreen && html`<div id="pagetoolbar">
                 <div id="controls">
                     <${Button} enabled=${state.profileModal} onclick=${openProfile}>Profile<//>
                     <${Button} enabled=${state.remote} onclick=${remote}>Remote<//>
@@ -109,6 +128,8 @@ export class Room extends Component {
                         <img class="video-control-icon" src="/svg/fullscreen_button.svg"/>
                     <//>
                     <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider" oninput=${changeVolume}/>
+                    <${Button} enabled=${state.chatHidden} onclick=${this.hideChat}>Chat<//>
+                    <${Button} enabled=${state.userlistHidden} onclick=${this.hideUserlist}>User<//>
                     <a id="copyright" href="/license" target="_blank">Copyright (C) 2019 Vorlent</a>
                     ${state.roomToken
                     && html`<${Button} enabled=${state.roomSidebar == SidebarState.SETTINGS}
@@ -116,9 +137,9 @@ export class Room extends Component {
                             <img class="room-settings-icon" src="/png/settings.png"/>
                         <//>`}
                 </div>
-                <${Userlist} state=${state}/>
-            </div>
-            <${RoomSidebar} state=${state}/>
+                ${!state.userlistHidden && html`<${Userlist} state=${state}/>`}
+            </div>`}
+            ${!state.chatHidden && html`<${RoomSidebar} state=${state}/>`}
 
             <${ProfileModal} state=${state}/>
             `}

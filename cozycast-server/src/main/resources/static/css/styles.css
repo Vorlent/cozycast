@@ -76,7 +76,7 @@ html, body, #pagecontent, #videosizer {
 #pagetoolbar {
     grid-area: toolbar;
     grid:
-        "controls userlist" 1fr / 30em 1fr;
+        "controls userlist" 1fr / 40em 1fr;
     display: grid;
     background-color: #123;
     min-width: 0;
@@ -86,7 +86,7 @@ html, body, #pagecontent, #videosizer {
     display: grid;
     grid-gap: .5em;
     padding: .5em;
-    grid-template-columns: 1fr 1fr 1fr 3em 3em 1fr;
+    grid-template-columns: 1fr 1fr 3em 3em 1fr 1fr 1fr;
 }
 
 #controls {
