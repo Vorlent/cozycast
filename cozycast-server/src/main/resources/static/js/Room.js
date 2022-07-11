@@ -98,28 +98,12 @@ export class Room extends Component {
                 state.roomSidebar = SidebarState.NOTHING
             }
         })
-        this.setGrid();
     }
 
     hideUserlist(){
         updateState(function (state) {
             state.userlistHidden = !state.userlistHidden
         })
-    }
-
-    setGrid() {
-        const hideSidebar = state.roomSidebar == SidebarState.NOTHING
-        var elem = document.getElementById("pagecontent");
-        if(elem.clientWidth <= 780) {
-        elem.style.grid = `"video" 40%
-            ${state.fullscreen ? "" : `"controls" 2.5em`}
-            ${state.fullscreen || state.userlistHidden? "" : `"userlist" 4.5em`}
-            ${hideSidebar ? "" : `"sidebar" 1fr`}`
-            return;}
-        elem.style.grid = `"video${hideSidebar ? "" : " sidebar"}" 1fr    
-             ${state.fullscreen ? "" : `"controls${hideSidebar ? "" : " sidebar"}" 2.5em`}
-             ${state.fullscreen || state.userlistHidden? "" : `"userlist${hideSidebar ? "" : " sidebar"}" 4.5em`}
-            / 1fr${hideSidebar ? "" : " 15em"}`
     }
 
     toggleSchedule() {
@@ -137,48 +121,51 @@ export class Room extends Component {
         <div id="pagecontent">
             ${isBanned() && html`Banned until ${state.banned}`}
             ${!isBanned() && html`
-                
-            <${VideoControls} state=${state}/>
-            ${state.scheduleSidebar && html`
-                <${ScheduleSidebar} state=${state}/>`}
-            ${!state.fullscreen && html`    
-            <div id="controls">
-                <div class="subControls">
-                    <${Button} enabled=${state.profileModal} onclick=${openProfile} style="buttonBig">Profile<//>
-                    <${Button} enabled=${state.userlistHidden} onclick=${this.hideUserlist}>
-                        <img class="video-control-icon" src="${state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}"/>
-                    <//>
+            <div class="all">
+                <${VideoControls} state=${state}/>
+                ${state.scheduleSidebar && html`
+                    <${ScheduleSidebar} state=${state}/>`}
+                ${!state.fullscreen && html`
+        <div id="pagetoolbar">
+                <div id="controls">
+                    <div class="subControls">
+                        <${Button} enabled=${state.profileModal} onclick=${openProfile} style="buttonBig">Profile<//>
+                        <${Button} enabled=${state.userlistHidden} onclick=${this.hideUserlist} style="buttonSmall">
+                            <img class="video-control-icon" src="${state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}"/>
+                        <//>
+                    </div>
+                    <div class="subControls">
+                        <${Button} enabled=${state.remote} onclick=${remote} style="buttonBig">Remote<//>
+                        <${Button} enabled=${state.videoPaused} onclick=${pauseVideo}
+                            title="${state.videoPaused ? 'Pause' : 'Play'}" style="buttonSmall">
+                            <img class="video-control-icon" src="${state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}"/>
+                        <//>
+                        <${Button} enabled=${state.fullscreen}
+                            title="Fullscreen" onclick=${toggleFullscreen} style="buttonSmall">
+                            <img class="video-control-icon" src="/svg/fullscreen_button.svg"/>
+                        <//>
+                        <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider buttonBig" oninput=${changeVolume}/>
+                    </div>
+                    <div class="subControls">
+                        ${state.roomToken
+                        && html`<${Button} enabled=${state.roomSidebar == SidebarState.SETTINGS}
+                                onclick=${e => this.toggleRoomSettings(roomId)} style="buttonSmall">
+                                <img class="room-settings-icon" src="/png/settings.png"/>
+                            <//>`}
+                        <${Button} enabled=${state.roomSidebar == SidebarState.USERS}
+                                   onclick=${e => this.toggleUserSidebar()} style="buttonSmall">
+                            <img class="video-control-icon" src="/svg/users.svg"/>
+                        <//>
+                        <${Button} enabled=${state.roomSidebar == SidebarState.CHAT}
+                                   onclick=${e => this.toggleChatSidebar()} style="buttonSmall">
+                            <img class="video-control-icon" src="/svg/message-circle.svg"/>
+                        <//>
+                    </div>
                 </div>
-                <div class="subControls">
-                    <${Button} enabled=${state.remote} onclick=${remote} style="buttonBig">Remote<//>
-                    <${Button} enabled=${state.videoPaused} onclick=${pauseVideo}
-                        title="${state.videoPaused ? 'Pause' : 'Play'}">
-                        <img class="video-control-icon" src="${state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}"/>
-                    <//>
-                    <${Button} enabled=${state.fullscreen}
-                        title="Fullscreen" onclick=${toggleFullscreen}>
-                        <img class="video-control-icon" src="/svg/fullscreen_button.svg"/>
-                    <//>
-                    <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider buttonBig" oninput=${changeVolume}/>
-                </div>
-                <div class="subControls">
-                    ${state.roomToken
-                    && html`<${Button} enabled=${state.roomSidebar == SidebarState.SETTINGS}
-                            onclick=${e => this.toggleRoomSettings(roomId)}>
-                            <img class="room-settings-icon" src="/png/settings.png"/>
-                        <//>`}
-                    <${Button} enabled=${state.roomSidebar == SidebarState.USERS}
-                               onclick=${e => this.toggleUserSidebar()}>
-                        <img class="video-control-icon" src="/svg/users.svg"/>
-                    <//>
-                    <${Button} enabled=${state.roomSidebar == SidebarState.CHAT}
-                               onclick=${e => this.toggleChatSidebar()}>
-                        <img class="video-control-icon" src="/svg/message-circle.svg"/>
-                    <//>
-                </div>
+                ${!state.userlistHidden && html`<${Userlist} state=${state}/>`}
+        </div>
+                `}
             </div>
-            `}
-            ${(!state.userlistHidden && !state.fullscreen) && html`<${Userlist} state=${state}/>`}
                 
             ${(state.roomSidebar != SidebarState.NOTHING) && html`<${RoomSidebar} state=${state}/>`}
             <${ProfileModal} state=${state}/>
