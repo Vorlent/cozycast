@@ -76,7 +76,6 @@ export class Room extends Component {
                 state.roomSidebar = SidebarState.NOTHING
             }
         })
-        this.setGrid();
     }
 
     toggleUserSidebar() {
@@ -87,7 +86,6 @@ export class Room extends Component {
                 state.roomSidebar = SidebarState.NOTHING
             }
         })
-        this.setGrid();
     }
 
     toggleChatSidebar() {
@@ -121,49 +119,49 @@ export class Room extends Component {
         <div id="pagecontent">
             ${isBanned() && html`Banned until ${state.banned}`}
             ${!isBanned() && html`
-            <div class="all">
+            <div class="contentWithoutSidebar">
                 <${VideoControls} state=${state}/>
                 ${state.scheduleSidebar && html`
                     <${ScheduleSidebar} state=${state}/>`}
                 ${!state.fullscreen && html`
-        <div id="pagetoolbar">
-                <div id="controls">
-                    <div class="subControls">
-                        <${Button} enabled=${state.profileModal} onclick=${openProfile} style="buttonBig">Profile<//>
-                        <${Button} enabled=${state.userlistHidden} onclick=${this.hideUserlist} style="buttonSmall">
-                            <img class="video-control-icon" src="${state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}"/>
-                        <//>
+                <div id="pagetoolbar">
+                    <div id="controls">
+                        <div class="subControls">
+                            <${Button} enabled=${state.profileModal} onclick=${openProfile} style="buttonBig">Profile<//>
+                            <${Button} enabled=${state.userlistHidden} onclick=${this.hideUserlist} style="buttonSmall optional">
+                                <img class="video-control-icon" src="${state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}"/>
+                            <//>
+                        </div>
+                        <div class="subControls">
+                            <${Button} enabled=${state.remote} onclick=${remote} style="buttonBig">Remote<//>
+                            <${Button} enabled=${state.videoPaused} onclick=${pauseVideo}
+                                title="${state.videoPaused ? 'Pause' : 'Play'}" style="buttonSmall">
+                                <img class="video-control-icon" src="${state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}"/>
+                            <//>
+                            <${Button} enabled=${state.fullscreen}
+                                title="Fullscreen" onclick=${toggleFullscreen} style="buttonSmall">
+                                <img class="video-control-icon" src="/svg/fullscreen_button.svg"/>
+                            <//>
+                            <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider buttonBig" oninput=${changeVolume}/>
+                        </div>
+                        <div class="subControls">
+                            ${state.roomToken
+                            && html`<${Button} enabled=${state.roomSidebar == SidebarState.SETTINGS}
+                                    onclick=${e => this.toggleRoomSettings(roomId)} style="buttonSmall">
+                                    <img class="room-settings-icon" src="/png/settings.png"/>
+                                <//>`}
+                            <${Button} enabled=${state.roomSidebar == SidebarState.USERS}
+                                       onclick=${e => this.toggleUserSidebar()} style="buttonSmall optional">
+                                <img class="video-control-icon" src="/svg/users.svg"/>
+                            <//>
+                            <${Button} enabled=${state.roomSidebar == SidebarState.CHAT}
+                                       onclick=${e => this.toggleChatSidebar()} style="buttonSmall optional">
+                                <img class="video-control-icon" src="/svg/message-circle.svg"/>
+                            <//>
+                        </div>
                     </div>
-                    <div class="subControls">
-                        <${Button} enabled=${state.remote} onclick=${remote} style="buttonBig">Remote<//>
-                        <${Button} enabled=${state.videoPaused} onclick=${pauseVideo}
-                            title="${state.videoPaused ? 'Pause' : 'Play'}" style="buttonSmall">
-                            <img class="video-control-icon" src="${state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}"/>
-                        <//>
-                        <${Button} enabled=${state.fullscreen}
-                            title="Fullscreen" onclick=${toggleFullscreen} style="buttonSmall">
-                            <img class="video-control-icon" src="/svg/fullscreen_button.svg"/>
-                        <//>
-                        <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider buttonBig" oninput=${changeVolume}/>
-                    </div>
-                    <div class="subControls">
-                        ${state.roomToken
-                        && html`<${Button} enabled=${state.roomSidebar == SidebarState.SETTINGS}
-                                onclick=${e => this.toggleRoomSettings(roomId)} style="buttonSmall">
-                                <img class="room-settings-icon" src="/png/settings.png"/>
-                            <//>`}
-                        <${Button} enabled=${state.roomSidebar == SidebarState.USERS}
-                                   onclick=${e => this.toggleUserSidebar()} style="buttonSmall">
-                            <img class="video-control-icon" src="/svg/users.svg"/>
-                        <//>
-                        <${Button} enabled=${state.roomSidebar == SidebarState.CHAT}
-                                   onclick=${e => this.toggleChatSidebar()} style="buttonSmall">
-                            <img class="video-control-icon" src="/svg/message-circle.svg"/>
-                        <//>
-                    </div>
+                    ${!state.userlistHidden && html`<${Userlist} state=${state}/>`}
                 </div>
-                ${!state.userlistHidden && html`<${Userlist} state=${state}/>`}
-        </div>
                 `}
             </div>
                 

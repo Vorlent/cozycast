@@ -26,14 +26,6 @@ div:focus {
     outline: none;
 }
 
-button{
-    font-size: 100%;
-    line-height: 1.0rem;
-    height: 100%;
-    margin: 0;
-    border: none;
-}
-
 html, body, #pagecontent, #videosizer {
     height: 100%;
     width: 100%;
@@ -51,17 +43,18 @@ html, body, #pagecontent, #videosizer {
     width: 100%;
 }
 
-.all {
+#pagecontent > *{
+    background: fixed repeat top left var(--cozycast-noise);
+    background-size: calc(128px / var(--cozycast-dpr));
+}
+
+.contentWithoutSidebar {
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-}
-
-#pagecontent > *{
-    background: fixed repeat top left var(--cozycast-noise);
-    background-size: calc(128px / var(--cozycast-dpr));
+    overflow-x: hidden;
 }
 
 #videoBig, #video {
@@ -104,18 +97,8 @@ html, body, #pagecontent, #videosizer {
 .subControls{
     display: flex;
     grid-gap: .5em;
-    padding: .5em;
+    margin: .5em;
     min-width: 0;
-}
-
-.buttonBig {
-    min-width: 1.5em;
-    width: 8em;
-}
-
-.buttonSmall {
-    min-width: .1em;
-    width: 4em;
 }
 
 #userlist {
@@ -154,6 +137,24 @@ html, body, #pagecontent, #videosizer {
     color: white;
     border-radius: 0.2em;
     transition: background-color 0.2s;
+}
+
+button{
+    font-size: 100%;
+    line-height: 1.0rem;
+    height: 100%;
+    margin: 0;
+    border: none;
+}
+
+.buttonBig {
+    min-width: 4em;
+    width: 8em;
+}
+
+.buttonSmall {
+    min-width: 2em;
+    width: 4em;
 }
 
 .btn-primary {
@@ -827,10 +828,17 @@ html, body, #pagecontent, #videosizer {
         flex-direction: column;
     }
 
-    #pagetoolbar {
-        grid:
-            "controls"
-            "userlist" 1fr;
+    .optional {
+        display: none;
+    }
+
+    #controls {
+        justify-content: center;
+    }
+
+    .subControls{
+        justify-items: flex-end;
+        margin-right: 0;
     }
 
     #sidebar {
