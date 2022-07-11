@@ -26,11 +26,20 @@ div:focus {
     outline: none;
 }
 
+button{
+    font-size: 100%;
+    line-height: 1.0rem;
+    height: 100%;
+    margin: 0;
+    border: none;
+}
+
 html, body, #pagecontent, #videosizer {
     height: 100%;
     width: 100%;
     margin: 0;
     padding: 0;
+    background-color: #123;
 }
 
 .hidden {
@@ -40,12 +49,13 @@ html, body, #pagecontent, #videosizer {
 #pagecontent {
     display: grid;
     grid:
-    "video sidebar" 1fr
-    "toolbar sidebar" 5.3em
+   "video sidebar" 1fr
+    "controls sidebar" 2.5em
+    "userlist sidebar" 4.5em
     / 1fr 15em;
 }
 
-#pagecontent > * {
+#pagecontent > *{
     background: fixed repeat top left var(--cozycast-noise);
     background-size: calc(128px / var(--cozycast-dpr));
 }
@@ -82,15 +92,59 @@ html, body, #pagecontent, #videosizer {
     min-width: 0;
 }
 
-#controls {
-    display: grid;
-    grid-gap: .5em;
-    padding: .5em;
-    grid-template-columns: 1fr 1fr 3em 3em 1fr 1fr 1fr;
+#controls{
+    background-color: #181828;
+    display: flex;
+    justify-content: space-between;
+    align-self: center;
+    overflow: fragments;
 }
 
-#controls {
-    max-height: 30px;
+.subControls{
+    display: flex;
+    grid-gap: .5em;
+    padding: .5em;
+    min-width: 0;
+}
+
+.buttonBig {
+    min-width: 2.5em;
+    width: 8em;
+}
+
+.buttonSmall {
+    width: 3em;
+}
+
+#userlist {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+    gap: 15px;
+    overflow: auto hidden;
+    scrollbar-width: thin;
+    background-color: #123;
+}
+
+.userlistSidebar {
+    overflow: auto hidden;
+    display: flex;
+    flex-direction: column;
+    margin-left: 1em;
+    margin-top: 1em;
+    gap: 15px;
+}
+
+.userSidebar {
+    display: grid;
+    grid-template-columns: 4em 1fr;
+}
+
+.usernameSidebar {
+    display: flex;
+    margin-left: 1em;
+    align-items:center;
 }
 
 .btn {
@@ -118,11 +172,11 @@ html, body, #pagecontent, #videosizer {
 }
 
 #copyright {
-    grid-column: span 3;
+    position: absolute;
     color: lightgray;
     font-size: .5em;
-    align-self: center;
-    justify-self: start;
+    align-self: end;
+    justify-content: flex-start;
 }
 
 .message {
@@ -221,14 +275,6 @@ html, body, #pagecontent, #videosizer {
 
 #image-upload-file {
     display: none;
-}
-
-#userlist {
-    flex-grow: 1;
-    display: flex;
-    min-width: 0;
-    overflow: auto hidden;
-    scrollbar-width: thin;
 }
 
 .remote-wrapper {
@@ -503,10 +549,13 @@ html, body, #pagecontent, #videosizer {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    justify-items: center;
 }
 
 .video-control-icon {
     height: 24px;
+    margin: auto auto;
+    vertical-align: middle;
 }
 /*  Room.js End */
 
@@ -773,7 +822,8 @@ html, body, #pagecontent, #videosizer {
     #pagecontent {
         grid:
         "video" 40%
-        "toolbar" 8em
+        "controls" 2.5em
+        "userlist" 4.5em
         "sidebar" 1fr;
     }
 

@@ -10,8 +10,9 @@ export function Userlist({ state }) {
                 <div class="remote-wrapper">
                     <i class="icon-keyboard remote" style=${user.remote ? "" : "display: none;"}></i>
                 </div>
-                <div>${user.username}</div>
             </div>
         `)}
-    </div>`
+    </div>
+    <a id="copyright" href="/license" target="_blank">Copyright (C) 2019 Vorlent</a>
+    `
 }
