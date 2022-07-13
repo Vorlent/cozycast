@@ -16,11 +16,6 @@ function setup_env {
     sudo docker network create cozycast_cozycast
     export KURENTO_IP=$(sudo docker network inspect cozycast_cozycast --format="{{(index (index .).IPAM.Config 0).Gateway}}")
 
-    export PUBLIC_IP=$(curl ifconfig.me)
-    export PRIVATE_IP=192.168.178.26
-    export TURN_IP=$PUBLIC_IP
-    export COZYCAST_IP=$PRIVATE_IP
-
     if [ -f "data/COZYCAST_JWT_SECRET" ]; then
         export COZYCAST_JWT_SECRET=$(cat data/COZYCAST_JWT_SECRET)
     else

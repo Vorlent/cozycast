@@ -28,7 +28,7 @@ export COZYCAST_IP=$PRIVATE_IP
 
 export SOURCE_URL=<url>
 
-export COZYCAST_DB_HOST=localhost
+export COZYCAST_DB_HOST=postgres
 export NETWORK_INTERFACES=eth0
 ```
 
