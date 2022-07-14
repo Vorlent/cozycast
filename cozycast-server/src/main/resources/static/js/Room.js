@@ -51,6 +51,7 @@ export class Room extends Component {
                 })
             }
             state.muteChatNotification = localStorage.getItem("muteChatNotification");
+            state.muteChatNotification = localStorage.getItem("showUsernames");
         })
         connect(this.props.roomId)
         window.onbeforeunload = function() {

@@ -105,7 +105,7 @@ export class ProfileModal extends Component {
                     <div>Mute Chat Notification: <input class="modal-username" type="checkbox"
                         onInput=${e => updateProfileMuteChatNotification(e.target.checked)}
                         name="muteChatNotification" checked="${state.profileModal.muteChatNotification}"/></div>
-                    <div>Show usernames: <input class="modal-username" type="checkbox"
+                    <div>Show Usernames: <input class="modal-username" type="checkbox"
                         onInput=${e => updateShowUsernamesOnBottom(e.target.checked)}
                         name="showUsernames" checked="${state.profileModal.showUsernames}"/></div>
                     <button class="btn btn-primary" onclick=${saveProfile}>Save</button>
