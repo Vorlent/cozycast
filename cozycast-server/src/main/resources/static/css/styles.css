@@ -607,6 +607,7 @@ button{
 /* RoomSidebar.js START */
 #sidebar {
     min-width:15em;
+    max-width:15em;
     grid-area: sidebar;
     display: flex;
     flex-direction: column;
