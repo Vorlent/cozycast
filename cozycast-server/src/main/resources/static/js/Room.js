@@ -35,6 +35,8 @@ export class Room extends Component {
             state.roomToken = localStorage.getItem("room-" + roomId + "-token");
             state.username = localStorage.getItem("username");
             state.banned = localStorage.getItem("banned");
+            state.muteChatNotification = localStorage.getItem("muteChatNotification") == 'true';
+            state.showUsernames = localStorage.getItem("showUsernames") == 'true';
             if(!state.username) {
                 state.username = "Anonymous"
             }
@@ -50,8 +52,6 @@ export class Room extends Component {
                     }
                 })
             }
-            state.muteChatNotification = localStorage.getItem("muteChatNotification");
-            state.showUsernames = localStorage.getItem("showUsernames");
         })
         connect(this.props.roomId)
         window.onbeforeunload = function() {
