@@ -9,7 +9,9 @@ import { Admin } from '/js/Admin.js'
 
 export var SidebarState = {
     CHAT: "CHAT",
-    SETTINGS: "SETTINGS"
+    SETTINGS: "SETTINGS",
+    USERS: "USERS",
+    NOTHING: "NOTHING"
 }
 
 export var WorkerStatus = {
@@ -65,7 +67,8 @@ export var state = {
     scheduleMenu: "ROOM_AVAILABILITY",
     editSchedule: {
         days: []
-    }
+    },
+    userlistHidden: false
 };
 
 export function queryParams(params) {

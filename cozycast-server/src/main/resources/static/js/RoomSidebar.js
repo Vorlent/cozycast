@@ -4,6 +4,7 @@ import { html } from '/js/libs/htm/preact/index.js'
 import { Chat } from '/js/Chat.js'
 import { RoomSettings } from '/js/RoomSettings.js'
 import { Button } from '/js/Button.js'
+import { UserlistSidebar } from '/js/UserlistSidebar.js'
 
 import { SidebarState, state, updateState } from '/js/index.js'
 
@@ -18,7 +19,8 @@ export class RoomSidebar extends Component {
                 </div>`}
                 ${state.roomSidebar == SidebarState.CHAT &&
                     html`<${Chat} state=${state}/>`}
-
+                ${state.roomSidebar == SidebarState.USERS &&
+                html`<${UserlistSidebar} state=${state}/>`}
                 ${state.roomSidebar == SidebarState.SETTINGS
                     && state.roomToken
                     && html`<${RoomSettings} state=${state}/>`}
