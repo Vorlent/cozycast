@@ -26,12 +26,19 @@ function updateProfileMuteChatNotification(muteChatNotification) {
     })
 }
 
+function updateShowUsernamesOnBottom(showUsername) {
+    updateState(function (state) {
+        state.profileModal.showUsernames = showUsername;
+    })
+}
+
 function saveProfile() {
     updateState(function (state) {
         if(state.profileModal) {
             state.muteChatNotification = state.profileModal.muteChatNotification;
             state.username = state.profileModal.username.substring(0, 12)
             state.avatarUrl = state.profileModal.avatarUrl
+            state.showUsernames = state.profileModal.showUsernames
             sendMessage({
                 action : 'changeusername',
                 username : state.username
@@ -43,6 +50,7 @@ function saveProfile() {
             localStorage.setItem("username", state.username);
             localStorage.setItem("avatarUrl", state.avatarUrl);
             localStorage.setItem("muteChatNotification", state.muteChatNotification);
+            localStorage.setItem("showUsernames", state.showUsernames);
         }
     })
     closeProfile()
@@ -65,7 +73,8 @@ export function openProfile() {
         state.profileModal = {
             username: state.username,
             avatarUrl: state.avatarUrl,
-            muteChatNotification: state.muteChatNotification
+            muteChatNotification: state.muteChatNotification,
+            showUsernames: state.showUsernames
         };
     })
 }
@@ -96,6 +105,9 @@ export class ProfileModal extends Component {
                     <div>Mute Chat Notification: <input class="modal-username" type="checkbox"
                         onInput=${e => updateProfileMuteChatNotification(e.target.checked)}
                         name="muteChatNotification" checked="${state.profileModal.muteChatNotification}"/></div>
+                    <div>Show usernames: <input class="modal-username" type="checkbox"
+                        onInput=${e => updateShowUsernamesOnBottom(e.target.checked)}
+                        name="showUsernames" checked="${state.profileModal.showUsernames}"/></div>
                     <button class="btn btn-primary" onclick=${saveProfile}>Save</button>
                 </div>
         </div>`}`

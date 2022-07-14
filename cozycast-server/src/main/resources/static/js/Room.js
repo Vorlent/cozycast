@@ -486,7 +486,7 @@ function connect(room) {
         webrtc_stop()
         clearInterval(keepAlive)
         keepAlive = null;
-    	connect(room);
+    	//connect(room);
     }
 
     websocket.onopen = function (event) {
