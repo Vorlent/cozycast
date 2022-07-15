@@ -68,7 +68,8 @@ export var state = {
     editSchedule: {
         days: []
     },
-    userlistHidden: false
+    userlistHidden: false,
+    showUsernames: true
 };
 
 export function queryParams(params) {

@@ -101,7 +101,7 @@ html, body, #pagecontent, #videosizer {
 }
 
 #userlist {
-    height: 4.5em;
+
     flex-grow: 1;
     display: flex;
     justify-content: center;
@@ -110,6 +110,14 @@ html, body, #pagecontent, #videosizer {
     overflow: auto hidden;
     scrollbar-width: thin;
     background-color: #123;
+}
+
+.bigUserlist {
+    height: 5em;
+}
+
+.smallUserlist {
+    height: 4.5em;
 }
 
 .userlistSidebar {
