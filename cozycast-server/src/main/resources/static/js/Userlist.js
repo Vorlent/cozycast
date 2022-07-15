@@ -14,6 +14,6 @@ export function Userlist({ state }) {
             </div>
         `)}
     </div>
-    <a id="copyright" href="/license" target="_blank">Copyright (C) 2019 Vorlent</a>
+    <a id="copyright" href="/license" target="_blank">Copyright (C) 2022 Vorlent</a>
     `
 }
