@@ -172,7 +172,7 @@ export class Chat extends Component {
             <div id="messages" onscroll=${this.chatScroll}>
                 ${state.chatMessages.map(message => html`
                     <div class="message">
-                        <div class="username">${message.username + " " + message.timestamp}</div>
+                        <div class="username">${message.username + "  "}<span class="timestamp">${message.timestamp}</span></div>
                         ${message.messages.map(msg => html`
                             ${msg.type == "url" &&
                                 html`<div><a class="chat-link" target="_blank" href="${msg.href}">${msg.href}</a></div>`}

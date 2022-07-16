@@ -54,6 +54,7 @@ html, body, #pagecontent, #videosizer {
     flex-direction: column;
     justify-content: flex-end;
     overflow-x: hidden;
+    position: relative;
 }
 
 #videoBig, #video {
@@ -86,11 +87,35 @@ html, body, #pagecontent, #videosizer {
 
 #controls{
     height: 3em;
-    background-color: #181828;
     display: flex;
     justify-content: space-between;
     align-self: center;
     overflow: fragments;
+}
+
+.controlsVisible{
+    background-color: #181828;
+}
+
+.controlsFullscreen{
+    background-color: transparent;
+    background: none;
+}
+
+.toolbarFullscreen{
+    z-index: 2;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 2s;
+    transition-delay: 1s;
+}
+
+.toolbarFullscreen:hover{
+    transform: translateY(0);
+    opacity: 1;
+    transition: opacity 0s;
 }
 
 .subControls{
@@ -218,6 +243,12 @@ button{
 
 .username {
     font-weight: 600;
+}
+
+.timestamp {
+    font-weight: 300;
+    font-size: 0.8em;
+    color: lightgray;
 }
 
 #messages {
