@@ -37,6 +37,7 @@ export class Room extends Component {
             state.banned = localStorage.getItem("banned");
             state.muteChatNotification = localStorage.getItem("muteChatNotification") == 'true';
             state.showUsernames = localStorage.getItem("showUsernames") == 'true';
+            state.legacyDesign = localStorage.getItem("legacyDesign") == 'true';
             if(!state.username) {
                 state.username = "Anonymous"
             }
@@ -117,24 +118,23 @@ export class Room extends Component {
 
     render({ roomId }, { xyz = [] }) {
     return html`
-        <div id="pagecontent">
+        <div id="pagecontent" class="${state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}">
             ${isBanned() && html`Banned until ${state.banned}`}
             ${!isBanned() && html`
-            <div class="contentWithoutSidebar">
+            <div id="contentWithoutSidebar" class="contentWithoutSidebar">
                 <${VideoControls} state=${state}/>
                 ${state.scheduleSidebar && html`
                     <${ScheduleSidebar} state=${state}/>`}
-                ${!state.fullscreen && html`
-                <div id="pagetoolbar">
-                    <div id="controls">
+                <div id="pagetoolbar" class="${state.fullscreen ? "toolbarFullscreen" : ""}">
+                    <div id="controls"  class="${state.fullscreen ? "controlsFullscreen" : "visibleControls" }">
                         <div class="subControls">
                             <${Button} enabled=${state.profileModal} onclick=${openProfile} style="buttonBig">Profile<//>
-                            <${Button} enabled=${state.userlistHidden} onclick=${this.hideUserlist} style="buttonSmall optional">
+                            ${!state.fullscreen && html`<${Button} enabled=${state.userlistHidden} onclick=${this.hideUserlist} style="buttonSmall optional">
                                 <img class="video-control-icon" src="${state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}"/>
-                            <//>
+                            <//>`}
                         </div>
                         <div class="subControls">
-                            <${Button} enabled=${state.remote} onclick=${remote} style="buttonBig">Remote<//>
+                            ${!state.fullscreen && html`<${Button} enabled=${state.remote} onclick=${remote} style="buttonBig">Remote<//>`}
                             <${Button} enabled=${state.videoPaused} onclick=${pauseVideo}
                                 title="${state.videoPaused ? 'Pause' : 'Play'}" style="buttonSmall">
                                 <img class="video-control-icon" src="${state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}"/>
@@ -161,9 +161,8 @@ export class Room extends Component {
                             <//>
                         </div>
                     </div>
-                    ${!state.userlistHidden && html`<${Userlist} state=${state}/>`}
+                    ${!state.userlistHidden && !state.fullscreen && html`<${Userlist} state=${state}/>`}
                 </div>
-                `}
             </div>
                 
             ${(state.roomSidebar != SidebarState.NOTHING) && html`<${RoomSidebar} state=${state}/>`}
@@ -186,6 +185,11 @@ function toggleFullscreen() {
         document.exitFullscreen()
     } else {
         document.getElementById("pagecontent").requestFullscreen()
+        if(state.remote) {
+            sendMessage({
+                action : 'drop_remote'
+            });
+        }
     }
 }
 
