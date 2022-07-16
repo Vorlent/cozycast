@@ -69,7 +69,8 @@ export var state = {
         days: []
     },
     userlistHidden: false,
-    showUsernames: true
+    showUsernames: true,
+    legacyDesign: false
 };
 
 export function queryParams(params) {

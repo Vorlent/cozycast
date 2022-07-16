@@ -32,13 +32,20 @@ function updateShowUsernamesOnBottom(showUsername) {
     })
 }
 
+function updateDesignChoice(useLegacy) {
+    updateState(function (state) {
+        state.profileModal.legacyDesign = useLegacy;
+    })
+}
+
 function saveProfile() {
     updateState(function (state) {
         if(state.profileModal) {
             state.muteChatNotification = state.profileModal.muteChatNotification;
-            state.username = state.profileModal.username.substring(0, 12)
-            state.avatarUrl = state.profileModal.avatarUrl
-            state.showUsernames = state.profileModal.showUsernames
+            state.username = state.profileModal.username.substring(0, 12);
+            state.avatarUrl = state.profileModal.avatarUrl;
+            state.showUsernames = state.profileModal.showUsernames;
+            state.legacyDesign = state.profileModal.legacyDesign;
             sendMessage({
                 action : 'changeusername',
                 username : state.username
@@ -51,6 +58,7 @@ function saveProfile() {
             localStorage.setItem("avatarUrl", state.avatarUrl);
             localStorage.setItem("muteChatNotification", state.muteChatNotification);
             localStorage.setItem("showUsernames", state.showUsernames);
+            localStorage.setItem("legacyDesign", state.legacyDesign);
         }
     })
     closeProfile()
@@ -74,7 +82,8 @@ export function openProfile() {
             username: state.username,
             avatarUrl: state.avatarUrl,
             muteChatNotification: state.muteChatNotification,
-            showUsernames: state.showUsernames
+            showUsernames: state.showUsernames,
+            legacyDesign: state.legacyDesign
         };
     })
 }
@@ -108,6 +117,9 @@ export class ProfileModal extends Component {
                     <div>Show Usernames: <input class="modal-username" type="checkbox"
                         onInput=${e => updateShowUsernamesOnBottom(e.target.checked)}
                         name="showUsernames" checked="${state.profileModal.showUsernames}"/></div>
+                    <div>Use Legacy Design: <input class="modal-username" type="checkbox"
+                        onInput=${e => updateDesignChoice(e.target.checked)}
+                        name="legacyDesign" checked="${state.profileModal.legacyDesign}"/></div>
                     <button class="btn btn-primary" onclick=${saveProfile}>Save</button>
                 </div>
         </div>`}`

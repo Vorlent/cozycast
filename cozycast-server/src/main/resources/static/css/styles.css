@@ -4,9 +4,26 @@
 }
 
 :root {
-    --cozycast-noise: url("/png/noise_128.png");
     --cozycast-dpr: 1;
     font-family: "Arial", "sans-serif";
+}
+
+.legacyDesign{
+    --cozycast-noise: none;
+    --cozyColor: black;
+    --cozyColorMenu: #171b22;
+    --cozyColorAccent: #22242f;
+    --cozyButton: #252733;
+    --cozyButtonAccemt: #0e0f14;
+}
+
+.defaultDesign{
+    --cozycast-noise: url("/png/noise_128.png");
+    --cozyColor: #181828;
+    --cozyColorMenu: #123;
+    --cozyColorAccent: #235;
+    --cozyButton: #17c;
+    --cozyButtonAccemt: #048;
 }
 
 ::-webkit-scrollbar {
@@ -43,8 +60,11 @@ html, body, #pagecontent, #videosizer {
 }
 
 #pagecontent > *{
-    background: fixed repeat top left var(--cozycast-noise);
     background-size: calc(128px / var(--cozycast-dpr));
+}
+
+.noiseBackground > *{
+    background: fixed repeat top left var(--cozycast-noise);
 }
 
 .contentWithoutSidebar {
@@ -66,7 +86,7 @@ html, body, #pagecontent, #videosizer {
     flex-grow: 1;
     grid-area: video;
     position: relative;
-    background-color: #181828;
+    background-color: var(--cozyColor);
 }
 
 #videosizer {
@@ -91,10 +111,6 @@ html, body, #pagecontent, #videosizer {
     justify-content: space-between;
     align-self: center;
     overflow: fragments;
-}
-
-.controlsVisible{
-    background-color: #181828;
 }
 
 .controlsFullscreen{
@@ -126,7 +142,6 @@ html, body, #pagecontent, #videosizer {
 }
 
 #userlist {
-
     flex-grow: 1;
     display: flex;
     justify-content: center;
@@ -134,7 +149,11 @@ html, body, #pagecontent, #videosizer {
     gap: 15px;
     overflow: auto hidden;
     scrollbar-width: thin;
-    background-color: #123;
+    background: var(--cozyColorMenu) var(--cozycast-noise);
+}
+
+.visibleControls{
+    background: var(--cozyColorMenu) var(--cozycast-noise);
 }
 
 .bigUserlist {
@@ -190,12 +209,12 @@ button{
 }
 
 .btn-primary {
-    background-color: #17c;
-    border-color: #048;
+    background-color: var(--cozyButton);
+    border-color: var(--cozyButtonAccemt);
 }
 
 .btn-primary:hover {
-    background-color: #048;
+    background-color: var(--cozyButtonAccemt);
 }
 
 .btn-danger {
@@ -283,7 +302,7 @@ button{
 
 #chatbox-textarea {
     color: white;
-    background: #235 var(--cozycast-noise);
+    background: var(--cozyColorAccent) var(--cozycast-noise);
     resize: none;
     width: 100%;
     border-radius: 5px;
@@ -444,7 +463,7 @@ button{
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: #123 var(--cozycast-noise);
+    background: var(--cozyColorMenu) var(--cozycast-noise);
     margin: 15% auto; /* 15% from the top and centered */
     padding: 10px;
     border: 1px solid black;
@@ -666,7 +685,7 @@ button{
 }
 
 #pagecontent > #sidebar {
-    background-color: #123;
+    background-color: var(--cozyColorMenu);
 }
 
 /* RoomSidebar.js END */
@@ -873,6 +892,10 @@ button{
 
     #controls {
         justify-content: center;
+    }
+
+    #sidebar{
+        max-width: 100%;
     }
 
     .subControls{
