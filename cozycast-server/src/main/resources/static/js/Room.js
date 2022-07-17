@@ -38,6 +38,8 @@ export class Room extends Component {
             state.muteChatNotification = localStorage.getItem("muteChatNotification") == 'true';
             state.showUsernames = localStorage.getItem("showUsernames") == 'true';
             state.legacyDesign = localStorage.getItem("legacyDesign") == 'true';
+            const volume = parseInt(localStorage.getItem("volume"));
+            if(!isNaN(volume)) state.volume = Math.max(Math.min(volume,100),0);
             if(!state.username) {
                 state.username = "Anonymous"
             }
@@ -174,17 +176,40 @@ export class Room extends Component {
 }
 
 
+
+
 document.addEventListener('fullscreenchange', (event) => {
+  if(document.fullscreenElement == null){
+        document.getElementById("pagecontent").removeEventListener('mousemove',removeCursor);
+  };
   updateState(function(state) {
       state.fullscreen = document.fullscreenElement !== null
   })
 });
+
+
+let idleTimer = null;
+let idleState = false;
+function removeCursor(e) {
+  let time = 2000;
+  clearTimeout(idleTimer);
+  if (idleState == true) {
+    document.getElementById("contentWithoutSidebar").classList.remove("hideCursor");
+  }
+  idleState = false;
+  idleTimer = setTimeout(function() {
+    if(document.fullscreenElement == null) return;
+    document.getElementById("contentWithoutSidebar").classList.add("hideCursor");
+    idleState = true;
+  }, time);
+}
 
 function toggleFullscreen() {
     if(document.fullscreenElement != null) {
         document.exitFullscreen()
     } else {
         document.getElementById("pagecontent").requestFullscreen()
+        document.getElementById("pagecontent").addEventListener('mousemove',removeCursor);
         if(state.remote) {
             sendMessage({
                 action : 'drop_remote'
@@ -209,6 +234,7 @@ export function pauseVideo(e) {
 }
 
 function changeVolume(e) {
+    localStorage.setItem("volume",e.target.value);
     updateState(function(state) {
         state.volume = e.target.value;
     })
