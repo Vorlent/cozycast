@@ -50,6 +50,10 @@ html, body, #pagecontent, #videosizer {
     padding: 0;
 }
 
+.hideCursor {
+    cursor: none;
+}
+
 .hidden {
     display: none;
 }
@@ -123,13 +127,14 @@ html, body, #pagecontent, #videosizer {
     position: absolute;
     bottom: 0;
     width: 100%;
-    opacity: 0;
-    transition: opacity 2s;
-    transition-delay: 1s;
 }
 
-.toolbarFullscreen:hover{
-    transform: translateY(0);
+.hideToolbar{
+    opacity: 0;
+    transition: opacity 2s;
+}
+
+.hideToolbar:hover{
     opacity: 1;
     transition: opacity 0s;
 }
@@ -456,7 +461,8 @@ button{
     top: 0;
     height: 100%;
     width: 100%;
-    background-color: rgba(0, 0, 0, 0.7)
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
 }
 
 .modal {
@@ -464,7 +470,7 @@ button{
     flex-direction: column;
     align-items: center;
     background: var(--cozyColorMenu) var(--cozycast-noise);
-    margin: 15% auto; /* 15% from the top and centered */
+    margin: auto auto;
     padding: 10px;
     border: 1px solid black;
     border-radius: 1em;
@@ -524,6 +530,11 @@ button{
 
 .profile.modal .btn-primary {
     padding: 5px 15px 5px 15px;
+}
+
+.userOptions{
+    line-height: 1.5em;
+    margin-top: 0.5em;
 }
 
 /* Modal.js END */
@@ -880,6 +891,46 @@ button{
 
 /* ScheduleEditAvailability.js End */
 
+/* ConfirmUpload.js */
+
+.confirmUpload{
+    background-color: var(--cozyColorAccent);
+    border-color: var(--cozyColorMenu);
+    border-radius: 0.5em;
+    z-index: 2;
+    bottom: 6.5em;
+    position: absolute;
+    align-self: center;
+    max-width: 15em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
+    padding: 1em;
+}
+
+.confirmButton{
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+}
+
+.uploadPreview{
+    max-width: 12em;
+    width: 12em;
+}
+
+.buttonCancel{
+    background-color: var(--cozyColorMenu);
+    border-color: var(--cozyButton);
+}
+
+.buttonBorder{
+    border-width: light;
+    padding: 0.6em;
+    width: 4.5em;
+}
+/* ConfirmUpload.js End */
 
 @media (max-width: 780px) {
     #pagecontent {

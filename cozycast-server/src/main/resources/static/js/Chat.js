@@ -2,6 +2,7 @@ import { Component } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
 import { state, updateState } from '/js/index.js'
 import { sendMessage } from '/js/Room.js'
+import { ConfirmUpload, openConfirmWindow, openConfirmWindowPaste } from '/js/ConfirmUpload.js'
 
 var lastTypingEvent = Date.now();
 function chatInput(e) {
@@ -56,57 +57,10 @@ function openPictureUpload() {
     document.getElementById('image-upload-file').click();
 }
 
-function imageSelected(e) {
-    let formData = new FormData();
-    if(e.target.files.length > 0) {
-        formData.append("image", e.target.files[0]);
-        fetch('/image/upload', {method: "POST", body: formData}).then((e) => e.json()).then(function (e) {
-            sendMessage({
-                action: 'chatmessage',
-                image: e.url,
-                type: e.type,
-                message: "",
-                username: state.username
-            });
-        });
-        e.target.value = "";
-    }
-}
-
-var lastUpload = Date.now()
-
 export class Chat extends Component {
     constructor() {
         super()
         this.typingInterval = null;
-    }
-
-    pasteFile(e) {
-        if(e.clipboardData) {
-            var items = e.clipboardData.items
-            for (var i = 0; i < items.length; i++) {
-                if (items[i].type.indexOf("image") == -1) continue
-                var blob = items[i].getAsFile()
-
-                var now = Date.now();
-                if(now - lastUpload < 3000) {
-                    return
-                }
-                lastUpload = now
-
-                let formData = new FormData();
-                formData.append("image", blob);
-                fetch('/image/upload', {method: "POST", body: formData}).then((e) => e.json()).then(function (e) {
-                    sendMessage({
-                        action: 'chatmessage',
-                        image: e.url,
-                        type: e.type,
-                        message: "",
-                        username: state.username
-                    });
-                });
-           }
-        };
     }
 
     componentDidMount() {
@@ -194,6 +148,7 @@ export class Chat extends Component {
                     </div>
                 `)}
             </div>
+            <${ConfirmUpload} state=${state}/>
             <div id="chatbox">
                 <div id="typing">
                     ${state.typingUsers.length > 0 && html`
@@ -203,11 +158,11 @@ export class Chat extends Component {
                     `}
                 </div>
                 <div class="image-uploader">
-                    <textarea id="chatbox-textarea" oninput=${chatInput} onkeypress=${chatEnter} onpaste=${this.pasteFile}>
+                    <textarea id="chatbox-textarea" oninput=${chatInput} onkeypress=${chatEnter} onpaste=${openConfirmWindowPaste}>
                         ${state.chatBox}
                     </textarea>
                     <div class="image-uploader-button-wrapper">
-                        <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange=${imageSelected}/>
+                        <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange=${openConfirmWindow}/>
                         ${(state.chatBox.length == 0) &&
                             html`<img class="image-uploader-button" src="/svg/image_upload.svg" onclick=${openPictureUpload}/>`}
                     </div>
