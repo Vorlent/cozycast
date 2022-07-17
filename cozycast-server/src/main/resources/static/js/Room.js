@@ -180,7 +180,7 @@ export class Room extends Component {
 
 document.addEventListener('fullscreenchange', (event) => {
   if(document.fullscreenElement == null){
-        document.getElementById("pagecontent").removeEventListener('mousemove',removeCursor);
+        document.getElementById("videoBig").removeEventListener('mousemove',removeCursor);
   };
   updateState(function(state) {
       state.fullscreen = document.fullscreenElement !== null
@@ -191,15 +191,17 @@ document.addEventListener('fullscreenchange', (event) => {
 let idleTimer = null;
 let idleState = false;
 function removeCursor(e) {
-  let time = 2000;
+  let time = 1500;
   clearTimeout(idleTimer);
   if (idleState == true) {
-    document.getElementById("contentWithoutSidebar").classList.remove("hideCursor");
+    document.getElementById("pagetoolbar").classList.remove("hideToolbar");
+    document.getElementById("videoBig").classList.remove("hideCursor");
   }
   idleState = false;
   idleTimer = setTimeout(function() {
     if(document.fullscreenElement == null) return;
-    document.getElementById("contentWithoutSidebar").classList.add("hideCursor");
+    document.getElementById("pagetoolbar").classList.add("hideToolbar");
+    document.getElementById("videoBig").classList.add("hideCursor");
     idleState = true;
   }, time);
 }

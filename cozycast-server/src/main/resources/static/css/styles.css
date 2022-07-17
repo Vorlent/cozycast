@@ -127,13 +127,14 @@ html, body, #pagecontent, #videosizer {
     position: absolute;
     bottom: 0;
     width: 100%;
-    opacity: 0;
-    transition: opacity 2s;
-    transition-delay: 1s;
 }
 
-.toolbarFullscreen:hover{
-    transform: translateY(0);
+.hideToolbar{
+    opacity: 0;
+    transition: opacity 2s;
+}
+
+.hideToolbar:hover{
     opacity: 1;
     transition: opacity 0s;
 }
@@ -890,6 +891,46 @@ button{
 
 /* ScheduleEditAvailability.js End */
 
+/* ConfirmUpload.js */
+
+.confirmUpload{
+    background-color: var(--cozyColorAccent);
+    border-color: var(--cozyColorMenu);
+    border-radius: 0.5em;
+    z-index: 2;
+    bottom: 6.5em;
+    position: absolute;
+    align-self: center;
+    max-width: 15em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
+    padding: 1em;
+}
+
+.confirmButton{
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+}
+
+.uploadPreview{
+    max-width: 12em;
+    width: 12em;
+}
+
+.buttonCancel{
+    background-color: var(--cozyColorMenu);
+    border-color: var(--cozyButton);
+}
+
+.buttonBorder{
+    border-width: light;
+    padding: 0.6em;
+    width: 4.5em;
+}
+/* ConfirmUpload.js End */
 
 @media (max-width: 780px) {
     #pagecontent {
