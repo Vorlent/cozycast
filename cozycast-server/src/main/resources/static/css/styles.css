@@ -1,11 +1,12 @@
 * {
     box-sizing: border-box;
-    scrollbar-color: #346 #235;
+    scrollbar-color: var(--cozyScrollbar,#346) var(--cozyScrollThumb,#235);
 }
 
 :root {
     --cozycast-dpr: 1;
     font-family: "Arial", "sans-serif";
+    --noise: url("/png/noise_128.png");
 }
 
 .legacyDesign{
@@ -15,6 +16,8 @@
     --cozyColorAccent: #22242f;
     --cozyButton: #252733;
     --cozyButtonAccemt: #0e0f14;
+    --cozyScrollbar: #353e4f;
+    --cozyScrollThumb: #1f2530;
 }
 
 .defaultDesign{
@@ -24,14 +27,17 @@
     --cozyColorAccent: #235;
     --cozyButton: #17c;
     --cozyButtonAccemt: #048;
+    --cozyScrollbar: #346;
+    --cozyScrollThumb: #235;
 }
 
 ::-webkit-scrollbar {
-    background: #346;
+    background: var(--cozyScrollbar,#346);
+    width: 10px; /* This is a fix for the chrome browser*/
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #235;
+    background: var(--cozyScrollThumb,#235);
 }
 
 input:focus,
@@ -725,7 +731,7 @@ button{
 .admin-modal {
     border: 1px solid black;
     border-radius: 1em;
-    background: #123 var(--cozycast-noise);
+    background: #123 var(--noise);
     margin: 0 auto;
     padding: 10px;
     display: flex;
