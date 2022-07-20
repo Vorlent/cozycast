@@ -18,6 +18,9 @@
     --cozyButtonAccemt: #0e0f14;
     --cozyScrollbar: #353e4f;
     --cozyScrollThumb: #1f2530;
+    --cozyHighContrast: white;
+    --cozySelect:#686d78;
+    --cozySvgFilter: invert(33%) sepia(10%) saturate(1119%) hue-rotate(182deg) brightness(94%) contrast(87%);
 }
 
 .defaultDesign{
@@ -29,11 +32,13 @@
     --cozyButtonAccemt: #048;
     --cozyScrollbar: #346;
     --cozyScrollThumb: #235;
+    --cozyHighContrast: #5566aa;
+    --cozySelect:#337ab7;
+    --cozySvgFilter: invert(37%) sepia(61%) saturate(457%) hue-rotate(191deg) brightness(95%) contrast(90%);
 }
 
 ::-webkit-scrollbar {
     background: var(--cozyScrollbar,#346);
-    width: 10px; /* This is a fix for the chrome browser*/
 }
 
 ::-webkit-scrollbar-thumb {
@@ -285,7 +290,7 @@ button{
     flex-grow: 1;
     padding-left: 10px;
     padding-right: 10px;
-    overflow-y: scroll;
+    overflow-y: auto;
     word-break: break-word;
 }
 
@@ -338,6 +343,8 @@ button{
 }
 
 .image-uploader-button {
+    /* svg hack*/
+    filter: var(--cozySvgFilter);
 }
 
 .image-uploader-button:hover {
@@ -380,7 +387,7 @@ button{
     width: 100%;
     max-width: 100px;
     height: 5px;
-    background: #346;
+    background: var(--cozyScrollbar,#346);
     outline: none;
     opacity: 0.7;
     -webkit-transition: .2s;
@@ -396,7 +403,7 @@ button{
     appearance: none;
     width: 15px;
     height: 15px;
-    background: #235;
+    background: var(--cozyScrollThumb,#235);
     cursor: pointer;
     border-radius: 50%;
 }
@@ -489,6 +496,7 @@ button{
 .modal > .title {
     display: flex;
     align-self: stretch;
+    position: relative;
 }
 
 .modal > .title > div {
@@ -512,10 +520,13 @@ button{
     background-color: rgba(0, 0, 0, 0.3);
     border-radius: 50%;
     box-shadow: 0 0 3px black inset;
+    position: absolute;
+    top: 0;
+    right: 0;
 }
 
 .modal-close:hover {
-    color: #337ab7;
+    color: var(--cozySelect);
 }
 
 .modal .title {
