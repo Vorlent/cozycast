@@ -96,13 +96,16 @@ export class Chat extends Component {
 
     chatScroll() {
         var messages = document.getElementById("messages");
-        var activateHistoryMode = 0.3 * messages.offsetHeight < messages.scrollTopMax - messages.scrollTop
+        //chrome fix for scrollTopMax
+        var scrollTop = messages.scrollTopMax ? messages.scrollTopMax : messages.scrollHeight - messages.clientHeight;
+        var activateHistoryMode = 0.3 * messages.offsetHeight < scrollTop - messages.scrollTop
         if(state.historyMode != activateHistoryMode) {
             updateState(function (state) {
                 state.historyMode = activateHistoryMode
             })
         }
     }
+
 
     scrollToBottom() {
         if(!state.historyMode || state.forceChatScroll) {
@@ -114,6 +117,20 @@ export class Chat extends Component {
                 })
             }
         }
+    }
+
+    autosize() {
+        var div = document.querySelector('.ta-wrapper');
+        var ta =  document.querySelector('.chatbox-textarea');
+        var messages = document.getElementById("messages");
+ 
+     setTimeout(function() {
+         ta. style.cssText = 'height:0px';
+         var height = Math.min(18*5, ta.scrollHeight);
+         div.style.cssText = 'height:' + (20 + height) + 'px';
+         ta. style.cssText = 'height:' + height + 'px';
+         messages.scrollTop = messages.scrollHeight;
+        },0);
     }
 
     render({ state }, { xyz = [] }) {
@@ -150,24 +167,27 @@ export class Chat extends Component {
             </div>
             <${ConfirmUpload} state=${state}/>
             <div id="chatbox">
-                <div id="typing">
-                    ${state.typingUsers.length > 0 && html`
-                        ${state.typingUsers.map((user, i) => html`
-                            ${user.username}${(state.typingUsers.length - 1 != i) && ', '}
-                        `)} ${state.typingUsers.length > 1 ? 'are' : 'is'} typing...
-                    `}
-                </div>
                 <div class="image-uploader">
-                    <textarea id="chatbox-textarea" oninput=${chatInput} onkeypress=${chatEnter} onpaste=${openConfirmWindowPaste}>
+                    <div class="ta-wrapper">
+                    <textarea class="chatbox-textarea" oninput=${chatInput} onkeypress=${chatEnter} onkeydown="${this.autosize}" onpaste=${openConfirmWindowPaste}>
                         ${state.chatBox}
                     </textarea>
+                    </div>
                     <div class="image-uploader-button-wrapper">
                         <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange=${openConfirmWindow}/>
                         ${(state.chatBox.length == 0) &&
                             html`<img class="image-uploader-button" src="/svg/image_upload.svg" onclick=${openPictureUpload}/>`}
                     </div>
                 </div>
+                <div id="typing">
+                    ${state.typingUsers.length > 0 && html`
+                        ${state.typingUsers.length > 2 ? "Several people" : state.typingUsers.map((user, i) => html`${user.username}${(state.typingUsers.length - 1 != i) && ', '}`)} ${state.typingUsers.length > 1 ? 'are ' : 'is '}
+                        <div class="typingWrapper">typing<div class="loadingDotsWrapper"><div class="loadingDots"></div></div></div>
+                    `}
+                </div>
             </div>
         </div>`
     }
+
+    
 }
