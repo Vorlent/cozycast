@@ -71,6 +71,13 @@ class TypingEvent {
     Long lastTypingTime
 }
 
+class UserActivityEvent {
+    String action = "userActivityChange"
+    String session
+    String active
+    String lastTimeSeen
+}
+
 class ChatHistoryEvent {
     String action = "chat_history"
     List<ReceiveMessageEvent> messages
@@ -164,6 +171,8 @@ class JoinEvent {
     String session
     String username
     String url
+    Boolean active
+    String lastTimeSeen
 }
 
 class PasteEvent {
@@ -220,6 +229,38 @@ class PlayerWebsocketServer {
 
     private void keepalive(Room room, WebSocketSession session, Map jsonMessage) {
         sendMessage(session, new KeepAlive())
+    }
+
+    private void userActivity(Room room, WebSocketSession session, Map jsonMessage){
+        UserSession user = room.users.get(session.getId())
+        if(jsonMessage.tabbedOut){
+            if(user.active){
+                user.active = false
+                room.users.each { key, value ->
+                    if(session.getId() != value.getWebSocketSession().getId()) {
+                        sendMessage(value.webSocketSession, new UserActivityEvent(
+                            session: session.getId(),
+                            active: user.active,
+                            lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen)
+                        ))
+                    }
+                }
+            }
+        }else {
+            user.lastTimeSeen = ZonedDateTime.now(ZoneId.of("UTC"))
+            if(!user.active){
+                user.active = true
+                room.users.each { key, value ->
+                if(session.getId() != value.getWebSocketSession().getId()) {
+                    sendMessage(value.webSocketSession, new UserActivityEvent(
+                        session: session.getId(),
+                        active: user.active,
+                        lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen)
+                    ))
+                }
+                }
+            }
+        }
     }
 
     private void start(Room room, WebSocketSession session, Map jsonMessage) {
@@ -389,7 +430,9 @@ class PlayerWebsocketServer {
                 sendMessage(value.webSocketSession, new JoinEvent(
                     session: session.getId(),
                     username: jsonMessage.username,
-                    url: jsonMessage.url
+                    url: jsonMessage.url,
+                    active:  user.active,
+                    lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen)
                 ))
             }
 
@@ -398,7 +441,9 @@ class PlayerWebsocketServer {
                 sendMessage(session, new JoinEvent(
                     session: key,
                     username: value.getUsername(),
-                    url: value.getAvatarUrl()
+                    url: value.getAvatarUrl(),
+                    active:  value.getActive(),
+                    lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(value.getLastTimeSeen())
                 ))
             }
         }
@@ -633,7 +678,9 @@ class PlayerWebsocketServer {
         roomRegistry.getRoom(room).users.put(session.getId(), new UserSession(
                 webSocketSession: session,
                 username: "Anonymous",
-                avatarUrl: "/png/default_avatar.png"
+                avatarUrl: "/png/default_avatar.png",
+                lastTimeSeen: ZonedDateTime.now(ZoneId.of("UTC")),
+                active: true
             ))
     }
 
@@ -646,6 +693,9 @@ class PlayerWebsocketServer {
             switch (jsonMessage.action) {
                 case "keepalive":
                     keepalive(currentRoom, session, jsonMessage)
+                    break;
+                case "userActivity":
+                    userActivity(currentRoom, session, jsonMessage)
                     break;
                 case "start":
                     start(currentRoom, session, jsonMessage)

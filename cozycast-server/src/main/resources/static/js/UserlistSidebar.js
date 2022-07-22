@@ -5,8 +5,15 @@ export function UserlistSidebar({ state }) {
     return html`<div class="userlistSidebar">
         ${state.userlist.map(user => html`
             <div class="userSidebar">
-                <div class="image avatar" style="background-image: url('${user.url}');"/>
-                <div class="usernameSidebar">${user.username}</div>
+                <div class="image avatar" style="background-image: url('${user.url}');">
+                    <div class="onlineDot ${user.active? "isOnline": "isInactive"}"></div>
+                </div>
+                <div class="usernameSidebar">
+                    <div class="username">${user.username}</div>
+                    ${!user.active && html`
+                        <div class="lastSeen">last seen: <span>${user.lastTimeSeen}</span></div>
+                        `}
+                </div>
             </div>
         `)}
     </div>

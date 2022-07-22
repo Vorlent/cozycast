@@ -172,11 +172,12 @@ html, body, #pagecontent, #videosizer {
     display: flex;
     justify-content: center;
     min-width: 0;
-    gap: 15px;
+    gap: 5px;
     overflow: auto hidden;
     scrollbar-width: thin;
     background: var(--cozyColorMenu) var(--cozycast-noise);
 }
+
 
 .visibleControls{
     background: var(--cozyColorMenu) var(--cozycast-noise);
@@ -207,8 +208,12 @@ html, body, #pagecontent, #videosizer {
 .usernameSidebar {
     display: flex;
     margin-left: 1em;
-    align-items:center;
+    align-items:baseline;
+    flex-direction: column;
+    justify-content: center;
 }
+
+
 
 .btn {
     color: white;
@@ -293,6 +298,12 @@ button{
 .timestamp {
     font-weight: 300;
     font-size: 0.8em;
+    color: lightgray;
+}
+
+.lastSeen{
+    font-weight: 300;
+    font-size: 0.7em;
     color: lightgray;
 }
 
@@ -606,6 +617,7 @@ input[type=range]::-webkit-slider-thumb {
     border-radius: 50%;
     width: 60px;
     height: 60px;
+    position: relative;;
 }
 
 .avatar.big {
@@ -614,6 +626,25 @@ input[type=range]::-webkit-slider-thumb {
     width: 180px;
     height: 180px;
     position: relative;
+}
+
+.onlineDot{
+    height: 17px;
+    width: 17px;
+    border-radius: 50%;
+    display: inline-block;
+    position: absolute;
+    border: var(--cozyColorMenu) 3px solid;
+    bottom: 0;
+    right: 0;
+}
+
+.isOnline{
+    background-color: #199239;
+}
+
+.isInactive{
+    background-color: #e6c714;
 }
 
 .uploader-overlay {
@@ -1051,6 +1082,10 @@ input[type=range]::-webkit-slider-thumb {
         flex-direction: column;
     }
 
+    #userlist {
+        height: 2.5em;
+    }
+    
     .optional {
         display: none;
     }
