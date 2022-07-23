@@ -346,8 +346,22 @@ function join(parsedMessage) {
             username: parsedMessage.username,
             url: parsedMessage.url,
             session: parsedMessage.session,
-            remote: false
+            remote: false,
+            lastTimeSeen: moment(parsedMessage.lastTimeSeen).format('h:mm A'),
+            active: parsedMessage.active
         })
+    })
+}
+
+function updateActivity(parsedMessage) {
+    updateState(function (state) {
+        state.userlist = state.userlist.map(function(element) {
+            if(element.session == parsedMessage.session) {
+                element.active = parsedMessage.active == "true";
+                element.lastTimeSeen = moment(parsedMessage.lastTimeSeen).format('h:mm A');
+            }
+            return element;
+        });
     })
 }
 
@@ -446,6 +460,9 @@ function connect(room) {
     		case 'typing':
     			typing(parsedMessage);
     			break;
+            case 'userActivityChange':
+                updateActivity(parsedMessage);
+                break;
             case 'chat_history':
                 if(parsedMessage.messages) {
                     parsedMessage.messages
@@ -525,12 +542,18 @@ function connect(room) {
     websocket.onopen = function (event) {
     	setTimeout(function() {
     		start();
+            document.addEventListener("visibilitychange", () => {
+                sendMessage({
+                    action : 'userActivity',
+                    tabbedOut: document.visibilityState != "visible"
+                });
+              });
     	}, 300);
     };
 
      keepAlive = setInterval(function(){
          sendMessage({
-         	action : 'keepalive'
+         	action : 'keepalive',
          });
      }, 30000);
 }

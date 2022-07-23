@@ -102,7 +102,7 @@ export class ConfirmUpload extends Component {
             `}
             <p>Upload this file?</p>
             <div class="confirmButton">
-            <button type="button" onclick=${send} class="btn btn-danger buttonBorder">Send</button>
+            <button type="button" onclick=${send} class="btn btn-danger buttonBorder">Upload</button>
             <button type="button" onclick=${cancel} class="btn buttonCancel buttonBorder">Cancel</button>
             </div>
         </div>
