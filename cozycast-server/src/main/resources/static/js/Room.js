@@ -29,15 +29,19 @@ export class Room extends Component {
                 }
             })
         }
-
         var roomId = this.props.roomId
         updateState(function (state) {
             state.roomToken = localStorage.getItem("room-" + roomId + "-token");
             state.username = localStorage.getItem("username");
             state.banned = localStorage.getItem("banned");
-            state.muteChatNotification = localStorage.getItem("muteChatNotification") == 'true';
-            state.showUsernames = localStorage.getItem("showUsernames") == 'true';
-            state.legacyDesign = localStorage.getItem("legacyDesign") == 'true';
+            if(localStorage.hasOwnProperty('muteChatNotification'))
+                state.muteChatNotification = localStorage.getItem("muteChatNotification") == 'true';
+            if(localStorage.hasOwnProperty('muted'))
+                state.muted = localStorage.getItem("muted") == 'true';
+            if(localStorage.hasOwnProperty('showUsernames'))
+                state.showUsernames = localStorage.getItem("showUsernames") == 'true';
+            if(localStorage.hasOwnProperty('legacyDesign'))
+                state.legacyDesign = localStorage.getItem("legacyDesign") == 'true';
             const volume = parseInt(localStorage.getItem("volume"));
             if(!isNaN(volume)) state.volume = Math.max(Math.min(volume,100),0);
             if(!state.username) {
@@ -56,6 +60,13 @@ export class Room extends Component {
                 })
             }
         })
+        if(state.muted){
+            document.getElementById("volumeControl").value = 0;
+        }
+        else{
+            document.getElementById("volumeControl").value = state.volume;
+        }
+ 
         connect(this.props.roomId)
         window.onbeforeunload = function() {
             if(websocket) {
@@ -131,7 +142,8 @@ export class Room extends Component {
                     <div id="controls"  class="${state.fullscreen ? "controlsFullscreen" : "visibleControls" }">
                         <div class="subControls">
                             <${Button} enabled=${state.profileModal} onclick=${openProfile} style="buttonBig">Profile<//>
-                            ${!state.fullscreen && html`<${Button} enabled=${state.userlistHidden} onclick=${this.hideUserlist} style="buttonSmall optional">
+                            ${!state.fullscreen && html`<${Button} enabled=${state.userlistHidden} onclick=${this.hideUserlist} 
+                                title="${state.userlistHidden ? 'Show Users' : 'Hide Users'}" style="buttonSmall optional">
                                 <img class="video-control-icon" src="${state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}"/>
                             <//>`}
                         </div>
@@ -145,7 +157,11 @@ export class Room extends Component {
                                 title="Fullscreen" onclick=${toggleFullscreen} style="buttonSmall">
                                 <img class="video-control-icon" src="/svg/fullscreen_button.svg"/>
                             <//>
-                            <input type="range" min="0" max="100" value="${state.volume}" class="volumeSlider buttonBig" oninput=${changeVolume}/>
+                            <${Button} enabled=${state.muted} onclick=${mute}
+                                title="${state.muted ? 'Unmute' : 'Mute'}" style="buttonSmall">
+                                <img class="video-control-icon" src="${state.muted ? '/svg/sound-mute.svg' : '/svg/sound-max.svg'}"/>
+                            <//>
+                            <input id="volumeControl" type="range" min="0" max="100" class="volumeSlider buttonBig" oninput=${changeVolume}/>
                         </div>
                         <div class="subControls">
                             ${state.roomToken
@@ -236,10 +252,41 @@ export function pauseVideo(e) {
 }
 
 function changeVolume(e) {
-    localStorage.setItem("volume",e.target.value);
+    if(e.target.value == 0){
+        mute();
+    }
+    else{
+        if(state.muted){
+            toggleMute()
+        }
+        localStorage.setItem("volume",e.target.value);
+        updateState(function(state) {
+            state.volume = e.target.value;
+        })
+    }
+}
+
+function mute() {
+    if(!state.muted){
+        toggleMute()
+        document.getElementById("volumeControl").value = 0;
+    }
+    else {
+        toggleMute()
+        document.getElementById("volumeControl").value = state.volume;
+    }
+}
+
+function toggleMute(){
     updateState(function(state) {
-        state.volume = e.target.value;
-    })
+        state.muted = !state.muted;
+    });
+    localStorage.setItem("muted",state.muted);
+    sendMessage({
+        action : 'userActivity',
+        tabbedOut: document.visibilityState != "visible",
+        muted: state.muted
+    });
 }
 
 function remote() {
@@ -348,7 +395,8 @@ function join(parsedMessage) {
             session: parsedMessage.session,
             remote: false,
             lastTimeSeen: moment(parsedMessage.lastTimeSeen).format('h:mm A'),
-            active: parsedMessage.active
+            active: parsedMessage.active,
+            muted: parsedMessage.muted
         })
     })
 }
@@ -357,8 +405,9 @@ function updateActivity(parsedMessage) {
     updateState(function (state) {
         state.userlist = state.userlist.map(function(element) {
             if(element.session == parsedMessage.session) {
-                element.active = parsedMessage.active == "true";
+                element.active = parsedMessage.active;
                 element.lastTimeSeen = moment(parsedMessage.lastTimeSeen).format('h:mm A');
+                element.muted = parsedMessage.muted;
             }
             return element;
         });
@@ -545,7 +594,8 @@ function connect(room) {
             document.addEventListener("visibilitychange", () => {
                 sendMessage({
                     action : 'userActivity',
-                    tabbedOut: document.visibilityState != "visible"
+                    tabbedOut: document.visibilityState != "visible",
+                    muted: state.muted
                 });
               });
     	}, 300);
@@ -584,7 +634,8 @@ function start() {
     	action : 'join',
     	username: state.username,
         url: state.avatarUrl,
-        token: state.roomToken
+        token: state.roomToken,
+        muted: state.muted
     });
     webrtc_start()
 }

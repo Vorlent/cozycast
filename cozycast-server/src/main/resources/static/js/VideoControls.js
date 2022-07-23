@@ -153,16 +153,17 @@ export class VideoControls extends Component {
 
     componentDidMount() {
         videoElement = document.getElementById('video');
-        this.updateVolume(this.props.state.volume);
+        this.updateVolume(this.props.state.volume,this.props.state.muted);
     }
 
     componentDidUpdate() {
-    	this.updateVolume(this.props.state.volume);
+    	this.updateVolume(this.props.state.volume,this.props.state.muted);
     }
 
-    updateVolume(volume) {
+    updateVolume(volume,muted) {
         if(document.getElementById('video')) {
-            document.getElementById('video').volume = volume/100;
+            if(muted) document.getElementById('video').volume = 0;
+            else {document.getElementById('video').volume = volume/100;}
         }
     }
 
