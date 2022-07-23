@@ -74,7 +74,8 @@ class TypingEvent {
 class UserActivityEvent {
     String action = "userActivityChange"
     String session
-    String active
+    Boolean active
+    Boolean muted
     String lastTimeSeen
 }
 
@@ -172,6 +173,7 @@ class JoinEvent {
     String username
     String url
     Boolean active
+    Boolean muted
     String lastTimeSeen
 }
 
@@ -233,33 +235,27 @@ class PlayerWebsocketServer {
 
     private void userActivity(Room room, WebSocketSession session, Map jsonMessage){
         UserSession user = room.users.get(session.getId())
+        if(user.muted == jsonMessage.muted && user.active == !jsonMessage.tabbedOut){
+            //no change no update
+            return;
+        }
+        user.muted = jsonMessage.muted;
         if(jsonMessage.tabbedOut){
             if(user.active){
+                user.lastTimeSeen = ZonedDateTime.now(ZoneId.of("UTC"))
                 user.active = false
-                room.users.each { key, value ->
-                    if(session.getId() != value.getWebSocketSession().getId()) {
-                        sendMessage(value.webSocketSession, new UserActivityEvent(
-                            session: session.getId(),
-                            active: user.active,
-                            lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen)
-                        ))
-                    }
-                }
             }
-        }else {
-            user.lastTimeSeen = ZonedDateTime.now(ZoneId.of("UTC"))
-            if(!user.active){
-                user.active = true
-                room.users.each { key, value ->
-                if(session.getId() != value.getWebSocketSession().getId()) {
-                    sendMessage(value.webSocketSession, new UserActivityEvent(
-                        session: session.getId(),
-                        active: user.active,
-                        lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen)
-                    ))
-                }
-                }
-            }
+        }
+        else{
+            user.active = true
+        }
+        room.users.each { key, value ->
+            sendMessage(value.webSocketSession, new UserActivityEvent(
+                session: session.getId(),
+                active: user.active,
+                lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen),
+                muted: user.muted
+            ))
         }
     }
 
@@ -396,6 +392,7 @@ class PlayerWebsocketServer {
         }
         UserSession user = room.users.get(session.getId())
         user.username = jsonMessage.username
+        user.muted = jsonMessage.muted
         if(jsonMessage.url) {
             user.avatarUrl = jsonMessage.url
         }
@@ -432,7 +429,8 @@ class PlayerWebsocketServer {
                     username: jsonMessage.username,
                     url: jsonMessage.url,
                     active:  user.active,
-                    lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen)
+                    lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen),
+                    muted: user.muted
                 ))
             }
 
@@ -443,7 +441,8 @@ class PlayerWebsocketServer {
                     username: value.getUsername(),
                     url: value.getAvatarUrl(),
                     active:  value.getActive(),
-                    lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(value.getLastTimeSeen())
+                    lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(value.getLastTimeSeen()),
+                    muted: value.getMuted()
                 ))
             }
         }
@@ -680,7 +679,8 @@ class PlayerWebsocketServer {
                 username: "Anonymous",
                 avatarUrl: "/png/default_avatar.png",
                 lastTimeSeen: ZonedDateTime.now(ZoneId.of("UTC")),
-                active: true
+                active: true,
+                muted: false
             ))
     }
 

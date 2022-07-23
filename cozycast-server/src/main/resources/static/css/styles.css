@@ -639,6 +639,22 @@ input[type=range]::-webkit-slider-thumb {
     right: 0;
 }
 
+.mutedDot{
+    height: 25px;
+    width: 25px;
+    border-radius: 50%;
+    display: inline-block;
+    position: absolute;
+    border: var(--cozyColorMenu) 3px solid;
+    background-color: var(--cozyButton);
+    bottom: 0;
+    left: 0;
+}
+
+.isNotMuted{
+    display: none;
+}
+
 .isOnline{
     background-color: #199239;
 }
@@ -1101,6 +1117,18 @@ input[type=range]::-webkit-slider-thumb {
     .subControls{
         justify-items: flex-end;
         margin-right: 0;
+    }
+
+    .onlineDot{
+        height: 12px;
+        width: 12px;
+        border: var(--cozyColorMenu) 2px solid;
+    }
+    
+    .mutedDot{
+        height: 15px;
+        width: 15px;
+        border: var(--cozyColorMenu) 2px solid;
     }
 
     #sidebar {

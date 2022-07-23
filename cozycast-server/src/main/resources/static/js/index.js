@@ -70,7 +70,8 @@ export var state = {
     },
     userlistHidden: false,
     showUsernames: true,
-    legacyDesign: false
+    legacyDesign: false,
+    muted: false
 };
 
 export function queryParams(params) {

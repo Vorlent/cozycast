@@ -7,6 +7,7 @@ export function Userlist({ state }) {
             <div class="user">
                 <div class="image avatar" style="background-image: url('${user.url}');" title="${user.username}">
                     <div class="onlineDot ${user.active? "isOnline": "isInactive"}"></div>
+                    <img class="mutedDot ${user.muted? "": "isNotMuted"}" src="svg/headphone-slash.svg"></img>
                 </div>
                 <div class="remote-wrapper">
                     <i class="icon-keyboard remote" style=${user.remote ? "" : "display: none;"}></i>

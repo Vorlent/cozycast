@@ -11,6 +11,7 @@ class UserSession {
     String username
     String avatarUrl
     Boolean active
+    Boolean muted
     ZonedDateTime lastTimeSeen
 
     public void release() {
