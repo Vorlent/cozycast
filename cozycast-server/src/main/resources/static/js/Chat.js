@@ -51,6 +51,20 @@ function chatEnter(e) {
     })
 }
 
+function autosize() {
+    var div = document.querySelector('.ta-wrapper');
+    var ta =  document.querySelector('.chatbox-textarea');
+    var messages = document.getElementById("messages");
+
+ setTimeout(function() {
+     ta. style.cssText = 'height:0px';
+     var height = Math.min(18*5, ta.scrollHeight);
+     div.style.cssText = 'height:' + (20 + height) + 'px';
+     ta. style.cssText = 'height:' + height + 'px';
+     if(!state.historyMode) messages.scrollTop = messages.scrollHeight;
+    },0);
+}
+
 function openPictureUpload() {
     document.getElementById('image-upload-file').click();
 }
@@ -117,20 +131,6 @@ export class Chat extends Component {
         }
     }
 
-    autosize() {
-        var div = document.querySelector('.ta-wrapper');
-        var ta =  document.querySelector('.chatbox-textarea');
-        var messages = document.getElementById("messages");
- 
-     setTimeout(function() {
-         ta. style.cssText = 'height:0px';
-         var height = Math.min(18*5, ta.scrollHeight);
-         div.style.cssText = 'height:' + (20 + height) + 'px';
-         ta. style.cssText = 'height:' + height + 'px';
-         if(!state.historyMode) messages.scrollTop = messages.scrollHeight;
-        },0);
-    }
-
     render({ state }, { xyz = [] }) {
         var roomId = state.roomId;
         if(roomId == null || roomId == "default") {
@@ -164,10 +164,10 @@ export class Chat extends Component {
                 `)}
             </div>
             <${ConfirmUpload} state=${state}/>
-            <div id="chatbox">
+            <div id="chatbox" onclick=${() => document.getElementById("chat-textbox").focus()}>
                 <div class="image-uploader">
-                    <div class="ta-wrapper" onclick=${() => document.getElementById("chat-textbox").focus()}>
-                    <textarea id="chat-textbox" class="chatbox-textarea" oninput=${chatInput} onkeypress=${chatEnter} onkeydown="${this.autosize}" onpaste=${openConfirmWindowPaste}>
+                    <div class="ta-wrapper">
+                    <textarea id="chat-textbox" class="chatbox-textarea" oninput=${chatInput} onkeypress=${chatEnter} onkeydown="${autosize}" onpaste=${openConfirmWindowPaste}>
                         ${state.chatBox}
                     </textarea>
                     </div>
