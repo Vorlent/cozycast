@@ -15,7 +15,7 @@
     --cozyColorMenu: #171b22;
     --cozyColorAccent: #22242f;
     --cozyButton: #252733;
-    --cozyButtonAccemt: #0e0f14;
+    --cozyButtonAccent: #0e0f14;
     --cozyScrollbar: #353e4f;
     --cozyScrollThumb: #1f2530;
     --cozyHighContrast: #a6afbf;
@@ -29,7 +29,7 @@
     --cozyColorMenu: #123;
     --cozyColorAccent: #235;
     --cozyButton: #17c;
-    --cozyButtonAccemt: #048;
+    --cozyButtonAccent: #048;
     --cozyScrollbar: #346;
     --cozyScrollThumb: #235;
     --cozyHighContrast: #5566aa;
@@ -231,21 +231,21 @@ button{
 
 .buttonBig {
     min-width: 4em;
-    width: 8em;
+    width: 6em;
 }
 
 .buttonSmall {
     min-width: 2em;
-    width: 4em;
+    width: 2.5em;
 }
 
 .btn-primary {
     background-color: var(--cozyButton);
-    border-color: var(--cozyButtonAccemt);
+    border-color: var(--cozyButtonAccent);
 }
 
 .btn-primary:hover {
-    background-color: var(--cozyButtonAccemt);
+    background-color: var(--cozyButtonAccent);
 }
 
 .btn-danger {
@@ -626,6 +626,18 @@ input[type=range]::-webkit-slider-thumb {
     width: 180px;
     height: 180px;
     position: relative;
+}
+
+.orangeCircle {
+    border: #f90 2px solid;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    position: relative;
+}
+
+.isAway {
+    opacity: 60%;
 }
 
 .onlineDot{
@@ -1099,7 +1111,7 @@ input[type=range]::-webkit-slider-thumb {
     }
 
     #userlist {
-        height: 2.5em;
+        height: 2.7em;
     }
     
     .optional {
@@ -1151,6 +1163,10 @@ input[type=range]::-webkit-slider-thumb {
         height: 30px;
     }
 
+    .orangeCircle {
+        width: 30px;
+        height: 30px;
+    }
     #messages {
         scrollbar-width: thin;
     }

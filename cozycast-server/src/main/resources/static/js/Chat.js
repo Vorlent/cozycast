@@ -13,8 +13,7 @@ function chatInput(e) {
         if(now - lastTypingEvent > 1000) {
             sendMessage({
                 action : 'typing',
-                state: 'start',
-                username: state.username
+                state: 'start'
             });
             lastTypingEvent = now;
         }
@@ -36,8 +35,7 @@ function chatEnter(e) {
                     sendMessage({
                         action : 'chatmessage',
                         type: "text",
-                        message: state.chatBox,
-                        username: state.username
+                        message: state.chatBox
                     });
                 }
                 state.chatBox = "";
@@ -45,9 +43,9 @@ function chatEnter(e) {
 
                 sendMessage({
                     action : 'typing',
-                    state: 'stop',
-                    username: state.username
+                    state: 'stop'
                 });
+                autosize();
             }
         }
     })
@@ -129,7 +127,7 @@ export class Chat extends Component {
          var height = Math.min(18*5, ta.scrollHeight);
          div.style.cssText = 'height:' + (20 + height) + 'px';
          ta. style.cssText = 'height:' + height + 'px';
-         messages.scrollTop = messages.scrollHeight;
+         if(!state.historyMode) messages.scrollTop = messages.scrollHeight;
         },0);
     }
 
@@ -168,8 +166,8 @@ export class Chat extends Component {
             <${ConfirmUpload} state=${state}/>
             <div id="chatbox">
                 <div class="image-uploader">
-                    <div class="ta-wrapper">
-                    <textarea class="chatbox-textarea" oninput=${chatInput} onkeypress=${chatEnter} onkeydown="${this.autosize}" onpaste=${openConfirmWindowPaste}>
+                    <div class="ta-wrapper" onclick=${() => document.getElementById("chat-textbox").focus()}>
+                    <textarea id="chat-textbox" class="chatbox-textarea" oninput=${chatInput} onkeypress=${chatEnter} onkeydown="${this.autosize}" onpaste=${openConfirmWindowPaste}>
                         ${state.chatBox}
                     </textarea>
                     </div>
