@@ -310,12 +310,14 @@ function calcActiveStatus(tabbedOut) {
   let time = 5 * 60 * 1000;
   if(!tabbedOut){
     clearTimeout(inactiveTimer);
+    inactiveTimer = null;
     if(!active){
         active = true;
         sendActivityStatus();
     }
   }
   else {
+    if(inactiveTimer != null) return;
     inactiveTimer = setTimeout(function() {
       active = false;
       sendActivityStatus();
