@@ -32,6 +32,7 @@ export var state = {
     forceChatScroll: false,
     chatBox: "",
     remote: false,
+    remoteUsed: false,
     username: "Anonymous",
     volume: 100,
     videoPaused: true,
@@ -71,7 +72,8 @@ export var state = {
     userlistHidden: false,
     showUsernames: true,
     legacyDesign: false,
-    muted: false
+    muted: false,
+    showIfMuted: false
 };
 
 export function queryParams(params) {

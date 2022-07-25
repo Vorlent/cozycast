@@ -7,6 +7,8 @@
     --cozycast-dpr: 1;
     font-family: "Arial", "sans-serif";
     --noise: url("/png/noise_128.png");
+
+    --chat-size: max(12%,15em);
 }
 
 .legacyDesign{
@@ -15,7 +17,7 @@
     --cozyColorMenu: #171b22;
     --cozyColorAccent: #22242f;
     --cozyButton: #252733;
-    --cozyButtonAccemt: #0e0f14;
+    --cozyButtonAccent: #0e0f14;
     --cozyScrollbar: #353e4f;
     --cozyScrollThumb: #1f2530;
     --cozyHighContrast: #a6afbf;
@@ -29,7 +31,7 @@
     --cozyColorMenu: #123;
     --cozyColorAccent: #235;
     --cozyButton: #17c;
-    --cozyButtonAccemt: #048;
+    --cozyButtonAccent: #048;
     --cozyScrollbar: #346;
     --cozyScrollThumb: #235;
     --cozyHighContrast: #5566aa;
@@ -231,21 +233,20 @@ button{
 
 .buttonBig {
     min-width: 4em;
-    width: 8em;
+    width: 6em;
 }
 
 .buttonSmall {
     min-width: 2em;
-    width: 4em;
 }
 
 .btn-primary {
     background-color: var(--cozyButton);
-    border-color: var(--cozyButtonAccemt);
+    border-color: var(--cozyButtonAccent);
 }
 
 .btn-primary:hover {
-    background-color: var(--cozyButtonAccemt);
+    background-color: var(--cozyButtonAccent);
 }
 
 .btn-danger {
@@ -343,6 +344,7 @@ button{
     resize: none;
     width: 100%;
     font-size: 15px;
+    height: 100%;
 }
 
 /*Chrome fix*/
@@ -628,6 +630,18 @@ input[type=range]::-webkit-slider-thumb {
     position: relative;
 }
 
+.orangeCircle {
+    border: #f90 2px solid;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    position: relative;
+}
+
+.isAway {
+    opacity: 60%;
+}
+
 .onlineDot{
     height: 17px;
     width: 17px;
@@ -779,8 +793,8 @@ input[type=range]::-webkit-slider-thumb {
 
 /* RoomSidebar.js START */
 #sidebar {
-    min-width:15em;
-    max-width:15em;
+    min-width:var(--chat-size);
+    max-width:var(--chat-size);
     grid-area: sidebar;
     display: flex;
     flex-direction: column;
@@ -1002,10 +1016,10 @@ input[type=range]::-webkit-slider-thumb {
     border-color: var(--cozyColorMenu);
     border-radius: 0.5em;
     z-index: 2;
-    bottom: 6.5em;
+    bottom: 6em;
     position: absolute;
     align-self: center;
-    max-width: 15em;
+    max-width: calc(var(--chat-size) * 0.9);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1020,8 +1034,8 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .uploadPreview{
-    max-width: 12em;
-    width: 12em;
+    max-width: 95%;
+    width: 95%;
 }
 
 .buttonCancel{
@@ -1099,7 +1113,7 @@ input[type=range]::-webkit-slider-thumb {
     }
 
     #userlist {
-        height: 2.5em;
+        height: 2.7em;
     }
     
     .optional {
@@ -1151,6 +1165,10 @@ input[type=range]::-webkit-slider-thumb {
         height: 30px;
     }
 
+    .orangeCircle {
+        width: 30px;
+        height: 30px;
+    }
     #messages {
         scrollbar-width: thin;
     }

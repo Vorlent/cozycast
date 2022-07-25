@@ -38,12 +38,24 @@ function updateDesignChoice(useLegacy) {
     })
 }
 
+
+function updateShowIfMuted(showMuted) {
+    updateState(function (state) {
+        state.profileModal.showIfMuted = showMuted;
+    })
+    sendMessage({
+        action : 'userMuted',
+        muted: showMuted && (state.muted || state.videoPaused)
+    });
+}
+
 function saveProfile() {
     updateState(function (state) {
         if(state.profileModal) {
             state.muteChatNotification = state.profileModal.muteChatNotification;
             state.showUsernames = state.profileModal.showUsernames;
             state.legacyDesign = state.profileModal.legacyDesign;
+            state.showIfMuted = state.profileModal.showIfMuted;
             if(state.username != state.profileModal.username.substring(0, 12)){
             state.username = state.profileModal.username.substring(0, 12);
             sendMessage({
@@ -63,6 +75,7 @@ function saveProfile() {
             localStorage.setItem("muteChatNotification", state.muteChatNotification);
             localStorage.setItem("showUsernames", state.showUsernames);
             localStorage.setItem("legacyDesign", state.legacyDesign);
+            localStorage.setItem("showIfMuted", state.showIfMuted);
         }
     })
     closeProfile()
@@ -87,7 +100,8 @@ export function openProfile() {
             avatarUrl: state.avatarUrl,
             muteChatNotification: state.muteChatNotification,
             showUsernames: state.showUsernames,
-            legacyDesign: state.legacyDesign
+            legacyDesign: state.legacyDesign,
+            showIfMuted: state.showIfMuted
         };
     })
 }
@@ -116,15 +130,22 @@ export class ProfileModal extends Component {
                         onInput=${e => updateProfileUsername(e.target.value)}
                         name="username" maxlength="12" value="${state.profileModal.username}"/>
                     <div class="userOptions">
-                    <div><input class="modal-username" type="checkbox" id="muteChatNotification"
-                        onInput=${e => updateProfileMuteChatNotification(e.target.checked)}
-                        name="muteChatNotification" checked="${state.profileModal.muteChatNotification}"/> <label for="muteChatNotification">Mute Chat Notification</label>  </div>
-                    <div><input class="modal-username" type="checkbox" id="showUsernames"
-                        onInput=${e => updateShowUsernamesOnBottom(e.target.checked)}
-                        name="showUsernames" checked="${state.profileModal.showUsernames}"/> <label for="showUsernames">Show Usernames</label>  </div>
-                    <div><input class="modal-username" type="checkbox" id="legacyDesign"
-                        onInput=${e => updateDesignChoice(e.target.checked)}
-                        name="legacyDesign" checked="${state.profileModal.legacyDesign}"/> <label for="legacyDesign">Use Legacy Design</label>  </div>
+                        <div><input class="modal-username" type="checkbox" id="muteChatNotification"
+                            onInput=${e => updateProfileMuteChatNotification(e.target.checked)}
+                            name="muteChatNotification" checked="${state.profileModal.muteChatNotification}"/> <label for="muteChatNotification">Mute Chat Notification</label>
+                        </div>
+                        <div><input class="modal-username" type="checkbox" id="showUsernames"
+                            onInput=${e => updateShowUsernamesOnBottom(e.target.checked)}
+                            name="showUsernames" checked="${state.profileModal.showUsernames}"/> <label for="showUsernames">Show Usernames</label>
+                        </div>
+                        <div><input class="modal-username" type="checkbox" id="legacyDesign"
+                            onInput=${e => updateDesignChoice(e.target.checked)}
+                            name="legacyDesign" checked="${state.profileModal.legacyDesign}"/> <label for="legacyDesign">Use Legacy Design</label>
+                        </div>
+                        <div><input class="modal-username" type="checkbox" id="showIfMuted"
+                            onInput=${e => updateShowIfMuted(e.target.checked)}
+                            name="showIfMuted" checked="${state.profileModal.showIfMuted}"/> <label for="showIfMuted">Show Others If Muted</label>
+                        </div>
                     </div>
                     <button class="btn btn-primary" onclick=${saveProfile}>Save</button>
                 </div>

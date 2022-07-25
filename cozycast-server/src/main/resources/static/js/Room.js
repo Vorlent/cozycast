@@ -10,6 +10,7 @@ import { Userlist } from '/js/Userlist.js'
 import { VideoControls } from '/js/VideoControls.js'
 import { Button } from '/js/Button.js'
 import { SidebarState, state, updateState } from '/js/index.js'
+import { RemoteIcon } from '/js/RemoteIcon.js'
 
 var favicon = new Favico({
     animation:'none'
@@ -42,6 +43,8 @@ export class Room extends Component {
                 state.showUsernames = localStorage.getItem("showUsernames") == 'true';
             if(localStorage.hasOwnProperty('legacyDesign'))
                 state.legacyDesign = localStorage.getItem("legacyDesign") == 'true';
+            if(localStorage.hasOwnProperty('showIfMuted'))
+                state.showIfMuted = localStorage.getItem("showIfMuted") == 'true';
             const volume = parseInt(localStorage.getItem("volume"));
             if(!isNaN(volume)) state.volume = Math.max(Math.min(volume,100),0);
             if(!state.username) {
@@ -148,7 +151,12 @@ export class Room extends Component {
                             <//>`}
                         </div>
                         <div class="subControls">
-                            ${!state.fullscreen && html`<${Button} enabled=${state.remote} onclick=${remote} style="buttonBig">Remote<//>`}
+                            ${!state.fullscreen && html`
+                            <${Button} enabled=${state.remote} onclick=${remote} style="buttonSmall">
+                                <div class="video-control-icon">
+                                <${RemoteIcon} enabled=${state.remoteUsed && false}/>
+                                </div>
+                            <//>`}
                             <${Button} enabled=${state.videoPaused} onclick=${pauseVideo}
                                 title="${state.videoPaused ? 'Pause' : 'Play'}" style="buttonSmall">
                                 <img class="video-control-icon" src="${state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}"/>
@@ -249,6 +257,12 @@ export function pauseVideo(e) {
             webrtc_start()
         }
     })
+    if(state.showIfMuted) {
+        sendMessage({
+            action : 'userMuted',
+            muted: state.muted || state.videoPaused
+        });
+    }
 }
 
 function changeVolume(e) {
@@ -282,10 +296,38 @@ function toggleMute(){
         state.muted = !state.muted;
     });
     localStorage.setItem("muted",state.muted);
+    if(state.showIfMuted) {
+        sendMessage({
+            action : 'userMuted',
+            muted: state.muted || state.videoPaused
+        });
+    }
+}
+
+let inactiveTimer = null;
+let active = true;
+function calcActiveStatus(tabbedOut) {
+  let time = 5 * 60 * 1000;
+  if(!tabbedOut){
+    clearTimeout(inactiveTimer);
+    if(!active){
+        active = true;
+        sendActivityStatus();
+    }
+  }
+  else {
+    inactiveTimer = setTimeout(function() {
+      active = false;
+      sendActivityStatus();
+    }, time);
+  }
+}
+
+function sendActivityStatus(){
+    console.log(`user is: ${active}`);
     sendMessage({
         action : 'userActivity',
-        tabbedOut: document.visibilityState != "visible",
-        muted: state.muted
+        tabbedOut: !active,
     });
 }
 
@@ -407,6 +449,16 @@ function updateActivity(parsedMessage) {
             if(element.session == parsedMessage.session) {
                 element.active = parsedMessage.active;
                 element.lastTimeSeen = moment(parsedMessage.lastTimeSeen).format('h:mm A');
+            }
+            return element;
+        });
+    })
+}
+
+function updateMuted(parsedMessage) {
+    updateState(function (state) {
+        state.userlist = state.userlist.map(function(element) {
+            if(element.session == parsedMessage.session) {
                 element.muted = parsedMessage.muted;
             }
             return element;
@@ -512,6 +564,9 @@ function connect(room) {
             case 'userActivityChange':
                 updateActivity(parsedMessage);
                 break;
+            case 'userMutedChange':
+                updateMuted(parsedMessage);
+                break;
             case 'chat_history':
                 if(parsedMessage.messages) {
                     parsedMessage.messages
@@ -539,6 +594,7 @@ function connect(room) {
     		case 'drop_remote':
                 updateState(function (state) {
                     state.remote = false;
+                    state.remoteUsed = false;
                     state.userlist = state.userlist.map(function(user) {
                         if(user.session == parsedMessage.session) {
                             user.remote = false;
@@ -554,6 +610,7 @@ function connect(room) {
                         return user;
                     })
                     state.remote = parsedMessage.has_remote;
+                    state.remoteUsed = !state.remote;
                 })
     			break;
             case 'window_title':
@@ -592,11 +649,7 @@ function connect(room) {
     	setTimeout(function() {
     		start();
             document.addEventListener("visibilitychange", () => {
-                sendMessage({
-                    action : 'userActivity',
-                    tabbedOut: document.visibilityState != "visible",
-                    muted: state.muted
-                });
+                calcActiveStatus(document.visibilityState != "visible");
               });
     	}, 300);
     };
@@ -635,7 +688,7 @@ function start() {
     	username: state.username,
         url: state.avatarUrl,
         token: state.roomToken,
-        muted: state.muted
+        muted: (state.showIfMuted ? state.muted | state.videoPaused : false)
     });
     webrtc_start()
 }

@@ -75,8 +75,13 @@ class UserActivityEvent {
     String action = "userActivityChange"
     String session
     Boolean active
-    Boolean muted
     String lastTimeSeen
+}
+
+class UserMutedEvent {
+    String action = "userMutedChange"
+    String session
+    Boolean muted
 }
 
 class ChatHistoryEvent {
@@ -154,7 +159,6 @@ class ResetKeyboardEvent {
 
 class LeaveEvent {
     String action = "leave"
-    String username
     String session
 }
 
@@ -235,14 +239,13 @@ class PlayerWebsocketServer {
 
     private void userActivity(Room room, WebSocketSession session, Map jsonMessage){
         UserSession user = room.users.get(session.getId())
-        if(user.muted == jsonMessage.muted && user.active == !jsonMessage.tabbedOut){
+        if(user.active == !jsonMessage.tabbedOut){
             //no change no update
             return;
         }
-        user.muted = jsonMessage.muted;
         if(jsonMessage.tabbedOut){
             if(user.active){
-                user.lastTimeSeen = ZonedDateTime.now(ZoneId.of("UTC"))
+                user.lastTimeSeen = ZonedDateTime.now(ZoneId.of("UTC")).minusMinutes(5)
                 user.active = false
             }
         }
@@ -254,6 +257,20 @@ class PlayerWebsocketServer {
                 session: session.getId(),
                 active: user.active,
                 lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen),
+            ))
+        }
+    }
+
+    private void userMuted(Room room, WebSocketSession session, Map jsonMessage){
+        UserSession user = room.users.get(session.getId())
+        if(user.muted == jsonMessage.muted){
+            //no change no update
+            return;
+        }
+        user.muted = jsonMessage.muted;
+        room.users.each { key, value ->
+            sendMessage(value.webSocketSession, new UserMutedEvent(
+                session: session.getId(),
                 muted: user.muted
             ))
         }
@@ -305,7 +322,7 @@ class PlayerWebsocketServer {
                 sendMessage(value.webSocketSession, new TypingEvent(
                     session: session.getId(),
                     state: jsonMessage.state,
-                    username: jsonMessage.username,
+                    username: user.username,
                     lastTypingTime: new Date().getTime()
                 ))
             }
@@ -314,6 +331,7 @@ class PlayerWebsocketServer {
 
     private void chatmessage(Room room, WebSocketSession session, Map jsonMessage) {
         log.info jsonMessage.toString()
+        final UserSession user = room.users.get(session.getId())
         ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))
         String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
         ChatMessage.withTransaction {
@@ -327,13 +345,13 @@ class PlayerWebsocketServer {
                 message: jsonMessage.message,
                 image: jsonMessage.image,
                 type: jsonMessage.type,
-                username: jsonMessage.username,
+                username: user.username,
                 timestamp: zonedDateTime
             )
             if(chatMessage.validate()) {
                 chatMessage.save()
             } else {
-                log.warn "Chat message by user ${jsonMessage.username} in room ${room.name} is too long: ${jsonMessage.message?.substring(0, 4096)}"
+                log.warn "Chat message by user ${user.username} in room ${room.name} is too long: ${jsonMessage.message?.substring(0, 4096)}"
                 return
             }
             room.users.each { key, value ->
@@ -341,7 +359,7 @@ class PlayerWebsocketServer {
                     message: jsonMessage.message,
                     image: jsonMessage.image,
                     type: jsonMessage.type,
-                    username: jsonMessage.username,
+                    username: user.username,
                     session: session.getId(),
                     timestamp: nowAsISO
                 ))
@@ -369,6 +387,14 @@ class PlayerWebsocketServer {
         }
     }
 
+    private Boolean checkusername(String username){
+        if(username.length() > 12) {
+            log.warn "Username ${username} is longer than 12 characters."
+            return false;
+        }
+        return true;
+    }
+
     private void changeprofilepicture(Room room, WebSocketSession session, Map jsonMessage) {
         log.info jsonMessage.toString()
         UserSession user = room.users.get(session.getId())
@@ -391,7 +417,8 @@ class PlayerWebsocketServer {
             }
         }
         UserSession user = room.users.get(session.getId())
-        user.username = jsonMessage.username
+        if( (jsonMessage.username instanceof String) && checkusername(jsonMessage.username))
+            user.username = jsonMessage.username
         user.muted = jsonMessage.muted
         if(jsonMessage.url) {
             user.avatarUrl = jsonMessage.url
@@ -426,7 +453,7 @@ class PlayerWebsocketServer {
             if(value.getWebSocketSession() != session) {
                 sendMessage(value.webSocketSession, new JoinEvent(
                     session: session.getId(),
-                    username: jsonMessage.username,
+                    username: user.username,
                     url: jsonMessage.url,
                     active:  user.active,
                     lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen),
@@ -445,6 +472,13 @@ class PlayerWebsocketServer {
                     muted: value.getMuted()
                 ))
             }
+        }
+
+        //send remote info for joining user
+        if(room.remote != null){
+            sendMessage(session, new PickupRemoteEvent(
+                session: room.remote,
+                has_remote: room.remote == session.getId()))
         }
     }
 
@@ -640,8 +674,7 @@ class PlayerWebsocketServer {
         room.users.each { key, value ->
             if (value.username != null) {
                 sendMessage(value.webSocketSession, new LeaveEvent(
-                    session: sessionId,
-                    username: value.username
+                    session: sessionId
                 ))
             }
         }
@@ -696,6 +729,9 @@ class PlayerWebsocketServer {
                     break;
                 case "userActivity":
                     userActivity(currentRoom, session, jsonMessage)
+                    break;
+                case "userMuted":
+                    userMuted(currentRoom, session, jsonMessage)
                     break;
                 case "start":
                     start(currentRoom, session, jsonMessage)
