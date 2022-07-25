@@ -307,7 +307,7 @@ function toggleMute(){
 let inactiveTimer = null;
 let active = true;
 function calcActiveStatus(tabbedOut) {
-  let time = 3 * 60 * 1000;
+  let time = 5 * 60 * 1000;
   if(!tabbedOut){
     clearTimeout(inactiveTimer);
     if(!active){

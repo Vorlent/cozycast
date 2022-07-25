@@ -245,7 +245,7 @@ class PlayerWebsocketServer {
         }
         if(jsonMessage.tabbedOut){
             if(user.active){
-                user.lastTimeSeen = ZonedDateTime.now(ZoneId.of("UTC")).minusMinutes(3)
+                user.lastTimeSeen = ZonedDateTime.now(ZoneId.of("UTC")).minusMinutes(5)
                 user.active = false
             }
         }

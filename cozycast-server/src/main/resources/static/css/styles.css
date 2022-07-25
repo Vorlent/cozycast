@@ -343,6 +343,7 @@ button{
     resize: none;
     width: 100%;
     font-size: 15px;
+    height: 100%;
 }
 
 /*Chrome fix*/
