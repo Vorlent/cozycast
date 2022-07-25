@@ -120,6 +120,7 @@ html, body, #pagecontent, #videosizer {
 
 #chatbox {
     margin: 15px 10px 5px 10px;
+    cursor: text;
 }
 
 #pagetoolbar {
