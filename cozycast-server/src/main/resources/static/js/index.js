@@ -73,7 +73,8 @@ export var state = {
     showUsernames: true,
     legacyDesign: false,
     muted: false,
-    showIfMuted: false
+    showIfMuted: false,
+    userlistOnLeft: false
 };
 
 export function queryParams(params) {

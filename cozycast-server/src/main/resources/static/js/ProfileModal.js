@@ -38,6 +38,11 @@ function updateDesignChoice(useLegacy) {
     })
 }
 
+function updateUserlistOnLeft(userlistOnLeft) {
+    updateState(function (state) {
+        state.profileModal.userlistOnLeft = userlistOnLeft;
+    })
+}
 
 function updateShowIfMuted(showMuted) {
     updateState(function (state) {
@@ -56,6 +61,7 @@ function saveProfile() {
             state.showUsernames = state.profileModal.showUsernames;
             state.legacyDesign = state.profileModal.legacyDesign;
             state.showIfMuted = state.profileModal.showIfMuted;
+            state.userlistOnLeft = state.profileModal.userlistOnLeft;
             if(state.username != state.profileModal.username.substring(0, 12)){
             state.username = state.profileModal.username.substring(0, 12);
             sendMessage({
@@ -76,6 +82,7 @@ function saveProfile() {
             localStorage.setItem("showUsernames", state.showUsernames);
             localStorage.setItem("legacyDesign", state.legacyDesign);
             localStorage.setItem("showIfMuted", state.showIfMuted);
+            localStorage.setItem("userlistOnLeft", state.userlistOnLeft);
         }
     })
     closeProfile()
@@ -101,7 +108,8 @@ export function openProfile() {
             muteChatNotification: state.muteChatNotification,
             showUsernames: state.showUsernames,
             legacyDesign: state.legacyDesign,
-            showIfMuted: state.showIfMuted
+            showIfMuted: state.showIfMuted,
+            userlistOnLeft: state.userlistOnLeft
         };
     })
 }
@@ -145,6 +153,10 @@ export class ProfileModal extends Component {
                         <div><input class="modal-username" type="checkbox" id="showIfMuted"
                             onInput=${e => updateShowIfMuted(e.target.checked)}
                             name="showIfMuted" checked="${state.profileModal.showIfMuted}"/> <label for="showIfMuted">Show Others If Muted</label>
+                        </div>
+                        <div><input class="modal-username" type="checkbox" id="userlistOnLeft"
+                            onInput=${e => updateUserlistOnLeft(e.target.checked)}
+                            name="userlistOnLeft" checked="${state.profileModal.userlistOnLeft}"/> <label for="userlistOnLeft">Show Users On Left</label>
                         </div>
                     </div>
                     <button class="btn btn-primary" onclick=${saveProfile}>Save</button>
