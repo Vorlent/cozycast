@@ -45,6 +45,8 @@ export class Room extends Component {
                 state.legacyDesign = localStorage.getItem("legacyDesign") == 'true';
             if(localStorage.hasOwnProperty('showIfMuted'))
                 state.showIfMuted = localStorage.getItem("showIfMuted") == 'true';
+            if(localStorage.hasOwnProperty('userlistOnLeft'))
+                state.userlistOnLeft = localStorage.getItem("userlistOnLeft") == 'true';
             const volume = parseInt(localStorage.getItem("volume"));
             if(!isNaN(volume)) state.volume = Math.max(Math.min(volume,100),0);
             if(!state.username) {
@@ -137,6 +139,7 @@ export class Room extends Component {
         <div id="pagecontent" class="${state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}">
             ${isBanned() && html`Banned until ${state.banned}`}
             ${!isBanned() && html`
+            ${!state.userlistHidden && !state.fullscreen && state.userlistOnLeft && html`<${Userlist} state=${state} isLeft=${true}/>`}
             <div id="contentWithoutSidebar" class="contentWithoutSidebar">
                 <${VideoControls} state=${state}/>
                 ${state.scheduleSidebar && html`
@@ -144,11 +147,11 @@ export class Room extends Component {
                 <div id="pagetoolbar" class="${state.fullscreen ? "toolbarFullscreen" : ""}">
                     <div id="controls"  class="${state.fullscreen ? "controlsFullscreen" : "visibleControls" }">
                         <div class="subControls">
-                            <${Button} enabled=${state.profileModal} onclick=${openProfile} style="buttonBig">Profile<//>
                             ${!state.fullscreen && html`<${Button} enabled=${state.userlistHidden} onclick=${this.hideUserlist} 
                                 title="${state.userlistHidden ? 'Show Users' : 'Hide Users'}" style="buttonSmall optional">
-                                <img class="video-control-icon" src="${state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}"/>
+                                <img class="video-control-icon" src="${state.userlistOnLeft? state.userlistHidden ? '/svg/chevron-right.svg' : '/svg/chevron-left.svg' : state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}"/>
                             <//>`}
+                            <${Button} enabled=${state.profileModal} onclick=${openProfile} style="buttonBig">Profile<//>
                         </div>
                         <div class="subControls">
                             ${!state.fullscreen && html`
@@ -187,7 +190,7 @@ export class Room extends Component {
                             <//>
                         </div>
                     </div>
-                    ${!state.userlistHidden && !state.fullscreen && html`<${Userlist} state=${state}/>`}
+                    ${!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && html`<${Userlist} state=${state}/>`}
                 </div>
             </div>
                 

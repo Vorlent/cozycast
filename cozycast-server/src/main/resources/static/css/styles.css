@@ -78,6 +78,7 @@ html, body, #pagecontent, #videosizer {
 #pagecontent {
     display: flex;
     width: 100%;
+    overflow-y: hidden;
 }
 
 #pagecontent > *{
@@ -170,15 +171,25 @@ html, body, #pagecontent, #videosizer {
     min-width: 0;
 }
 
-#userlist {
-    flex-grow: 1;
+.userlist {
+    background: var(--cozyColorMenu) var(--cozycast-noise);
     display: flex;
     justify-content: center;
-    min-width: 0;
     gap: 5px;
-    overflow: auto hidden;
+}
+
+.userlist.bottom {
+    flex-grow: 1;
+    min-width: 0;
+    overflow: visible visible;
     scrollbar-width: thin;
-    background: var(--cozyColorMenu) var(--cozycast-noise);
+}
+
+.userlist.left {
+    flex-direction: column;
+    overflow: visible visible;
+    width: 6em;
+    max-height: 100%;
 }
 
 
@@ -186,16 +197,16 @@ html, body, #pagecontent, #videosizer {
     background: var(--cozyColorMenu) var(--cozycast-noise);
 }
 
-.bigUserlist {
+.userlist.bottom.big {
     height: 5em;
 }
 
-.smallUserlist {
+.userlist.bottom.small {
     height: 4.5em;
 }
 
 .userlistSidebar {
-    overflow: auto hidden;
+    overflow: hidden auto;
     display: flex;
     flex-direction: column;
     margin-left: 1em;
@@ -265,6 +276,10 @@ button{
     font-size: .5em;
     left: 3px;
     bottom: 3px;
+}
+
+#copyright.left {
+    font-size: .3em;
 }
 
 .message {
@@ -475,6 +490,8 @@ input[type=range]::-webkit-slider-thumb {
     min-height: 1em;
     line-height: 1em;
     word-break: break-word;
+    user-select: none;
+    -moz-user-select: none; 
 }
 
 .paused-screen {
@@ -626,11 +643,23 @@ input[type=range]::-webkit-slider-thumb {
     background-position: center center;
 }
 
+.avatarContainer{
+    position: relative;
+    display: flex;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+}
+
 .avatar {
     border-radius: 50%;
     width: 60px;
     height: 60px;
-    position: relative;;
+}
+
+.avatarContainer.bar{
+    cursor: pointer;
 }
 
 .avatar.big {
@@ -646,10 +675,10 @@ input[type=range]::-webkit-slider-thumb {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    position: relative;
+    position: absolute;
 }
 
-.isAway {
+.isAway{
     opacity: 60%;
 }
 
@@ -1082,40 +1111,103 @@ input[type=range]::-webkit-slider-thumb {
     animation: dotFlashing .9s infinite alternate;
 }
 
- .loadingDots{
-    display: inline-block;
-    position: relative;
-    left: var(--dotSize);
-    animation-delay: .3s;
+.loadingDots{
+   display: inline-block;
+   position: relative;
+   left: var(--dotSize);
+   animation-delay: .3s;
+ }
+ 
+ .loadingDots::before, .loadingDots::after {
+   content: '';
+   position: absolute;
+ }
+ 
+ .loadingDots::before {
+   left: calc(-1 * var(--dotSize));
+   animation-delay: 0s;
+ }
+ 
+ .loadingDots::after {
+   left: var(--dotSize);
+   animation-delay: 0.6s;
+ }
+ 
+@keyframes dotFlashing {
+  0% {
+      background-color: white;
   }
-  
-  .loadingDots::before, .loadingDots::after {
-    content: '';
-    position: absolute;
+  15%{
+      background-color: white;
   }
-  
-  .loadingDots::before {
-    left: calc(-1 * var(--dotSize));
-    animation-delay: 0s;
+  100% {
+      background-color: transparent;
   }
-  
-  .loadingDots::after {
-    left: var(--dotSize);
-    animation-delay: 0.6s;
-  }
-  
-  @keyframes dotFlashing {
-    0% {
-        background-color: white;
-    }
-    15%{
-        background-color: white;
-    }
-    100% {
-        background-color: transparent;
-    }
-  }
+}
 /* loding dots END */
+
+/* hover tooltips */
+
+.hoverInfo {
+    position: absolute;
+    top: 0;
+    background-color: var(--cozyColorAccent);
+    white-space: nowrap;
+    padding: 0.15em 0.3em;
+    border-radius: 0.2em;
+    visibility: hidden;
+    opacity: 0;
+    z-index: 3;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+}
+
+.hoverInfo::before{
+    content: "";
+    position: absolute;
+    border: 0.3em solid;
+    pointer-events: none;
+}
+
+.avatarContainer:hover .hoverInfo{
+    visibility: visible;
+    opacity: 1;
+}
+
+
+/*top*/
+
+
+.hoverInfo.top::before{
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    border-color: var(--cozyColorAccent) transparent transparent transparent;
+}
+
+.avatarContainer:hover .hoverInfo.top{
+    top: -50%;
+}
+
+
+/*right*/
+
+.hoverInfo.right {
+    margin: 33% 0;
+}
+
+.hoverInfo.right::before{
+    right: 100%;
+    transform: translateY(-50%);
+    top:50%;
+    border-color: transparent var(--cozyColorAccent) transparent transparent;
+}
+
+.avatarContainer:hover .hoverInfo.right{
+    left: 110%;
+}
+
+/* hover tooltips END*/
 
 @media (max-width: 780px) {
     #pagecontent {
@@ -1124,6 +1216,10 @@ input[type=range]::-webkit-slider-thumb {
 
     #userlist {
         height: 2.7em;
+    }
+
+    .userlist.left {
+        display: none;
     }
     
     .optional {
@@ -1175,6 +1271,11 @@ input[type=range]::-webkit-slider-thumb {
     }
 
     .avatar {
+        width: 30px;
+        height: 30px;
+    }
+
+    .avatarContainer {
         width: 30px;
         height: 30px;
     }
