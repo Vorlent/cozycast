@@ -8,7 +8,7 @@ export function UserlistSidebar({ state }) {
                  <div class="avatarContainer">
                     <div class="image avatar" style="background-image: url('${user.url}');"/>
                     <div class="onlineDot ${user.active? "isOnline": "isInactive"}"></div>
-                    <img class="mutedDot ${user.muted? "": "noDisplay"}" src="svg/headphone-slash.svg"></img>
+                    <img class="mutedDot ${user.muted? "": "noDisplay"}" src="/svg/headphone-slash.svg"></img>
                 </div>
                 <div class="usernameSidebar">
                     <div class="username">${user.username}</div>

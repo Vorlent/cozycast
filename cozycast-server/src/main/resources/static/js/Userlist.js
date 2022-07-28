@@ -9,8 +9,8 @@ export function Userlist({ state, isLeft }) {
                 <div class="avatarContainer ${!state.showUsernames || isLeft ? "bar" : ""} ">
                     <div class="image avatar ${user.active? "": "isAway"}" style="background-image: url('${user.url}');"/>
                     <div class="${user.remote ? "orangeCircle" : ""}"> </div>
-                    <img class="mutedDot ${user.muted? "": "noDisplay"}" src="svg/headphone-slash.svg"></img>
-                    <img class="remoteIcon ${user.remote? "": "noDisplay"}" src="svg/remote.svg"></img>
+                    <img class="mutedDot ${user.muted? "": "noDisplay"}" src="/svg/headphone-slash.svg"></img>
+                    <img class="remoteIcon ${user.remote? "": "noDisplay"}" src="/svg/remote.svg"></img>
                     ${(!state.showUsernames || isLeft )&& html`<div class="hoverInfo ${isLeft ? "right" : "top"}">${user.username}</div>`}
                 </div>
                 ${state.showUsernames && !isLeft && html`<div class="${user.active? "": "isAway"}">${user.username}</div>`}
