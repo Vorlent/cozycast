@@ -543,8 +543,8 @@ class PlayerWebsocketServer {
         sendMessage(room.worker?.websocket, new ResetKeyboardEvent())
     }
 
-    private void dropremote(Room room, WebSocketSession session) {
-        if(room.centerRemote) {
+    private void dropremote(Room room, WebSocketSession session, Map jsonMessage) {
+        if(room.centerRemote || jsonMessage.center) {
 
             sendMessage(room.worker?.websocket, new MouseMoveEvent(
                 mouseX: room.videoSettings.desktopWidth / 2,
@@ -779,7 +779,7 @@ class PlayerWebsocketServer {
                     pickupremote(currentRoom, session)
                     break;
                 case "drop_remote":
-                    dropremote(currentRoom, session)
+                    dropremote(currentRoom, session, jsonMessage)
                     break;
                 case "worker_restart":
                     restartWorker(currentRoom, session, jsonMessage)
