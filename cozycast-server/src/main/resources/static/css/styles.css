@@ -75,6 +75,10 @@ html, body, #pagecontent, #videosizer {
     display: none;
 }
 
+.remoteHidden {
+    visibility:hidden;
+}
+
 #pagecontent {
     display: flex;
     width: 100%;

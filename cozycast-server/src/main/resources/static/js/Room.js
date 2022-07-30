@@ -155,7 +155,11 @@ export class Room extends Component {
                         </div>
                         <div class="subControls">
                             ${!state.fullscreen && html`
-                            <${Button} enabled=${state.remote} onclick=${remote} style="buttonSmall">
+                            ${html`<${Button} enabled=${false} onclick=${dropRemoteAndCenter} 
+                                title="Drop and center Remote" style="buttonSmall optional ${ state.remote ? "" :"remoteHidden"}">
+                                <img class="video-control-icon" src="/svg/crosshair.svg"/>
+                            <//>`}
+                            <${Button} enabled=${state.remote} onclick=${remote} style="buttonSmall" title="remote">
                                 <div class="video-control-icon">
                                 <${RemoteIcon} enabled=${state.remoteUsed && false}/>
                                 </div>
@@ -173,6 +177,7 @@ export class Room extends Component {
                                 <img class="video-control-icon" src="${state.muted ? '/svg/sound-mute.svg' : '/svg/sound-max.svg'}"/>
                             <//>
                             <input id="volumeControl" type="range" min="0" max="100" class="volumeSlider buttonBig" oninput=${changeVolume}/>
+                            ${html`<${Button}} style="buttonSmall optional remoteHidden"><//>`}
                         </div>
                         <div class="subControls">
                             ${state.roomToken
@@ -334,6 +339,15 @@ function sendActivityStatus(){
         action : 'userActivity',
         tabbedOut: !active,
     });
+}
+
+function dropRemoteAndCenter() {
+    if(state.remote) {
+    	sendMessage({
+    		action :'drop_remote',
+            center: true
+    	});
+    } 
 }
 
 function remote() {
