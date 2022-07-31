@@ -178,22 +178,41 @@ html, body, #pagecontent, #videosizer {
 .userlist {
     background: var(--cozyColorMenu) var(--cozycast-noise);
     display: flex;
-    justify-content: center;
     gap: 5px;
+    overflow: auto;
+}
+
+.userlist.bottom .user:first-child {
+    margin-left: auto;
+}
+
+.userlist.bottom .user:last-child {
+    margin-right: auto;
+}
+
+.userlist.left .user:first-child {
+    margin-top: auto;
+}
+
+.userlist.left .user:last-child {
+    margin-bottom: auto;
 }
 
 .userlist.bottom {
     flex-grow: 1;
     min-width: 0;
-    overflow: visible visible;
     scrollbar-width: thin;
 }
 
 .userlist.left {
+    min-height: 100%;
     flex-direction: column;
-    overflow: visible visible;
-    width: 6em;
+    width: 5em;
     max-height: 100%;
+}
+
+.userprofileName{
+    white-space: nowrap;
 }
 
 
@@ -438,6 +457,7 @@ button{
     border-radius: 50%;
     display: inline-block;
     position: absolute;
+    pointer-events: none;
 }
 
 .remote {
@@ -680,6 +700,7 @@ input[type=range]::-webkit-slider-thumb {
     height: 60px;
     border-radius: 50%;
     position: absolute;
+    pointer-events: none;
 }
 
 .isAway{
@@ -706,6 +727,7 @@ input[type=range]::-webkit-slider-thumb {
     background-color: var(--cozyButton);
     bottom: 0;
     left: 0;
+    pointer-events: none;
 }
 
 .noDisplay{
@@ -1151,6 +1173,54 @@ input[type=range]::-webkit-slider-thumb {
 /* loding dots END */
 
 /* hover tooltips */
+
+.hoverInfoScript {
+    position: absolute;
+    background-color: var(--cozyColorAccent);
+    white-space: nowrap;
+    padding: 0.15em 0.3em;
+    border-radius: 0.2em;
+    z-index: 3;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+    font-size: 1.3em;
+    color: white;
+}
+
+.hoverInfoScript::before{
+    content: "";
+    position: absolute;
+    border: 0.3em solid;
+    pointer-events: none;
+}
+
+.hoverInfoScript.top{
+    transform: translateX(-50%);
+}
+
+.hoverInfoScript.right{
+    transform: translateY(-50%);
+}
+
+.avatarContainer:hover .hoverInfo{
+    visibility: visible;
+    opacity: 1;
+}
+
+.hoverInfoScript.top::before{
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    border-color: var(--cozyColorAccent) transparent transparent transparent;
+}
+
+.hoverInfoScript.right::before{
+    right: 100%;
+    transform: translateY(-50%);
+    top:50%;
+    border-color: transparent var(--cozyColorAccent) transparent transparent;
+}
+
 
 .hoverInfo {
     position: absolute;

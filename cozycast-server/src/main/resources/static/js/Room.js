@@ -11,6 +11,7 @@ import { VideoControls } from '/js/VideoControls.js'
 import { Button } from '/js/Button.js'
 import { SidebarState, state, updateState } from '/js/index.js'
 import { RemoteIcon } from '/js/RemoteIcon.js'
+import { UserHoverName } from '/js/UserHoverName.js'
 
 var favicon = new Favico({
     animation:'none'
@@ -139,7 +140,7 @@ export class Room extends Component {
         <div id="pagecontent" class="${state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}">
             ${isBanned() && html`Banned until ${state.banned}`}
             ${!isBanned() && html`
-            ${!state.userlistHidden && !state.fullscreen && state.userlistOnLeft && html`<${Userlist} state=${state} isLeft=${true}/>`}
+            ${!state.userlistHidden && !state.fullscreen && state.userlistOnLeft && html`<div><${Userlist} state=${state} isLeft=${true}/></div>`}
             <div id="contentWithoutSidebar" class="contentWithoutSidebar">
                 <${VideoControls} state=${state}/>
                 ${state.scheduleSidebar && html`
@@ -200,8 +201,8 @@ export class Room extends Component {
             </div>
                 
             ${(state.roomSidebar != SidebarState.NOTHING) && html`<${RoomSidebar} state=${state}/>`}
-            <${ProfileModal} state=${state}/>
-            `}
+            <${ProfileModal} state=${state}/>`}
+            ${state.hoverText && html`<${UserHoverName} state=${state}/>`}
         </div>
     `;
     }
