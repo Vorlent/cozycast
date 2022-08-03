@@ -339,8 +339,8 @@ button{
     border: none;
     background-color: var(--cozyButton);
     border-radius: 0.2em;
-    top:0;
-    right: 0;
+    top:0.1em;
+    right: 0.1em;
     width: 1.25em;
     height: 1.25em;
     visibility: hidden;
@@ -383,14 +383,16 @@ button{
 }
 
 .idSquare {
+    font-size: 0.65em;
+    top: -0.5em;
     display: inline-block;
     right: 0.25em;
     position: absolute;
     border-radius: 0.2em;
     text-align: center;
-    width: 2.1em;
+    width: 1.8em;
     overflow: hidden;
-    opacity: 0.5;
+    opacity: 0.7;
     word-break: keep-all;
     text-shadow:
         0.07em 0 black,
