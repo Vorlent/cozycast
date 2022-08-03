@@ -337,7 +337,7 @@ button{
     color: #fff;
     font-weight: bold;
     border: none;
-    background-color: var(--cozyOrange);
+    background-color: var(--cozyButton);
     border-radius: 0.2em;
     top:0;
     right: 0;
@@ -350,7 +350,7 @@ button{
 }
 
 .deleteMessageButton:hover{
-    background-color: red;
+    background-color: var(--cozyOrange);
 }
 
 .message > div:not(.username) {
