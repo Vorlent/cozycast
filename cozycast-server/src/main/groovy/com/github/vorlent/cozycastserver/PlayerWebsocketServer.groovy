@@ -91,12 +91,18 @@ class ChatHistoryEvent {
 
 class ReceiveMessageEvent {
     String action = "receivemessage"
+    String id
     String message
     String image
     String type
     String username
     String session
     String timestamp
+}
+
+class DeleteMessageEvent {
+    String action = "deletemessage"
+    String id
 }
 
 class ChangeUsernameEvent {
@@ -346,16 +352,14 @@ class PlayerWebsocketServer {
                 image: jsonMessage.image,
                 type: jsonMessage.type,
                 username: user.username,
+                session: session.getId(),
                 timestamp: zonedDateTime
             )
             if(chatMessage.validate()) {
-                chatMessage.save()
-            } else {
-                log.warn "Chat message by user ${user.username} in room ${room.name} is too long: ${jsonMessage.message?.substring(0, 4096)}"
-                return
-            }
-            room.users.each { key, value ->
+                chatMessage.save();
+                room.users.each { key, value ->
                 sendMessage(value.webSocketSession, new ReceiveMessageEvent(
+                    id: chatMessage.id,
                     message: jsonMessage.message,
                     image: jsonMessage.image,
                     type: jsonMessage.type,
@@ -363,6 +367,24 @@ class PlayerWebsocketServer {
                     session: session.getId(),
                     timestamp: nowAsISO
                 ))
+            }
+            } else {
+                log.warn "Chat message by user ${user.username} in room ${room.name} is too long: ${jsonMessage.message?.substring(0, 4096)}"
+                return
+            }
+        }
+    }
+
+    private void deletemessage(Room room, WebSocketSession session, Map jsonMessage) {
+        ChatMessage.withTransaction {
+            def message = ChatMessage.get(jsonMessage.id)
+            if(message && message.room == room.name && message.session == session.getId()){
+                message.delete(); 
+                room.users.each { key, value ->
+                    sendMessage(value.webSocketSession, new DeleteMessageEvent (
+                        id: message.id
+                    ))
+                }
             }
         }
     }
@@ -436,11 +458,12 @@ class PlayerWebsocketServer {
                         timestamp > ZonedDateTime.now(ZoneId.of("UTC")).minusHours(1)
                     }.list(sort: "timestamp", order: "asc", max: 500).collect {
                     new ReceiveMessageEvent(
+                        id: it.id,
                         message: it.message,
                         image: it.image,
                         type: it.type,
                         username: it.username,
-                        session: null,
+                        session: it.session,
                         timestamp: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'")
                             .format(it.timestamp)
                     )
@@ -744,6 +767,9 @@ class PlayerWebsocketServer {
                     break;
                 case "chatmessage":
                     chatmessage(currentRoom, session, jsonMessage)
+                    break;
+                case "deletemessage":
+                    deletemessage(currentRoom, session, jsonMessage)
                     break;
                 case "changeusername":
                     changeusername(currentRoom, session, jsonMessage)

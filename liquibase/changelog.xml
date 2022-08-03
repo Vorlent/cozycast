@@ -110,4 +110,12 @@
             </column>
         </createTable>
     </changeSet>
+
+    <changeSet id="8" author="vorlent">
+        <addColumn tableName="chat_message">
+            <column name="session" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

@@ -7,7 +7,7 @@
     --cozycast-dpr: 1;
     font-family: "Arial", "sans-serif";
     --noise: url("/png/noise_128.png");
-
+    --cozyOrange:#f90;
     --chat-size: max(12%,15em);
 }
 
@@ -178,22 +178,41 @@ html, body, #pagecontent, #videosizer {
 .userlist {
     background: var(--cozyColorMenu) var(--cozycast-noise);
     display: flex;
-    justify-content: center;
     gap: 5px;
+    overflow: auto;
+}
+
+.userlist.bottom .user:first-child {
+    margin-left: auto;
+}
+
+.userlist.bottom .user:last-child {
+    margin-right: auto;
+}
+
+.userlist.left .user:first-child {
+    margin-top: auto;
+}
+
+.userlist.left .user:last-child {
+    margin-bottom: auto;
 }
 
 .userlist.bottom {
     flex-grow: 1;
     min-width: 0;
-    overflow: visible visible;
     scrollbar-width: thin;
 }
 
 .userlist.left {
+    min-height: 100%;
     flex-direction: column;
-    overflow: visible visible;
-    width: 6em;
+    width: 5em;
     max-height: 100%;
+}
+
+.userprofileName{
+    white-space: nowrap;
 }
 
 
@@ -289,13 +308,52 @@ button{
 .message {
     background-color: rgba(0, 0, 0, 0.3);
     margin-top: 10px;
-    padding: .5em;
+    padding-top: .5em;
     border-radius: .2em;
     box-shadow: 0 0 4px black inset;
 }
 
+.subMessage:last-of-type {
+    padding-bottom: 0.5em;
+}
+
+.subMessage {
+    position:relative;
+    padding: .15em;
+    padding-left: 1em;
+}
+
+.subMessage:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.subMessage:hover > .deleteMessageButton{
+    visibility: visible;
+}
+
+.deleteMessageButton {
+    z-index: 2;
+    position: absolute;
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    background-color: var(--cozyButton);
+    border-radius: 0.2em;
+    top:0.1em;
+    right: 0.1em;
+    width: 1.25em;
+    height: 1.25em;
+    visibility: hidden;
+    cursor: pointer;
+    text-align: center;
+    padding: 0;
+}
+
+.deleteMessageButton:hover{
+    background-color: var(--cozyOrange);
+}
+
 .message > div:not(.username) {
-	margin-left: .5em;
 	font-size: 0.9em;
 }
 
@@ -314,12 +372,33 @@ button{
 
 .username {
     font-weight: 600;
+    padding-left: 0.5em;
+    position: relative;
 }
 
 .timestamp {
     font-weight: 300;
     font-size: 0.8em;
     color: lightgray;
+}
+
+.idSquare {
+    font-size: 0.65em;
+    top: -0.5em;
+    display: inline-block;
+    right: 0.25em;
+    position: absolute;
+    border-radius: 0.2em;
+    text-align: center;
+    width: 1.8em;
+    overflow: hidden;
+    opacity: 0.7;
+    word-break: keep-all;
+    text-shadow:
+        0.07em 0 black,
+        0 0.07em black,
+        -0.07em 0 black,
+        0 -0.07em black;
 }
 
 .lastSeen{
@@ -438,6 +517,7 @@ button{
     border-radius: 50%;
     display: inline-block;
     position: absolute;
+    pointer-events: none;
 }
 
 .remote {
@@ -680,6 +760,7 @@ input[type=range]::-webkit-slider-thumb {
     height: 60px;
     border-radius: 50%;
     position: absolute;
+    pointer-events: none;
 }
 
 .isAway{
@@ -706,6 +787,7 @@ input[type=range]::-webkit-slider-thumb {
     background-color: var(--cozyButton);
     bottom: 0;
     left: 0;
+    pointer-events: none;
 }
 
 .noDisplay{
@@ -1151,6 +1233,54 @@ input[type=range]::-webkit-slider-thumb {
 /* loding dots END */
 
 /* hover tooltips */
+
+.hoverInfoScript {
+    position: absolute;
+    background-color: var(--cozyColorAccent);
+    white-space: nowrap;
+    padding: 0.15em 0.3em;
+    border-radius: 0.2em;
+    z-index: 3;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+    font-size: 1.3em;
+    color: white;
+}
+
+.hoverInfoScript::before{
+    content: "";
+    position: absolute;
+    border: 0.3em solid;
+    pointer-events: none;
+}
+
+.hoverInfoScript.top{
+    transform: translateX(-50%);
+}
+
+.hoverInfoScript.right{
+    transform: translateY(-50%);
+}
+
+.avatarContainer:hover .hoverInfo{
+    visibility: visible;
+    opacity: 1;
+}
+
+.hoverInfoScript.top::before{
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    border-color: var(--cozyColorAccent) transparent transparent transparent;
+}
+
+.hoverInfoScript.right::before{
+    right: 100%;
+    transform: translateY(-50%);
+    top:50%;
+    border-color: transparent var(--cozyColorAccent) transparent transparent;
+}
+
 
 .hoverInfo {
     position: absolute;

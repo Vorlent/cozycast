@@ -65,6 +65,13 @@ function autosize() {
     },0);
 }
 
+function deleteMessage(id){
+    sendMessage({
+        action : 'deletemessage',
+        id: id
+    });
+}
+
 function openPictureUpload() {
     document.getElementById('image-upload-file').click();
 }
@@ -131,6 +138,19 @@ export class Chat extends Component {
         }
     }
 
+    stringToColor(str){
+        var hash = 0;
+        for (var i = 0; i < str.length; i++) {
+          hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        var colour = '#';
+        for (var i = 0; i < 3; i++) {
+          var value = (hash >> (i * 8)) & 0xFF;
+          colour += ('00' + value.toString(16)).substr(-2);
+        }
+        return colour;
+    }
+
     render({ state }, { xyz = [] }) {
         var roomId = state.roomId;
         if(roomId == null || roomId == "default") {
@@ -140,26 +160,39 @@ export class Chat extends Component {
             ${state.historyMode && html`<div class="history-mode-indicator">Old messages</div>`}
             <div id="messages" onscroll=${this.chatScroll}>
                 ${state.chatMessages.map(message => html`
-                    <div class="message">
-                        <div class="username">${message.username + "  "}<span class="timestamp">${message.timestamp}</span></div>
-                        ${message.messages.map(msg => html`
-                            ${msg.type == "url" &&
-                                html`<div><a class="chat-link" target="_blank" href="${msg.href}">${msg.href}</a></div>`}
-                            ${msg.type == "image" &&
-                                html`<div class="chat-image">
-                                    <a class="chat-link" target="_blank" href="${msg.href}"><img onload="${this.scrollToBottom}" src="${msg.href}" /></a>
-                                </div>`}
-                            ${msg.type == "video" &&
-                                html`<div class="chat-video">
-                                    <a class="chat-link" target="_blank" href="${msg.href}"><video loop autoplay muted onloadeddata="${this.scrollToBottom}" src="${msg.href}" /></a>
-                                </div>`}
-                            ${msg.type == "text" &&
-                                html`<div>${msg.message.split("\n")
-                                    .map(message => html`
-                                        ${message}
-                                        <br/>
-                                    `)}</div>`}
-                        `)}
+                    <div class="message" key=${message.data[0].id} id=${message.data[0].id}>
+                        <div class="username">${message.username + "  "}<span class="timestamp">${message.data[0].timestamp}</span> 
+                            <div class="idSquare" style="background-color:${this.stringToColor(message.session)};"> ${state.session == message.session ? "You" : message.session.substr(0,3).toLowerCase()} </div>
+                        </div>
+                        ${message.data.map(data => 
+                        html`
+                        <div class="subMessage">
+                        ${state.session == message.session && html`<button class="deleteMessageButton" onclick=${() => deleteMessage(data.id)}>X</button>`}
+                        ${
+                            data.messages.map( msg => html`
+                                ${msg.type == "url" &&
+                                    html`<div><a class="chat-link" target="_blank" href="${msg.href}">${msg.href}</a></div>
+                                `}
+                                ${msg.type == "image" &&
+                                    html`<div class="chat-image">
+                                        <a class="chat-link" target="_blank" href="${msg.href}"><img onload="${this.scrollToBottom}" src="${msg.href}" /></a>
+                                    </div>
+                                `}
+                                ${msg.type == "video" &&
+                                    html`<div class="chat-video">
+                                        <a class="chat-link" target="_blank" href="${msg.href}"><video loop autoplay muted onloadeddata="${this.scrollToBottom}" src="${msg.href}" /></a>
+                                    </div>
+                                `}
+                                ${msg.type == "text" &&
+                                    html`<div class="chat-text">${msg.message.split("\n")
+                                        .map(message => html`
+                                            ${message}
+                                            <br/>
+                                        `)}</div>
+                                `}
+                            `)
+                        }
+                        </div>`)}
                     </div>
                 `)}
             </div>
@@ -167,7 +200,7 @@ export class Chat extends Component {
             <div id="chatbox" onclick=${() => document.getElementById("chat-textbox").focus()}>
                 <div class="image-uploader">
                     <div class="ta-wrapper">
-                    <textarea id="chat-textbox" class="chatbox-textarea" oninput=${chatInput} onkeypress=${chatEnter} onkeydown="${autosize}" onpaste=${openConfirmWindowPaste}>
+                    <textarea id="chat-textbox" class="chatbox-textarea" oninput=${chatInput} onkeypress=${chatEnter} onkeydown="${autosize}" onpaste=${(e)=>{autosize();openConfirmWindowPaste(e)}}>
                         ${state.chatBox}
                     </textarea>
                     </div>
