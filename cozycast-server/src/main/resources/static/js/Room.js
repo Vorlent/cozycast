@@ -384,6 +384,18 @@ function typing(parsedMessage) {
     })
 }
 
+function deletemessage(parsedMessage){
+    console.log(state.chatMessages)
+    updateState(function (state){
+        state.chatMessages = state.chatMessages.map(function(message) {
+            if(message.data.length == 1 && message.data[0].id == parsedMessage.id) {return};
+            message.data = message.data.filter(data => data.id != parsedMessage.id);
+            return message;
+        }).filter(x=>x)
+    })
+    console.log(state.chatMessages)
+}
+
 function chatmessage(parsedMessage, skip_notifications) {
     var msg = parsedMessage.message || "";
     var queuedMessages = [];
@@ -414,16 +426,14 @@ function chatmessage(parsedMessage, skip_notifications) {
 
     updateState(function (state) {
         var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
-        if(state.chatMessages.length > 0 && state.chatMessages[state.chatMessages.length-1].username == parsedMessage.username) {
+        if(state.chatMessages.length > 0 && state.chatMessages[state.chatMessages.length-1].session == parsedMessage.session) {
             var lastMessage = state.chatMessages[state.chatMessages.length-1];
-            queuedMessages.forEach(function(message) {
-                lastMessage.messages.push(message)
-            })
+            lastMessage.data.push({messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A')})
         } else {
             state.chatMessages.push({
                 username: parsedMessage.username,
-                timestamp: moment(parsedMessage.timestamp).format('h:mm A'),
-                messages: queuedMessages
+                session: parsedMessage.session,
+                data: [{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A')}]
             })
         }
         state.newMessage = true
@@ -494,6 +504,11 @@ function changeusername(parsedMessage) {
             }
             return element;
         });
+        state.chatMessages = state.chatMessages.map(function(message) {
+            if(message.session == parsedMessage.session)
+                message.username = parsedMessage.username;
+            return message;
+        })
     })
 }
 
@@ -599,6 +614,9 @@ function connect(room) {
     		case 'receivemessage':
     			chatmessage(parsedMessage);
     			break;
+            case 'deletemessage':
+                deletemessage(parsedMessage);
+                break;
             case 'changeusername':
                 changeusername(parsedMessage);
                 break;
@@ -708,7 +726,7 @@ function start() {
     	username: state.username,
         url: state.avatarUrl,
         token: state.roomToken,
-        muted: (state.showIfMuted ? state.muted | state.videoPaused : false)
+        muted: (state.showIfMuted ? state.muted : false)
     });
     webrtc_start()
 }

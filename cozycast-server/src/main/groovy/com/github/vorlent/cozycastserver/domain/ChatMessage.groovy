@@ -8,6 +8,7 @@ import groovy.util.logging.Slf4j
 @Entity
 class ChatMessage {
     String id
+    String session
     String room
     String username
     String message

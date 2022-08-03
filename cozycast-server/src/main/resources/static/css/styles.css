@@ -308,13 +308,51 @@ button{
 .message {
     background-color: rgba(0, 0, 0, 0.3);
     margin-top: 10px;
-    padding: .5em;
+    padding-top: .5em;
     border-radius: .2em;
     box-shadow: 0 0 4px black inset;
 }
 
+.subMessage:last-of-type {
+    padding-bottom: 0.5em;
+}
+
+.subMessage {
+    position:relative;
+    padding: .15em;
+    padding-left: 1em;
+}
+
+.subMessage:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.subMessage:hover > .deleteMessageButton{
+    visibility: visible;
+}
+
+.deleteMessageButton {
+    z-index: 2;
+    position: absolute;
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    background-color: var(--cozyButton);
+    border-radius: 50%;
+    box-shadow: 0 0 3px black inset;
+    top:0;
+    right: 0;
+    width: 1.5em;
+    height: 1.5em;
+    visibility: hidden;
+    cursor: pointer;
+}
+
+.deleteMessageButton:hover{
+    background-color: red;
+}
+
 .message > div:not(.username) {
-	margin-left: .5em;
 	font-size: 0.9em;
 }
 
@@ -333,12 +371,30 @@ button{
 
 .username {
     font-weight: 600;
+    padding-left: 0.5em;
+    position: relative;
 }
 
 .timestamp {
     font-weight: 300;
     font-size: 0.8em;
     color: lightgray;
+}
+
+.idSquare {
+    display: inline-block;
+    right: 0.25em;
+    position: absolute;
+    border-radius: 0.2em;
+    text-align: center;
+    width: 2.1em;
+    overflow: hidden;
+    opacity: 0.5;
+    text-shadow:
+        0.07em 0 black,
+        0 0.07em black,
+        -0.07em 0 black,
+        0 -0.07em black;
 }
 
 .lastSeen{

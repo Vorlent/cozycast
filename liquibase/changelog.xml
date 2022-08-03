@@ -24,6 +24,9 @@
             <column name="username" type="varchar(50)">
                 <constraints nullable="false"/>
             </column>
+            <column name="session" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
             <column name="message" type="varchar(1024)">
                 <constraints nullable="false"/>
             </column>
