@@ -24,9 +24,6 @@
             <column name="username" type="varchar(50)">
                 <constraints nullable="false"/>
             </column>
-            <column name="session" type="varchar(50)">
-                <constraints nullable="false"/>
-            </column>
             <column name="message" type="varchar(1024)">
                 <constraints nullable="false"/>
             </column>
@@ -112,5 +109,13 @@
                 <constraints nullable="true"/>
             </column>
         </createTable>
+    </changeSet>
+
+    <changeSet id="8" author="vorlent">
+        <addColumn tableName="chat_message">
+            <column name="session" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
     </changeSet>
 </databaseChangeLog>
