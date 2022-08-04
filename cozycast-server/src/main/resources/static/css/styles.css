@@ -40,15 +40,19 @@
 }
 
 ::-webkit-scrollbar {
-    background: var(--cozyColorMenu,#346);
-    width: 16px;
+    background: transparent;
+    width: 0.7em;
 }
 
 ::-webkit-scrollbar-thumb {
     background: var(--cozyScrollbar,#235);
     background-clip: content-box;
     border: 4px solid transparent;
-    border-radius: 8px;
+    border-radius: 10px;
+}
+
+.chatbox-textarea::-webkit-scrollbar-thumb {
+    background: var(--cozySelect);
 }
 
 input:focus,
@@ -244,7 +248,7 @@ html, body, #pagecontent, #videosizer {
 
 .usernameSidebar {
     display: flex;
-    margin-left: 1em;
+    margin-left: 0.5em;
     align-items:baseline;
     flex-direction: column;
     justify-content: center;
@@ -376,6 +380,11 @@ button{
     position: relative;
 }
 
+.usernameList {
+    font-weight: 600;
+    position: relative;
+}
+
 .timestamp {
     font-weight: 300;
     font-size: 0.8em;
@@ -412,6 +421,7 @@ button{
     padding-left: 10px;
     padding-right: 10px;
     overflow-y: auto;
+    overflow-y: overlay;
     word-break: break-word;
 }
 
@@ -437,6 +447,12 @@ button{
     width: 100%;
 }
 
+.chat-deleted {
+    text-align: center;
+    font-style: italic;
+    color: #ffffff80;
+}
+
 .chatbox-textarea {
     color: white;
     background-color: transparent;
@@ -444,16 +460,6 @@ button{
     width: 100%;
     font-size: 15px;
     height: 100%;
-}
-
-/*Chrome fix*/
-.chatbox-textarea::-webkit-scrollbar {
-    background: var(--cozyColorMenu);
-    width: 5px;
-}
-
-.chatbox-textarea::-webkit-scrollbar-thumb {
-    background: var(--cozySelect);
 }
 
 .ta-wrapper{

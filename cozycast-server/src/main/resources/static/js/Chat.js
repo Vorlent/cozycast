@@ -2,68 +2,7 @@ import { Component } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
 import { state, updateState } from '/js/index.js'
 import { sendMessage } from '/js/Room.js'
-import { ConfirmUpload, openConfirmWindow, openConfirmWindowPaste } from '/js/ConfirmUpload.js'
-
-var lastTypingEvent = Date.now();
-function chatInput(e) {
-    updateState(function(state) {
-        var enterKeycode = 13;
-        state.chatBox = e.target.value;
-        var now = Date.now();
-        if(now - lastTypingEvent > 1000) {
-            sendMessage({
-                action : 'typing',
-                state: 'start'
-            });
-            lastTypingEvent = now;
-        }
-    })
-}
-
-function chatEnter(e) {
-    updateState(function(state) {
-        var enterKeycode = 13;
-        if(e.which == enterKeycode) {
-            e.preventDefault();
-            if(e.shiftKey) {
-                updateState(function (state)  {
-                    state.chatBox += "\n"
-                    e.target.value = state.chatBox; // hack
-                });
-            } else {
-                if(state.chatBox.trim() != "") {
-                    sendMessage({
-                        action : 'chatmessage',
-                        type: "text",
-                        message: state.chatBox
-                    });
-                }
-                state.chatBox = "";
-                e.target.value = state.chatBox; // hack
-
-                sendMessage({
-                    action : 'typing',
-                    state: 'stop'
-                });
-                autosize();
-            }
-        }
-    })
-}
-
-function autosize() {
-    var div = document.querySelector('.ta-wrapper');
-    var ta =  document.querySelector('.chatbox-textarea');
-    var messages = document.getElementById("messages");
-
- setTimeout(function() {
-     ta. style.cssText = 'height:0px';
-     var height = Math.min(18*5, ta.scrollHeight);
-     div.style.cssText = 'height:' + (20 + height) + 'px';
-     ta. style.cssText = 'height:' + height + 'px';
-     if(!state.historyMode) messages.scrollTop = messages.scrollHeight;
-    },0);
-}
+import { ChatInput } from '/js/ChatInput.js'
 
 function deleteMessage(id){
     sendMessage({
@@ -72,36 +11,34 @@ function deleteMessage(id){
     });
 }
 
-function openPictureUpload() {
-    document.getElementById('image-upload-file').click();
+export function chatScroll() {
+    var messages = document.getElementById("messages");
+    //chrome fix for scrollTopMax
+    var scrollTop = messages.scrollTopMax ? messages.scrollTopMax : messages.scrollHeight - messages.clientHeight;
+    var activateHistoryMode = 0.3 * messages.offsetHeight < scrollTop - messages.scrollTop
+    if(state.historyMode != activateHistoryMode) {
+        updateState(function (state) {
+            state.historyMode = activateHistoryMode
+        })
+    }
+}
+
+export function scrollToBottom() {
+    if(!state.historyMode || state.forceChatScroll) {
+        var messages = document.getElementById("messages");
+        messages.scrollTop = messages.scrollHeight;
+        if(state.forceChatScroll) {
+            updateState(function (state) {
+                state.forceChatScroll = false
+            })
+        }
+    }
 }
 
 export class Chat extends Component {
     constructor() {
-        super()
+        super();
         this.typingInterval = null;
-    }
-
-    componentDidMount() {
-         this.typingInterval = setInterval(function() {
-             updateState(function (state) {
-                 var newTypingUsers = state.typingUsers.filter(function(user) {
-                     return user.lastTypingTime.isAfter(moment().subtract(3, 'seconds'));
-                 });
-                 if(newTypingUsers.length != state.typingUsers.length) {
-                     state.typingUsers = newTypingUsers
-                 } else {
-                     // no change, no update
-                     return false
-                 }
-             })
-         }, 1000);
-    }
-
-    componentWillUnmount() {
-        if(this.typingInterval) {
-            clearInterval(this.typingInterval)
-        }
     }
 
     componentDidUpdate() {
@@ -109,32 +46,7 @@ export class Chat extends Component {
             updateState(function (state) {
                 state.newMessage = false
             })
-            this.scrollToBottom();
-        }
-    }
-
-    chatScroll() {
-        var messages = document.getElementById("messages");
-        //chrome fix for scrollTopMax
-        var scrollTop = messages.scrollTopMax ? messages.scrollTopMax : messages.scrollHeight - messages.clientHeight;
-        var activateHistoryMode = 0.3 * messages.offsetHeight < scrollTop - messages.scrollTop
-        if(state.historyMode != activateHistoryMode) {
-            updateState(function (state) {
-                state.historyMode = activateHistoryMode
-            })
-        }
-    }
-
-
-    scrollToBottom() {
-        if(!state.historyMode || state.forceChatScroll) {
-            var messages = document.getElementById("messages");
-            messages.scrollTop = messages.scrollHeight;
-            if(state.forceChatScroll) {
-                updateState(function (state) {
-                    state.forceChatScroll = false
-                })
-            }
+            scrollToBottom();
         }
     }
 
@@ -151,23 +63,23 @@ export class Chat extends Component {
         return colour;
     }
 
-    render({ state }, { xyz = [] }) {
+    render({state}) {
         var roomId = state.roomId;
         if(roomId == null || roomId == "default") {
             roomId = "";
         }
         return html`<div id="chat">
             ${state.historyMode && html`<div class="history-mode-indicator">Old messages</div>`}
-            <div id="messages" onscroll=${this.chatScroll}>
+            <div id="messages" onscroll=${chatScroll}>
                 ${state.chatMessages.map(message => html`
                     <div class="message" key=${message.data[0].id} id=${message.data[0].id}>
                         <div class="username">${message.username + "  "}<span class="timestamp">${message.data[0].timestamp}</span> 
-                            <div class="idSquare" style="background-color:${this.stringToColor(message.session)};"> ${state.session == message.session ? "You" : message.session.substr(0,3).toLowerCase()} </div>
+                            ${false && html`<div class="idSquare" style="background-color:${this.stringToColor(message.session)};"> ${state.session == message.session ? "You" : message.session.substr(0,3).toLowerCase()} </div>`}
                         </div>
                         ${message.data.map(data => 
                         html`
                         <div class="subMessage">
-                        ${state.session == message.session && html`<button class="deleteMessageButton" onclick=${() => deleteMessage(data.id)}>X</button>`}
+                        ${state.session == message.session && !data.deleted && html`<button class="deleteMessageButton" onclick=${() => deleteMessage(data.id)}>X</button>`}
                         ${
                             data.messages.map( msg => html`
                                 ${msg.type == "url" &&
@@ -175,12 +87,12 @@ export class Chat extends Component {
                                 `}
                                 ${msg.type == "image" &&
                                     html`<div class="chat-image">
-                                        <a class="chat-link" target="_blank" href="${msg.href}"><img onload="${this.scrollToBottom}" src="${msg.href}" /></a>
+                                        <a class="chat-link" target="_blank" href="${msg.href}"><img onload="${scrollToBottom}" src="${msg.href}" /></a>
                                     </div>
                                 `}
                                 ${msg.type == "video" &&
                                     html`<div class="chat-video">
-                                        <a class="chat-link" target="_blank" href="${msg.href}"><video loop autoplay muted onloadeddata="${this.scrollToBottom}" src="${msg.href}" /></a>
+                                        <a class="chat-link" target="_blank" href="${msg.href}"><video loop autoplay muted onloadeddata="${scrollToBottom}" src="${msg.href}" /></a>
                                     </div>
                                 `}
                                 ${msg.type == "text" &&
@@ -190,33 +102,18 @@ export class Chat extends Component {
                                             <br/>
                                         `)}</div>
                                 `}
+                                ${msg.type == "deleted" &&
+                                    html`<div class="chat-deleted">
+                                        deleted
+                                        </div>
+                                `}
                             `)
                         }
                         </div>`)}
                     </div>
                 `)}
             </div>
-            <${ConfirmUpload} state=${state}/>
-            <div id="chatbox" onclick=${() => document.getElementById("chat-textbox").focus()}>
-                <div class="image-uploader">
-                    <div class="ta-wrapper">
-                    <textarea id="chat-textbox" class="chatbox-textarea" oninput=${chatInput} onkeypress=${chatEnter} onkeydown="${autosize}" onpaste=${(e)=>{autosize();openConfirmWindowPaste(e)}}>
-                        ${state.chatBox}
-                    </textarea>
-                    </div>
-                    <div class="image-uploader-button-wrapper">
-                        <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange=${openConfirmWindow}/>
-                        ${(state.chatBox.length == 0) &&
-                            html`<img class="image-uploader-button" src="/svg/image_upload.svg" onclick=${openPictureUpload}/>`}
-                    </div>
-                </div>
-                <div id="typing">
-                    ${state.typingUsers.length > 0 && html`
-                        ${state.typingUsers.length > 2 ? "Several people" : state.typingUsers.map((user, i) => html`${user.username}${(state.typingUsers.length - 1 != i) && ', '}`)} ${state.typingUsers.length > 1 ? 'are ' : 'is '}
-                        <div class="typingWrapper">typing<div class="loadingDotsWrapper"><div class="loadingDots"></div></div></div>
-                    `}
-                </div>
-            </div>
+            <${ChatInput} state=${state}/>
         </div>`
     }
 

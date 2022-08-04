@@ -11,7 +11,7 @@ export function UserlistSidebar({ state }) {
                     <img class="mutedDot ${user.muted? "": "noDisplay"}" src="/svg/headphone-slash.svg"></img>
                 </div>
                 <div class="usernameSidebar">
-                    <div class="username">${user.username}</div>
+                    <div class="usernameList">${user.username}</div>
                     ${!user.active && html`
                         <div class="lastSeen">last seen: <span>${user.lastTimeSeen}</span></div>
                         `}
