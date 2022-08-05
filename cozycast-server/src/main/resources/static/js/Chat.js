@@ -40,13 +40,6 @@ export class Chat extends Component {
         super();
     }
 
-    shouldComponentUpdate(nextProps, nextState){
-        //console.log("curr Messages:", this.props.state.chatMessages)
-        //console.log("next Messages:", nextProps.state.chatMessages)
-        //console.log("equal test:" , this.props.state.chatMessages !== nextProps.state.chatMessages)
-        return true || this.props.state.chatMessages !== nextProps.state.chatMessages;
-    }
-
     componentDidUpdate() {
         if(state.newMessage) {
             updateState(function (state) {

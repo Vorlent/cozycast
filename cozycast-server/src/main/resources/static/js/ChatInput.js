@@ -40,17 +40,19 @@ export function clearTyping(){
 
 export class ChatInput extends Component {
     constructor() {
+        super();
         chatInputState.setState = (data) => {
             this.setState({typingUsers: data});
         };
-        super();
         this.typingInterval = null;
+        this.clearFile = this.clearFile.bind(this);
+        this.lastTypingEvent = Date.now();
         this.state = { 
             isTyping: false,
             chatBox: "",
             typingUsers: [],
-            lastTypingEvent: Date.now()};
-        this.clearFile = this.clearFile.bind(this)
+            sendFile: false,
+            pasteFile: false};
     }
 
     clearFile() {
@@ -101,12 +103,12 @@ export class ChatInput extends Component {
         var enterKeycode = 13;
         this.setState({chatBox: e.target.value, isTyping: e.target.value.length != 0})
         var now = Date.now();
-        if(now - this.state.lastTypingEvent > 1000) {
+        if(now - this.lastTypingEvent > 1000) {
             sendMessage({
                 action : 'typing',
                 state: 'start'
             });
-            this.setState({lastTypingEvent: now});
+            this.lastTypingEvent = now;
         }
     }
 
@@ -183,6 +185,4 @@ export class ChatInput extends Component {
             </div>
             `
     }
-
-    
 }

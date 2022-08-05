@@ -429,16 +429,11 @@ function chatmessage(parsedMessage, skip_notifications) {
             var lastMessage = state.chatMessages[state.chatMessages.length-1];
             lastMessage.data.push({messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A')})
         } else {
-            //state.chatMessages.push({
-            //    username: parsedMessage.username,
-            //    session: parsedMessage.session,
-            //    data: [{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A')}]
-            //})
-            state.chatMessages = [...state.chatMessages, {
+            state.chatMessages.push({
                 username: parsedMessage.username,
                 session: parsedMessage.session,
                 data: [{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A')}]
-            }]
+            })
         }
         state.newMessage = true
     })
