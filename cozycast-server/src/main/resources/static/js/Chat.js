@@ -11,7 +11,7 @@ function deleteMessage(id){
     });
 }
 
-export function chatScroll() {
+function chatScroll() {
     var messages = document.getElementById("messages");
     //chrome fix for scrollTopMax
     var scrollTop = messages.scrollTopMax ? messages.scrollTopMax : messages.scrollHeight - messages.clientHeight;
@@ -23,7 +23,7 @@ export function chatScroll() {
     }
 }
 
-export function scrollToBottom() {
+function scrollToBottom() {
     if(!state.historyMode || state.forceChatScroll) {
         var messages = document.getElementById("messages");
         messages.scrollTop = messages.scrollHeight;
@@ -38,7 +38,13 @@ export function scrollToBottom() {
 export class Chat extends Component {
     constructor() {
         super();
-        this.typingInterval = null;
+    }
+
+    shouldComponentUpdate(nextProps, nextState){
+        //console.log("curr Messages:", this.props.state.chatMessages)
+        //console.log("next Messages:", nextProps.state.chatMessages)
+        //console.log("equal test:" , this.props.state.chatMessages !== nextProps.state.chatMessages)
+        return true || this.props.state.chatMessages !== nextProps.state.chatMessages;
     }
 
     componentDidUpdate() {

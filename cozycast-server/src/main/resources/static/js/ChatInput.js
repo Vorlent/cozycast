@@ -1,14 +1,10 @@
-import { Component, createRef } from '/js/libs/preact.js'
+import { Component, createRef, createContext } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
-import { state, updateState } from '/js/index.js'
 import { sendMessage } from '/js/Room.js'
-import { ConfirmUpload, openConfirmWindow, openConfirmWindowPaste } from '/js/ConfirmUpload.js'
+import { ConfirmUpload } from '/js/ConfirmUpload.js'
 
-var lastTypingEvent = Date.now();
-var chatBox = '';
 var globalTypingUsers = [];
 var chatInputState = {};
-
 
 export function typing(parsedMessage) {
     if(parsedMessage.state == "start") {
@@ -43,8 +39,6 @@ export function clearTyping(){
 
 
 export class ChatInput extends Component {
-    state = {};
-
     constructor() {
         chatInputState.setState = (data) => {
             this.setState({typingUsers: data});
@@ -53,7 +47,19 @@ export class ChatInput extends Component {
         this.typingInterval = null;
         this.state = { 
             isTyping: false,
-            typingUsers: []};
+            chatBox: "",
+            typingUsers: [],
+            lastTypingEvent: Date.now()};
+        this.clearFile = this.clearFile.bind(this)
+    }
+
+    clearFile() {
+        if(this.state.sendFile) this.state.sendFile.target.value = "";
+        this.setState({sendFile: false, pasteFile: false})
+    }
+
+    shouldComponentUpdate(nextProps, nextState){
+        return this.state !== nextState;
     }
 
     componentDidMount() {
@@ -74,19 +80,33 @@ export class ChatInput extends Component {
         }
     }
 
+    openConfirmWindow= (e) => {
+        this.setState({sendFile: e})
+    }
+    
+    openConfirmWindowPaste= (e) => {
+        if(e.clipboardData) {
+            var items = e.clipboardData.items
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf("image") == -1) continue
+                var blob = items[i].getAsFile()
+                this.setState({pasteFile: blob})
+           }
+        };
+    
+    }
+
     chatInput = (e) => {
         this.autosize();
         var enterKeycode = 13;
-        chatBox = e.target.value;
-        if(!this.state.isTyping && chatBox.length != 0) this.setState({isTyping: true})
-        else if(this.state.isTyping && chatBox.length == 0) this.setState({isTyping: false})
+        this.setState({chatBox: e.target.value, isTyping: e.target.value.length != 0})
         var now = Date.now();
-        if(now - lastTypingEvent > 1000) {
+        if(now - this.state.lastTypingEvent > 1000) {
             sendMessage({
                 action : 'typing',
                 state: 'start'
             });
-            lastTypingEvent = now;
+            this.setState({lastTypingEvent: now});
         }
     }
 
@@ -95,26 +115,26 @@ export class ChatInput extends Component {
         if(e.which == enterKeycode) {
             e.preventDefault();
             if(e.shiftKey) {
-                chatBox += "\n"
-                e.target.value = chatBox; // hack
+                let newChatBox = this.state.chatBox += "\n";
+                this.setState({chatBox: newChatBox})
+                e.target.value = newChatBox; // hack
                 this.autosize();
             } else {
-                if(chatBox.trim() != "") {
+                if(this.state.chatBox.trim() != "") {
                     sendMessage({
                         action : 'chatmessage',
                         type: "text",
-                        message: chatBox
+                        message: this.state.chatBox
                     });
                 }
-                chatBox = "";
-                e.target.value = chatBox; // hack
+                this.setState({chatBox: "",isTyping: false})
+                e.target.value = ""; // hack
 
                 sendMessage({
                     action : 'typing',
                     state: 'stop'
                 });
                 this.autosize();
-                this.setState({isTyping: false});
             }
         }
     }
@@ -125,14 +145,12 @@ export class ChatInput extends Component {
         var div = this.refTaWrapper.current;
         var ta =  this.refChatboxText.current;
         var messages = document.getElementById("messages");
-    
-     setTimeout(function() {
-         ta. style.cssText = 'height:0px';
-         var height = Math.min(18*5, ta.scrollHeight);
-         div.style.cssText = 'height:' + (20 + height) + 'px';
-         ta. style.cssText = 'height:' + height + 'px';
-         if(!state.historyMode) messages.scrollTop = messages.scrollHeight;
-        },0);
+
+        ta. style.cssText = 'height:0px';
+        var height = Math.min(18*5, ta.scrollHeight);
+        div.style.cssText = 'height:' + (20 + height) + 'px';
+        ta. style.cssText = 'height:' + height + 'px';
+        if(!this.props.state.historyMode) messages.scrollTop = messages.scrollHeight;
     }
     
     refImageUploadFile = createRef();
@@ -142,16 +160,16 @@ export class ChatInput extends Component {
 
     render({state}) {
         return html`
-            <${ConfirmUpload} state=${state}/>
+            <${ConfirmUpload} sendFile=${this.state.sendFile} pasteFile=${this.state.pasteFile} clear=${this.clearFile}/>
             <div id="chatbox" onclick=${() => this.refChatboxText.current.focus()}>
                 <div class="image-uploader">
                     <div class="ta-wrapper" ref=${this.refTaWrapper}>
-                    <textarea id="chat-textbox" ref=${this.refChatboxText} class="chatbox-textarea" oninput=${this.chatInput} onkeypress=${this.chatEnter} onpaste=${(e)=>{this.autosize();openConfirmWindowPaste(e)}}>
-                        ${chatBox}
+                    <textarea id="chat-textbox" ref=${this.refChatboxText} class="chatbox-textarea" oninput=${this.chatInput} onkeypress=${this.chatEnter} onpaste=${(e)=>{this.autosize();this.openConfirmWindowPaste(e)}}>
+                        ${this.state.chatBox}
                     </textarea>
                     </div>
                     <div class="image-uploader-button-wrapper">
-                        <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange=${openConfirmWindow} ref=${this.refImageUploadFile}/>
+                        <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange=${this.openConfirmWindow} ref=${this.refImageUploadFile}/>
                         ${!this.state.isTyping &&
                             html`<img class="image-uploader-button" src="/svg/image_upload.svg" onclick=${this.openPictureUpload}/>`}
                     </div>
