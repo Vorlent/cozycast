@@ -12,6 +12,8 @@ import { Button } from '/js/Button.js'
 import { SidebarState, state, updateState } from '/js/index.js'
 import { RemoteIcon } from '/js/RemoteIcon.js'
 import { UserHoverName } from '/js/UserHoverName.js'
+import { typing, filterTyping, clearTyping } from '/js/ChatInput.js'
+
 
 var favicon = new Favico({
     animation:'none'
@@ -363,29 +365,27 @@ function remote() {
     }
 }
 
-function typing(parsedMessage) {
-    updateState(function (state) {
-        if(parsedMessage.state == "start") {
-            var typingUser = state.typingUsers.find(e => e.session == parsedMessage.session)
-            if(typingUser) {
-                typingUser.lastTypingTime = moment()
-            } else {
-                state.typingUsers.push({
-                    username: parsedMessage.username,
-                    session: parsedMessage.session,
-                    lastTypingTime: moment()
-                })
-            }
-        } else if(parsedMessage.state == "stop") {
-            state.typingUsers = state.typingUsers.filter(function(user) {
-                return user.session != parsedMessage.session;
-            });
-        }
+function deletemessage(parsedMessage){
+    updateState(function (state){
+        state.chatMessages = state.chatMessages.map(function(message) {
+                message.data = message.data.map(data => {
+                    if(data.id == parsedMessage.id){
+                        data.messages = data.messages.map(message =>{
+                            message.href = "";
+                            message.message = "";
+                            message.type = "deleted";
+                            return message;
+                        })
+                        data.deleted = true;
+                    }
+                    return data;
+                });
+            return message;
+        })
     })
 }
 
-function deletemessage(parsedMessage){
-    console.log(state.chatMessages)
+function completeDeletemessage(parsedMessage){
     updateState(function (state){
         state.chatMessages = state.chatMessages.map(function(message) {
             if(message.data.length == 1 && message.data[0].id == parsedMessage.id) {return};
@@ -393,7 +393,6 @@ function deletemessage(parsedMessage){
             return message;
         }).filter(x=>x)
     })
-    console.log(state.chatMessages)
 }
 
 function chatmessage(parsedMessage, skip_notifications) {
@@ -528,10 +527,8 @@ function leave(parsedMessage) {
         state.userlist = state.userlist.filter(function(element) {
             return element.session != parsedMessage.session;
         });
-        state.typingUsers = state.typingUsers.filter(function(user) {
-            return user.session != parsedMessage.session;
-        });
     })
+    filterTyping(parsedMessage.session);
 }
 
 function ban(parsedMessage) {
@@ -673,10 +670,10 @@ function connect(room) {
     websocket.onclose = function (event) {
         updateState(function (state) {
             state.userlist = [];
-            state.typingUsers = [];
             state.chatMessages = [];
             state.remote = false;
         })
+        clearTyping();
         webrtc_stop()
         clearInterval(keepAlive)
         keepAlive = null;

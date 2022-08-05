@@ -24,13 +24,11 @@ var globalVar = {};
 export var state = {
     roomId: null,
     roomToken: null,
-    typingUsers: [],
     userlist: [],
     roomlist: [],
     chatMessages: [],
     newMessage: false,
     forceChatScroll: false,
-    chatBox: "",
     remote: false,
     remoteUsed: false,
     username: "Anonymous",
