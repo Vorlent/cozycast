@@ -59,6 +59,5 @@ If you have made modifications to the source code then it is recommended to set 
 
 ```
 source .env
-cd cozycast-server
-./mvnw compile exec:java
+./cozycast dev
 ```
