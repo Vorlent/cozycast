@@ -1,13 +1,5 @@
 import { Component } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
-import { updateState } from '/js/index.js'
-import { sendMessage } from '/js/Room.js'
-
-export function openProfile() {
-    updateState(function (state) {
-        state.profileModal = true;
-    })
-}
 
 export class ProfileModal extends Component {
     constructor(props) {
@@ -26,7 +18,7 @@ export class ProfileModal extends Component {
     }
 
     static getDerivedStateFromProps(props,state) {
-        // This is dumb and can be avoided by having the props passed down as the correct value the first time around
+        // This is suboptimal and can be avoided by having the props passed down as the correct value the first time around
         if (props.state.profileModal !== undefined && !state.editMode) {
           return {
             username: props.state.username,
@@ -47,48 +39,49 @@ export class ProfileModal extends Component {
     }
 
     closeProfile = () => {
-        updateState(function (state) {
-            delete state.profileModal;
-        })
+        this.props.updateRoomState({profileModal: undefined})
         this.setState({editMode: false})
     }
 
     saveProfile = () => {
-        updateState((state) => {
-            if(state.profileModal) {
-                state.muteChatNotification = this.state.muteChatNotification;
-                state.showUsernames = this.state.showUsernames;
-                state.legacyDesign = this.state.legacyDesign;
-                state.showIfMuted = this.state.showIfMuted;
-                if(state.showIfMuted != this.state.showIfMuted)
-                    sendMessage({
-                        action : 'userMuted',
-                        muted: showMuted && (state.muted || state.videoPaused)
-                    });
-                state.userlistOnLeft = this.state.userlistOnLeft;
-                if(state.username != this.state.username.substring(0, 12)){
-                    state.username = this.state.username.substring(0, 12);
-                    sendMessage({
-                        action : 'changeusername',
-                        username : state.username
-                    });
-                }
-                if(state.avatarUrl != this.state.avatarUrl){
-                    state.avatarUrl = this.state.avatarUrl;
-                    sendMessage({
-                        action : 'changeprofilepicture',
-                        url : state.avatarUrl
-                    });
-                }   
-                localStorage.setItem("username", state.username);
-                localStorage.setItem("avatarUrl", state.avatarUrl);
-                localStorage.setItem("muteChatNotification", state.muteChatNotification);
-                localStorage.setItem("showUsernames", state.showUsernames);
-                localStorage.setItem("legacyDesign", state.legacyDesign);
-                localStorage.setItem("showIfMuted", state.showIfMuted);
-                localStorage.setItem("userlistOnLeft", state.userlistOnLeft);
-            }
+        if(this.props.state.showIfMuted != this.state.showIfMuted)
+            this.props.sendMessage({
+                action : 'userMuted',
+                muted: this.state.showMuted && (this.props.state.muted || this.props.state.videoPaused)
+            });
+        let newUsername = this.props.state.username;
+        if(newUsername != this.state.username.substring(0, 12)){
+            newUsername = this.state.username.substring(0, 12);
+            this.props.sendMessage({
+                action : 'changeusername',
+                username : newUsername
+            });
+        }
+        let newAvatarUrl = this.props.state.avatarUrl;
+        if(newAvatarUrl  != this.state.avatarUrl){
+            newAvatarUrl = this.state.avatarUrl;
+            this.props.sendMessage({
+                action : 'changeprofilepicture',
+                url : newAvatarUrl
+        });
+    }   
+        this.props.updateRoomState({
+            muteChatNotification: this.state.muteChatNotification,
+            showUsernames: this.state.showUsernames,
+            legacyDesign: this.state.legacyDesign,
+            showIfMuted: this.state.showIfMuted,
+            userlistOnLeft: this.state.userlistOnLeft,
+            avatarUrl: newAvatarUrl,
+            username: newUsername
         })
+
+        localStorage.setItem("username", this.state.username);
+        localStorage.setItem("avatarUrl", this.state.avatarUrl);
+        localStorage.setItem("muteChatNotification", this.state.muteChatNotification);
+        localStorage.setItem("showUsernames", this.state.showUsernames);
+        localStorage.setItem("legacyDesign", this.state.legacyDesign);
+        localStorage.setItem("showIfMuted", this.state.showIfMuted);
+        localStorage.setItem("userlistOnLeft", this.state.userlistOnLeft);
         this.closeProfile()
     }
 
@@ -117,7 +110,6 @@ export class ProfileModal extends Component {
             }
         });
     }
-
 
     render({ state }, { xyz = [] }) {
         return html`${state.profileModal && html`

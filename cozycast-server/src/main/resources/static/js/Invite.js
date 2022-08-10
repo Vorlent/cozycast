@@ -3,8 +3,6 @@ import { html } from '/js/libs/htm/preact/index.js'
 
 import { route } from '/js/libs/preact-router/index.js'
 
-import { state, updateState } from '/js/index.js'
-
 export class Invite extends Component {
 
     componentWillMount() {

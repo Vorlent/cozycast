@@ -3,7 +3,7 @@ import { html } from '/js/libs/htm/preact/index.js'
 
 import { Button } from '/js/Button.js'
 
-import { SidebarState, state, updateState } from '/js/index.js'
+import { SidebarState} from '/js/index.js'
 
 var events = [
     {

@@ -1,124 +1,167 @@
 import { Component, render } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
 
-import { SidebarState, WorkerStatus, state, updateState } from '/js/index.js'
-
-import { sendWorkerRestart, sendRoomSettings } from '/js/Room.js'
+import { SidebarState, WorkerStatus } from '/js/index.js'
 
 import { Button } from '/js/Button.js'
 
-import { openInvite, InviteModal } from '/js/InviteModal.js'
+import { InviteModal } from '/js/InviteModal.js'
 
-
-import { openBanModal, BanModal } from '/js/BanModal.js'
+import { BanModal } from '/js/BanModal.js'
 
 export class RoomSettings extends Component {
+    constructor(props) {
+        super(props);
+        //since profileModal is the only component changing these states it's okay to intitalize it like this
+        this.state = {
+            accessType: this.props.state.roomSettings.accessType,
+            centerRemote: this.props.state.roomSettings.centerRemote,
+            desktopResolution: this.props.state.roomSettings.desktopResolution,
+            streamResolution: this.props.state.roomSettings.streamResolution,
+            framerate: this.props.state.roomSettings.framerate,
+            videoBitrate: this.props.state.roomSettings.videoBitrate,
+            audioBitrate: this.props.state.roomSettings.audioBitrate,
+            banModal: false,
+            inviteModal: false
+        }
+        this.updateSettingsState = this.updateSettingsState.bind(this);
+    }
+
+    updateSettingsState = this.setState;
 
     toggleWorker() {
         var token = localStorage.getItem("adminToken");
-        if(state.roomSettings.workerStarted == WorkerStatus.STOPPED) {
-            fetch('/api/room/{roomId}/worker/stop', {method: "POST", headers: { 'Authorization': "Bearer " + token }})
-                .then((e) => e.json()).then(function (e) {
-                updateState(function (state) {
-                    // TODO CHECK FOR FAILURE
-                    state.roomSettings.workerStarted = WorkerStatus.STARTING
-                })
+        if(this.props.state.workerStatus == WorkerStatus.STOPPED) {
+            fetch(`/api/room/${this.props.state.roomId}/worker/stop`, {method: "POST", headers: { 'Authorization': "Bearer " + token }})
+                .then((e) => e.json()).then((e) => {
+                    this.props.updateRoomState({workerStatus: WorkerStatus.STARTING})
             });
         }
-        if(state.roomSettings.workerStarted == WorkerStatus.STARTED) {
-            fetch('/api/room/{roomId}/worker/start', {method: "POST", headers: { 'Authorization': "Bearer " + token }})
-                .then((e) => e.json()).then(function (e) {
-                updateState(function (state) {
-                    // TODO CHECK FOR FAILURE
-                    state.roomSettings.workerStarted = WorkerStatus.STOPPED
-                })
+        if(this.props.state.workerStatus == WorkerStatus.STARTED) {
+            fetch(`/api/room/${this.props.state.roomId}/worker/start`, {method: "POST", headers: { 'Authorization': "Bearer " + token }})
+                .then((e) => e.json()).then((e) => {
+                    this.props.updateRoomState({workerStatus: WorkerStatus.STOPPED})
             });
         }
     }
 
-    restartWorker() {
-        sendWorkerRestart()
+
+    sendRoomSettings = () => {
+        this.props.sendMessage({
+            action : 'room_settings_save',
+            token: this.props.state.roomToken,
+            accessType: this.state.accessType,
+            centerRemote: this.state.centerRemote,
+            desktopResolution: this.state.desktopResolution,
+            streamResolution: this.state.streamResolution,
+            framerate: this.state.framerate,
+            videoBitrate: this.state.videoBitrate,
+            audioBitrate: this.state.audioBitrate
+        });
+    }
+    
+    sendWorkerRestart = () => {
+        this.props.sendMessage({
+            action : 'worker_restart',
+            token: this.props.state.roomToken
+        });
     }
 
-    selectAccessType(e) {
-        updateState(function (state) {
-            state.roomSettings.accessType = e.target.value
+    restartWorker = () => {
+        this.sendWorkerRestart()
+    }
+
+    selectAccessType = (e) => {
+        this.setState({
+            accessType: e.target.value
         })
     }
 
-    toggleCenterRemote() {
-        updateState(function (state) {
-            state.roomSettings.centerRemote = !state.roomSettings.centerRemote
+    toggleCenterRemote = () => {
+        this.setState({
+            centerRemote: !this.state.centerRemote
         })
     }
 
     selectDesktopResolution(e) {
-        updateState(function (state) {
-            state.roomSettings.desktopResolution = e.target.value
+        this.setState({
+            desktopResolution: e.target.value
         })
     }
 
     selectStreamResolution(e) {
-        updateState(function (state) {
-            state.roomSettings.streamResolution = e.target.value
+        this.setState({
+            streamResolution: e.target.value
         })
     }
 
     selectFramerate(e) {
-        updateState(function (state) {
-            state.roomSettings.framerate = e.target.value
+        this.setState({
+            framerate: e.target.value
         })
     }
 
     selectVideoBitrate(e) {
-        updateState(function (state) {
-            state.roomSettings.videoBitrate = e.target.value
+        this.setState({
+            videoBitrate: e.target.value
         })
     }
 
     selectAudioBitrate(e) {
-        updateState(function (state) {
-            state.roomSettings.audioBitrate = e.target.value
+        this.setState({
+            audioBitrate: e.target.value
         })
     }
 
-    saveRoomSettings(roomId) {
-        sendRoomSettings(state.roomSettings)
+    saveRoomSettings = (roomId) => {
+        this.sendRoomSettings()
     }
 
-    render({ roomId }, { xyz = [] }) {
+    openBanModal = (room) => {
+        this.setState({
+            banModal: true
+        })
+    }
+
+    openInviteModal = (room) => {
+        this.setState({
+            inviteModal: true
+        })
+    }
+
+    render({ roomId }, { state }) {
         return html`
             <div id="settings">
-                <${InviteModal} state=${state}/>
-                <${BanModal} state=${state}/>
+                ${this.state.inviteModal && html`<${InviteModal} state=${this.props.state} roomId=${this.props.state.roomId} updateSettingsState=${this.updateSettingsState} sendMessage=${this.props.sendMessage}/>`}
+                ${this.state.banModal && html`<${BanModal} state=${this.props.state} updateSettingsState=${this.updateSettingsState} sendMessage=${this.props.sendMessage}/>`}
 
                 <span class="center">Room Access</span>
                 <select id="settings-resolution"
-                    value=${state.roomSettings.accessType}
+                    value=${this.state.accessType}
                     onChange=${e => this.selectAccessType(e)}>
                   <option value="public">Public</option>
                   <option value="authenticated">Users</option>
                   <option value="invite">Invited Users only</option>
                 </select>
 
-                <${Button} onclick=${e => openInvite(state.roomId)}>
+                <${Button} onclick=${e => this.openInviteModal(this.props.state.roomId)}>
                     Create Invite
                 <//>
 
-                <${Button} onclick=${e => openBanModal(state.roomId)}>
+                <${Button} onclick=${e => this.openBanModal(this.props.state.roomId)}>
                     Ban User
                 <//>
 
-                <${Button} enabled=${state.workerStarted}
-                    onclick=${e => this.toggleWorker(state.roomId)}>
-                    ${state.workerStarted ? 'Stop' : 'Start'}
+                <${Button} enabled=${this.props.state.roomSettings.workerStarted}
+                    onclick=${e => this.toggleWorker(this.props.state.roomId)}>
+                    ${this.props.state.roomSettings.workerStarted ? 'Stop' : 'Start'}
                 <//>
 
-                <${Button} onclick=${e => this.restartWorker(state.roomId)}>
+                <${Button} onclick=${e => this.restartWorker(this.props.state.roomId)}>
                     Restart
                 <//>
 
-                <${Button} enabled=${state.roomSettings.centerRemote}
+                <${Button} enabled=${this.state.centerRemote}
                     onclick=${e => this.toggleCenterRemote()}>
                     Center Remote
                 <//>
@@ -131,7 +174,7 @@ export class RoomSettings extends Component {
                             <td>Desktop Resolution</td>
                             <td>
                                 <select id="settings-desktop-resolution"
-                                    value=${state.roomSettings.desktopResolution}
+                                    value=${this.state.desktopResolution}
                                     onChange=${e => this.selectDesktopResolution(e)}>
                                   <option value="1080">1080p</option>
                                   <option value="720">720p</option>
@@ -145,7 +188,7 @@ export class RoomSettings extends Component {
                             <td>Stream Resolution</td>
                             <td>
                                 <select id="settings-stream-resolution"
-                                    value=${state.roomSettings.streamResolution}
+                                    value=${this.state.streamResolution}
                                     onChange=${e => this.selectStreamResolution(e)}>
                                   <option value="1080">1080p</option>
                                   <option value="720">720p</option>
@@ -159,7 +202,7 @@ export class RoomSettings extends Component {
                             <td>Frame Rate</td>
                             <td>
                                 <select id="settings-framerate"
-                                     value=${state.roomSettings.framerate}
+                                     value=${this.state.framerate}
                                      onChange=${e => this.selectFramerate(e)}>
                                     <option value="30">30 fps</option>
                                     <option value="25">25 fps</option>
@@ -175,7 +218,7 @@ export class RoomSettings extends Component {
                             <td>Video Bitrate</td>
                             <td>
                                 <select id="settings-video-bitrate"
-                                     value=${state.roomSettings.videoBitrate}
+                                     value=${this.state.videoBitrate}
                                      onChange=${e => this.selectVideoBitrate(e)}>
                                     <option value="2M">2 Mb/s</option>
                                     <option value="1M">1 Mb/s</option>
@@ -189,7 +232,7 @@ export class RoomSettings extends Component {
                             <td>Audio Bitrate</td>
                             <td>
                                 <select id="settings-audio-bitrate"
-                                    value=${state.roomSettings.audioBitrate}
+                                    value=${this.state.audioBitrate}
                                     onChange=${e => this.selectAudioBitrate(e)}>
                                   <option value="192k">192 Kb/s</option>
                                   <option value="96k">96 Kb/s</option>
@@ -202,7 +245,7 @@ export class RoomSettings extends Component {
                     </tbody>
                 </table>
 
-                <${Button} onclick=${e => this.saveRoomSettings(roomId)}>
+                <${Button} onclick=${e => this.saveRoomSettings(this.props.roomId)}>
                     Save
                 <//>
             </div>

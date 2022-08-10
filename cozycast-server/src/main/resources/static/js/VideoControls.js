@@ -1,9 +1,6 @@
 import { Component } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
 
-import { state, updateState } from '/js/index.js'
-import { sendMessage, pauseVideo } from '/js/Room.js'
-
 var lastMouseEvent = Date.now();
 
 function disableContextmenu(e) {
@@ -13,147 +10,155 @@ function disableContextmenu(e) {
 
 var videoElement;
 
-function getRemotePosition(e) {
-    if(!videoElement || videoElement.videoWidth == 0 || videoElement.videoHeight == 0) {
-        return { x: 0, y: 0 }
-    }
-    var videoRect = videoElement.getBoundingClientRect();
-    var ratioDistortion = (videoRect.width / videoRect.height) / (videoElement.videoWidth / videoElement.videoHeight);
-    var wider = (ratioDistortion > 1);
-    // assume centered
-    var padVt = wider ? 0 : (videoRect.height * (1 - ratioDistortion) / 2);
-    var padHz = wider ? (videoRect.width * (1 - 1 / ratioDistortion)) / 2 : 0;
-    var correctedRect = { // video rectangle with corrections for black lines
-        top: videoRect.top + padVt,
-        right: videoRect.right - padHz,
-        bottom: videoRect.bottom - padVt,
-        left: videoRect.left + padHz
-    };
-    var x = (e.clientX - correctedRect.left) / (correctedRect.right - correctedRect.left) * state.viewPort.width;
-    var y = (e.clientY - correctedRect.top) / (correctedRect.bottom - correctedRect.top) * state.viewPort.height;
-    return { x: x, y: y }
-}
-
-function videoMouseUp(e) {
-    if(!state.remote) { return }
-    var pos = getRemotePosition(e);
-    sendMessage({
-    	action : 'mouseup',
-    	mouseX: pos.x,
-    	mouseY: pos.y,
-    	button: e.button
-    });
-}
-
-function videoMouseDown(e) {
-    var videoElement = document.getElementById('video');
-    if(state.videoPaused) {
-        videoElement.play();
-        updateState(function (state) {
-            pauseVideo()
-            if(state.videoLoading != "loaded") {
-                state.videoLoading = "loading";
-            }
-        })
-    }
-    if(!state.remote) { return }
-
-    var pos = getRemotePosition(e);
-    sendMessage({
-    	action : 'mousedown',
-    	mouseX: pos.x,
-    	mouseY: pos.y,
-    	button: e.button
-    });
-}
-
-function videoMousemove(e) {
-    if(!state.remote) { return }
-    var now = Date.now();
-    if(now - lastMouseEvent > 10) {
-    	var pos = getRemotePosition(e);
-    	sendMessage({
-    		action : 'mousemove',
-    		mouseX: pos.x,
-    		mouseY: pos.y
-    	});
-    	lastMouseEvent = now;
-    }
-}
-
-function videoScroll(e) {
-    if(!state.remote) { return }
-    if(e.deltaY < 0) {
-    	sendMessage({
-    		action : 'scroll',
-    		direction: "up"
-    	});
-    }
-    if(e.deltaY > 0) {
-    	sendMessage({
-    		action : 'scroll',
-    		direction: "down"
-    	});
-    }
-}
-
-function videoKeyUp(e) {
-    if(!state.remote) { return }
-    if(e.ctrlKey && e.key.toLowerCase() == "v") {
-    	return;
-    }
-    e.preventDefault();
-    sendMessage({
-    	action : 'keyup',
-    	key: e.key
-    });
-}
-
-function videoKeyDown(e) {
-    if(!state.remote) { return }
-    if(e.ctrlKey && e.key.toLowerCase() == "v") {
-    	return;
-    }
-    e.preventDefault();
-    sendMessage({
-    	action : 'keydown',
-    	key: e.key
-    });
-}
-
-function paste(e) {
-    if(!state.remote) { return }
-    e.preventDefault();
-    var pastedData = e.clipboardData.getData('text');
-    sendMessage({
-    	action : 'paste',
-    	clipboard: pastedData
-    });
-}
-
-function autoplayDetected(loadingState) {
-    updateState(function (state) {
-        state.videoPaused = false;
-    })
-}
-
-function onCanPlay(e) {
-    updateState(function (state) {
-        state.videoLoading = "loaded";
-    })
-}
-
-function onLoadStart(e) {
-    updateState(function (state) {
-        state.videoLoading = "loading";
-    })
-}
 
 export class VideoControls extends Component {
+
+    getRemotePosition = (e) => {
+        if(!videoElement || videoElement.videoWidth == 0 || videoElement.videoHeight == 0) {
+            return { x: 0, y: 0 }
+        }
+        var videoRect = videoElement.getBoundingClientRect();
+        var ratioDistortion = (videoRect.width / videoRect.height) / (videoElement.videoWidth / videoElement.videoHeight);
+        var wider = (ratioDistortion > 1);
+        // assume centered
+        var padVt = wider ? 0 : (videoRect.height * (1 - ratioDistortion) / 2);
+        var padHz = wider ? (videoRect.width * (1 - 1 / ratioDistortion)) / 2 : 0;
+        var correctedRect = { // video rectangle with corrections for black lines
+            top: videoRect.top + padVt,
+            right: videoRect.right - padHz,
+            bottom: videoRect.bottom - padVt,
+            left: videoRect.left + padHz
+        };
+        var x = (e.clientX - correctedRect.left) / (correctedRect.right - correctedRect.left) * this.props.state.viewPort.width;
+        var y = (e.clientY - correctedRect.top) / (correctedRect.bottom - correctedRect.top) * this.props.state.viewPort.height;
+        return { x: x, y: y }
+    }
+    
+    videoMouseUp = (e) => {
+        if(!this.props.state.remote) { return }
+        var pos = this.getRemotePosition(e);
+        this.props.sendMessage({
+            action : 'mouseup',
+            mouseX: pos.x,
+            mouseY: pos.y,
+            button: e.button
+        });
+    }
+    
+    videoMouseDown = (e) => {
+        var videoElement = document.getElementById('video');
+        if(this.props.state.videoPaused) {
+            videoElement.play();
+            this.props.pauseVideo();
+            if (this.props.state.videoLoading != "loaded"){
+                this.props.updateRoomState({
+                    videoLoading: "loading"
+                })
+            }
+        }
+        if(!this.props.state.remote) { return }
+    
+        var pos = this.getRemotePosition(e);
+        this.props.sendMessage({
+            action : 'mousedown',
+            mouseX: pos.x,
+            mouseY: pos.y,
+            button: e.button
+        });
+    }
+    
+    videoMousemove = (e) => {
+        if(!this.props.state.remote) { return }
+        var now = Date.now();
+        if(now - lastMouseEvent > 10) {
+            var pos = this.getRemotePosition(e);
+            this.props.sendMessage({
+                action : 'mousemove',
+                mouseX: pos.x,
+                mouseY: pos.y
+            });
+            lastMouseEvent = now;
+        }
+    }
+    
+    videoScroll = (e) => {
+        if(!this.props.state.remote) { return }
+        if(e.deltaY < 0) {
+            this.props.sendMessage({
+                action : 'scroll',
+                direction: "up"
+            });
+        }
+        if(e.deltaY > 0) {
+            this.props.sendMessage({
+                action : 'scroll',
+                direction: "down"
+            });
+        }
+    }
+    
+    videoKeyUp = (e) => {
+        if(!this.props.state.remote) { return }
+        if(e.ctrlKey && e.key.toLowerCase() == "v") {
+            return;
+        }
+        e.preventDefault();
+        this.props.sendMessage({
+            action : 'keyup',
+            key: e.key
+        });
+    }
+    
+    videoKeyDown = (e) => {
+        if(!this.props.state.remote) { return }
+        if(e.ctrlKey && e.key.toLowerCase() == "v") {
+            return;
+        }
+        e.preventDefault();
+        this.props.sendMessage({
+            action : 'keydown',
+            key: e.key
+        });
+    }
+    
+    paste = (e) => {
+        if(!this.props.state.remote) { return }
+        e.preventDefault();
+        var pastedData = e.clipboardData.getData('text');
+        this.props.sendMessage({
+            action : 'paste',
+            clipboard: pastedData
+        });
+    }
+    
+    autoplayDetected = (loadingState) => {
+        this.props.updateRoomState({
+            videoPaused: false
+        })
+    }
+    
+    onCanPlay = (e) => {
+        this.props.updateRoomState({
+            videoLoading: "loaded"
+        })
+    }
+    
+    onLoadStart = (e) => {
+        this.props.updateRoomState({
+            videoLoading: "loading"
+        })
+    }
 
     componentDidMount() {
         videoElement = document.getElementById('video');
         this.updateVolume(this.props.state.volume,this.props.state.muted);
+    }
+
+    shouldComponentUpdate(nextProps, nextState){
+        return this.props.state.volume !== nextProps.state.volume || 
+        this.props.state.muted !== nextProps.state.muted ||
+        this.props.state.videoPaused !== nextProps.state.videoPaused ||
+        this.props.state.videoLoading !== nextProps.state.videoLoading;
     }
 
     componentDidUpdate() {
@@ -171,13 +176,13 @@ export class VideoControls extends Component {
         return html`<div id="videoBig" class="${state.scheduleSidebar ? 'hidden': ''}">
             <div id="videocontrols" tabindex="0"
               oncontextmenu=${disableContextmenu}
-              onmousemove=${videoMousemove}
-              onmouseup=${videoMouseUp}
-              onmousedown=${videoMouseDown}
-              onpaste=${paste}
-              onkeyup=${videoKeyUp}
-              onkeydown=${videoKeyDown}
-              onwheel=${videoScroll}
+              onmousemove=${this.videoMousemove}
+              onmouseup=${this.videoMouseUp}
+              onmousedown=${this.videoMouseDown}
+              onpaste=${this.paste}
+              onkeyup=${this.videoKeyUp}
+              onkeydown=${this.videoKeyDown}
+              onwheel=${this.videoScroll}
             >
               ${state.videoPaused &&
                 html`<div class="paused-screen">
@@ -192,11 +197,11 @@ export class VideoControls extends Component {
               </div>`}
             </div>
             <audio id="autoplay" controls="" volume="0" src="/audio/pop.wav" autoplay
-                preload="auto" onplay=${e => autoplayDetected(false)}/>
+                preload="auto" onplay=${e => this.autoplayDetected(false)}/>
             <div id="videosizer">
               <video id="video" autoplay tabindex="0"
-                  oncanplay=${e => onCanPlay(e)}
-                  onloadstart=${e => onLoadStart(e)}
+                  oncanplay=${e => this.onCanPlay(e)}
+                  onloadstart=${e => this.onLoadStart(e)}
               ></video>
             </div>
         </div>`

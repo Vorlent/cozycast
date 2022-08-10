@@ -1,6 +1,5 @@
-import { Component, createRef, createContext } from '/js/libs/preact.js'
+import { Component, createRef } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
-import { sendMessage } from '/js/Room.js'
 import { ConfirmUpload } from '/js/ConfirmUpload.js'
 
 var globalTypingUsers = [];
@@ -104,7 +103,7 @@ export class ChatInput extends Component {
         this.setState({chatBox: e.target.value, isTyping: e.target.value.length != 0})
         var now = Date.now();
         if(now - this.lastTypingEvent > 1000) {
-            sendMessage({
+            this.props.sendMessage({
                 action : 'typing',
                 state: 'start'
             });
@@ -123,7 +122,7 @@ export class ChatInput extends Component {
                 this.autosize();
             } else {
                 if(this.state.chatBox.trim() != "") {
-                    sendMessage({
+                    this.props.sendMessage({
                         action : 'chatmessage',
                         type: "text",
                         message: this.state.chatBox
@@ -132,7 +131,7 @@ export class ChatInput extends Component {
                 this.setState({chatBox: "",isTyping: false})
                 e.target.value = ""; // hack
 
-                sendMessage({
+                this.props.sendMessage({
                     action : 'typing',
                     state: 'stop'
                 });
@@ -152,7 +151,7 @@ export class ChatInput extends Component {
         var height = Math.min(18*5, ta.scrollHeight);
         div.style.cssText = 'height:' + (20 + height) + 'px';
         ta. style.cssText = 'height:' + height + 'px';
-        if(!this.props.state.historyMode) messages.scrollTop = messages.scrollHeight;
+        if(!this.props.historyMode) messages.scrollTop = messages.scrollHeight;
     }
     
     refImageUploadFile = createRef();
@@ -162,7 +161,7 @@ export class ChatInput extends Component {
 
     render({state}) {
         return html`
-            <${ConfirmUpload} sendFile=${this.state.sendFile} pasteFile=${this.state.pasteFile} clear=${this.clearFile}/>
+            <${ConfirmUpload} sendFile=${this.state.sendFile} pasteFile=${this.state.pasteFile} clear=${this.clearFile} sendMessage=${this.props.sendMessage}/>
             <div id="chatbox" onclick=${() => this.refChatboxText.current.focus()}>
                 <div class="image-uploader">
                     <div class="ta-wrapper" ref=${this.refTaWrapper}>

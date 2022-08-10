@@ -20,86 +20,21 @@ export var WorkerStatus = {
     STARTED: "STARTED"
 }
 
-var globalVar = {};
-export var state = {
-    roomId: null,
-    roomToken: null,
-    userlist: [],
-    roomlist: [],
-    chatMessages: [],
-    newMessage: false,
-    forceChatScroll: false,
-    remote: false,
-    remoteUsed: false,
-    username: "Anonymous",
-    volume: 100,
-    videoPaused: true,
-    videoLoading: false,
-    viewPort: {
-        width: 1280,
-        height: 720,
-    },
-    roomSidebar: SidebarState.CHAT,
-    workerStatus: WorkerStatus.STARTED,
-    roomSettings: {
-        workerStarted: true,
-        desktopResolution: 720,
-        streamResolution: 720,
-        framerate: 25,
-        videoBitrate: 1000,
-        audioBitrate: 96,
-        accessType: "public",
-        centerRemote: false
-    },
-    session: null,
-    muteChatNotification: false,
-    windowTitle: "CozyCast: Low latency screen capture via WebRTC",
-    historyMode: false,
-    fullscreen: false,
-    kicked: false,
-    newMessageCount: 0,
-    admin: {
-        username: "",
-        password: ""
-    },
-    scheduleSidebar: false,
-    scheduleMenu: "ROOM_AVAILABILITY",
-    editSchedule: {
-        days: []
-    },
-    userlistHidden: false,
-    showUsernames: true,
-    legacyDesign: false,
-    muted: false,
-    showIfMuted: false,
-    userlistOnLeft: false
-};
-
 export function queryParams(params) {
     return '?' + Object.keys(params)
         .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
         .join('&');
 }
 
-export function updateState(fun) {
-    var result = fun(state)
-    if(result !== false)  {
-        globalVar.callback(state);
-    }
-}
-
 class App extends Component {
     render({ page }, { xyz = [] }) {
-        globalVar.callback = (data) => {
-            this.setState(data);
-        };
         return html`
             <${Router}>
-        		<${Room} state=${state} path="/" roomId="default"/>
-                <${Room} state=${state} path="/room/:roomId"/>
-                <${Invite} state=${state} path="/invite/:code"/>
-                <${RoomList} state=${state} path="/management/"/>
-                <${Admin} state=${state} path="/admin/"/>
+        		<${Room} path="/" roomId="default"/>
+                <${Room} path="/room/:roomId"/>
+                <${Invite} path="/invite/:code"/>
+                <${RoomList} path="/management/"/>
+                <${Admin} path="/admin/"/>
             <//>
         `;
     }

@@ -1,51 +1,51 @@
 import { Component } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
-import { state, updateState } from '/js/index.js'
-import { sendMessage } from '/js/Room.js'
 import { ChatInput } from '/js/ChatInput.js'
-
-function deleteMessage(id){
-    sendMessage({
-        action : 'deletemessage',
-        id: id
-    });
-}
-
-function chatScroll() {
-    var messages = document.getElementById("messages");
-    //chrome fix for scrollTopMax
-    var scrollTop = messages.scrollTopMax ? messages.scrollTopMax : messages.scrollHeight - messages.clientHeight;
-    var activateHistoryMode = 0.3 * messages.offsetHeight < scrollTop - messages.scrollTop
-    if(state.historyMode != activateHistoryMode) {
-        updateState(function (state) {
-            state.historyMode = activateHistoryMode
-        })
-    }
-}
-
-function scrollToBottom() {
-    if(!state.historyMode || state.forceChatScroll) {
-        var messages = document.getElementById("messages");
-        messages.scrollTop = messages.scrollHeight;
-        if(state.forceChatScroll) {
-            updateState(function (state) {
-                state.forceChatScroll = false
-            })
-        }
-    }
-}
 
 export class Chat extends Component {
     constructor() {
         super();
+        this.state = {
+            historyMode: false
+        }
     }
 
-    componentDidUpdate() {
-        if(state.newMessage) {
-            updateState(function (state) {
-                state.newMessage = false
-            })
-            scrollToBottom();
+    chatScroll = () => {
+        var messages = document.getElementById("messages");
+        //chrome fix for scrollTopMax
+        var scrollTop = messages.scrollTopMax ? messages.scrollTopMax : messages.scrollHeight - messages.clientHeight;
+        var activateHistoryMode = 0.3 * messages.offsetHeight < scrollTop - messages.scrollTop
+        if(this.state.historyMode != activateHistoryMode) {
+            this.setState({historyMode: activateHistoryMode})
+        }
+    }
+    
+    scrollToBottom = (noHistoryChange) => {
+        if(this.props.state.forceChatScroll || (!this.state.historyMode && noHistoryChange)) {
+            var messages = document.getElementById("messages");
+            messages.scrollTop = messages.scrollHeight;
+            if(this.props.state.forceChatScroll) {
+                this.props.updateRoomState({
+                    forceChatScroll:  false
+                })
+            }
+        }
+    }
+
+    deleteMessage = (id) => {
+        this.props.sendMessage({
+            action : 'deletemessage',
+            id: id
+        });
+    }
+
+    shouldComponentUpdate(nextProps, nextState){
+        return this.props.state.chatMessages !== nextProps.state.chatMessages || this.state !== nextState;
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if(this.props.state.newMessage) {
+            this.scrollToBottom(prevState.historyMode == this.state.historyMode);
         }
     }
 
@@ -68,8 +68,8 @@ export class Chat extends Component {
             roomId = "";
         }
         return html`<div id="chat">
-            ${state.historyMode && html`<div class="history-mode-indicator">Old messages</div>`}
-            <div id="messages" onscroll=${chatScroll}>
+            ${this.state.historyMode && html`<div class="history-mode-indicator">Old messages</div>`}
+            <div id="messages" onscroll=${this.chatScroll}>
                 ${state.chatMessages.map(message => html`
                     <div class="message" key=${message.data[0].id} id=${message.data[0].id}>
                         <div class="username">${message.username + "  "}<span class="timestamp">${message.data[0].timestamp}</span> 
@@ -78,7 +78,8 @@ export class Chat extends Component {
                         ${message.data.map(data => 
                         html`
                         <div class="subMessage">
-                        ${state.session == message.session && !data.deleted && html`<button class="deleteMessageButton" onclick=${() => deleteMessage(data.id)}>X</button>`}
+                        ${state.session == message.session && !data.deleted && html`<button class="deleteMessageButton" onclick=${() => this.deleteMessage(data.id)}>X</button>`}
+                        <div class="hoverInfo top">${data.timestamp}</div>
                         ${
                             data.messages.map( msg => html`
                                 ${msg.type == "url" &&
@@ -86,12 +87,12 @@ export class Chat extends Component {
                                 `}
                                 ${msg.type == "image" &&
                                     html`<div class="chat-image">
-                                        <a class="chat-link" target="_blank" href="${msg.href}"><img onload="${scrollToBottom}" src="${msg.href}" /></a>
+                                        <a class="chat-link" target="_blank" href="${msg.href}"><img onload="${this.scrollToBottom}" src="${msg.href}" /></a>
                                     </div>
                                 `}
                                 ${msg.type == "video" &&
                                     html`<div class="chat-video">
-                                        <a class="chat-link" target="_blank" href="${msg.href}"><video loop autoplay muted onloadeddata="${scrollToBottom}" src="${msg.href}" /></a>
+                                        <a class="chat-link" target="_blank" href="${msg.href}"><video loop autoplay muted onloadeddata="${this.scrollToBottom}" src="${msg.href}" /></a>
                                     </div>
                                 `}
                                 ${msg.type == "text" &&
@@ -112,7 +113,7 @@ export class Chat extends Component {
                     </div>
                 `)}
             </div>
-            <${ChatInput} state=${state}/>
+            <${ChatInput} sendMessage=${this.props.sendMessage} historyMode=${this.state.historyMode}/>
         </div>`
     }
 

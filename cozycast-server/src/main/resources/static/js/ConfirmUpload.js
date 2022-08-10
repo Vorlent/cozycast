@@ -1,6 +1,5 @@
 import { Component } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
-import { sendMessage } from '/js/Room.js'
 
 
 export class ConfirmUpload extends Component {
@@ -14,14 +13,16 @@ export class ConfirmUpload extends Component {
         if(e.target.files.length > 0) {
             let formData = new FormData();
             formData.append("image", e.target.files[0]);
-            fetch('/image/upload', {method: "POST", body: formData}).then((e) => e.json()).then(function (e) {
-                sendMessage({
-                    action: 'chatmessage',
-                    image: e.url,
-                    type: e.type,
-                    message: ""
-                });
-            });
+            fetch('/image/upload', {method: "POST", body: formData}).then((e) =>
+                {if(e.status == 413){return Promise.reject("File is too large");};
+                    e.json().then((e) => {
+                        this.props.sendMessage({
+                            action: 'chatmessage',
+                            image: e.url,
+                            type: e.type,
+                            message: ""
+                        });
+                    })}).catch(error => {alert("Failed to post: " + error)});
             e.target.value = "";
             this.closeConfirmWindow();
         }
@@ -42,14 +43,16 @@ export class ConfirmUpload extends Component {
     
         let formData = new FormData();
         formData.append("image", blob);
-        fetch('/image/upload', {method: "POST", body: formData}).then((e) => e.json()).then(function (e) {
-            sendMessage({
-                action: 'chatmessage',
-                image: e.url,
-                type: e.type,
-                message: ""
-            });
-        });
+        fetch('/image/upload', {method: "POST", body: formData}).then((e) =>
+            {if(e.status == 413){return Promise.reject("File is too large");};
+                e.json().then((e) => {
+                    this.props.sendMessage({
+                        action: 'chatmessage',
+                        image: e.url,
+                        type: e.type,
+                        message: ""
+                    });
+                })}).catch(error => {alert("Failed to post: " + error)});
         this.closeConfirmWindow();
     }
         

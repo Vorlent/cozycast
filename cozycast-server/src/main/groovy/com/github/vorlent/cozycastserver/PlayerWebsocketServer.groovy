@@ -664,6 +664,8 @@ class PlayerWebsocketServer {
                 room.centerRemote = false
             }
             sendMessage(room.worker?.websocket, new UpdateWorkerSettingsEvent(settings: room.videoSettings, restart: true))
+        } else {
+            sendMessage(session, new CozycastError(message: "Not authorized"))
         }
     }
 
@@ -689,6 +691,9 @@ class PlayerWebsocketServer {
                     log.info "${banSource} attempted to ban ${banTarget} without admin rights"
                 }
             }
+        }
+        else {
+            sendMessage(session, new CozycastError(message: "Not authorized"))
         }
     }
 
