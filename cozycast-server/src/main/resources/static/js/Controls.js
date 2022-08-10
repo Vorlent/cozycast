@@ -28,11 +28,9 @@ export class Controls extends Component {
     
     mute = () => {
         if(!this.props.state.muted){
-            document.getElementById("volumeControl").value = 0;
             this.toggleMute()
         }
         else {
-            document.getElementById("volumeControl").value = this.props.state.volume;
             this.toggleMute()
         }
     }
@@ -177,7 +175,7 @@ export class Controls extends Component {
                         title="${state.muted ? 'Unmute' : 'Mute'}" style="buttonSmall">
                         <img class="video-control-icon" src="${state.muted ? '/svg/sound-mute.svg' : '/svg/sound-max.svg'}"/>
                     <//>
-                    <input id="volumeControl" type="range" min="0" max="100" class="volumeSlider buttonBig" oninput=${this.changeVolume}/>
+                    <input id="volumeControl" type="range" min="0" max="100" class="volumeSlider buttonBig" oninput=${this.changeVolume} value=${this.props.state.muted ? 0 : this.props.state.volume}/>
                     ${html`<${Button}} style="buttonSmall optional remoteHidden"><//>`}
                 </div>
                 <div class="subControls">

@@ -575,7 +575,7 @@ export class Room extends Component {
             this.webrtc_stop()
             clearInterval(this.keepAlive)
             this.keepAlive = null;
-            this.connect(room);
+            setTimeout(() => this.connect(room), 1500)
         }
       
         newWebsocket.onopen = (event) => {
