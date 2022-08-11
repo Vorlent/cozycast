@@ -1,65 +1,61 @@
 import { Component } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
-import { state, updateState } from '/js/index.js'
-import { sendMessage } from '/js/Room.js'
 
 export class Admin extends Component {
+    constructor(props){
+        super(props);
+        this.state = {
+            username: "",
+            password: "",
+            loggedIn: false
+        }
+    }
 
-    login() {
+    login = () => {
         fetch('/login', {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                username: state.admin.username,
-                password: state.admin.password
+                username: this.state.username,
+                password: this.state.password
             })
-        }).then((e) => e.json()).then(function (e) {
-            updateState(function (state) {
-                if(e && e.access_token) {
-                    localStorage.setItem("adminToken", e.access_token);
-                    state.admin.loggedIn = true;
-                }
-            })
+        }).then((e) => e.json()).then((e) => {
+            if(e && e.access_token) {
+                localStorage.setItem("adminToken", e.access_token);
+                this.setState({loggedIn: true});
+            }
         });
-        updateState(function (state) {
-            state.admin.username = ""
-            state.admin.password = ""
+        this.setState({
+            username: "",
+            password: ""
         })
     }
 
-    logout() {
-        updateState(function (state) {
+    logout = () => {
             localStorage.removeItem("adminToken");
-            state.admin.loggedIn = false;
-        })
+            this.setState({loggedIn: false});
     }
 
     componentWillMount() {
-        updateState(function (state) {
-            state.admin.loggedIn = localStorage.getItem("adminToken") != null;
-        })
+        this.setState({loggedIn: localStorage.getItem("adminToken") != null})
     }
 
-    updateAdminUsername(value) {
-        updateState(function (state) {
-            state.admin.username = value
-        })
+    updateAdminUsername = (value) => {
+        this.setState({username: value});
     }
 
-    updateAdminPassword(value) {
-        updateState(function (state) {
-            state.admin.password = value
-        })
+    updateAdminPassword = (value) => {
+        this.setState({password: value});
     }
 
-    render({ state }, { xyz = [] }) {
+    render( _ , state) {
     return html`
         <div class="admin-background">
             <div class="admin">
                 <div class="admin-modal">
-                ${!state.admin.loggedIn && html`
+                ${!state.loggedIn && html`
                     <div class="admin-title">
                         Login
                     </div>
@@ -69,7 +65,7 @@ export class Admin extends Component {
                     <div>
                         <input class="modal-username" type="text"
                             onInput=${e => this.updateAdminUsername(e.target.value)}
-                            name="username" maxlength="12" value="${state.admin.username}"/>
+                            name="username" maxlength="12" value="${state.username}"/>
                     </div>
                     <div>
                         Password
@@ -77,11 +73,11 @@ export class Admin extends Component {
                     <div>
                         <input class="modal-username" type="password"
                             onInput=${e => this.updateAdminPassword(e.target.value)}
-                            name="username" maxlength="64" value="${state.admin.password}"/>
+                            name="username" maxlength="64" value="${state.password}"/>
                     </div>
                     <button class="btn btn-primary" onclick=${this.login}>Login</button>
                 `}
-                ${state.admin.loggedIn && html`
+                ${state.loggedIn && html`
                     <div class="admin-title">
                         Logged in
                     </div>

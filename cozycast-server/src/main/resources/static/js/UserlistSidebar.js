@@ -1,8 +1,19 @@
 import { Component } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
 
-export function UserlistSidebar({ state }) {
-    return html`<div class="userlistSidebar">
+export class UserlistSidebar extends Component {
+    constructor() {
+        super();
+    }
+
+    shouldComponentUpdate(nextProps, nextState){
+        return this.props.state.userlist !== nextProps.state.userlist || 
+            this.props.state.showUsernames !== nextProps.state.showUsernames ||
+            this.props.state.isLeft !== nextProps.state.isLeft;
+    }
+
+    render({state}) {
+        return html`<div class="userlistSidebar">
         ${state.userlist.map(user => html`
             <div class="userSidebar">
                  <div class="avatarContainer">
@@ -20,4 +31,5 @@ export function UserlistSidebar({ state }) {
         `)}
     </div>
     `
+    }
 }

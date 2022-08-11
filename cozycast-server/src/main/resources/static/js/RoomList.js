@@ -1,10 +1,16 @@
 import { Component } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
-import { state, updateState } from '/js/index.js'
-import { sendMessage } from '/js/Room.js'
-import { openInvite, InviteModal } from '/js/InviteModal.js'
+import { InviteModal } from '/js/InviteModal.js'
 
 export class RoomList extends Component {
+    constructor(props){
+        super(props);
+        this.state = {
+            roomlist: [],
+            inviteModal: false,
+            currentRoom: null,
+        }
+    }
 
     deleteRoom(roomId) {
         var token = localStorage.getItem("adminToken");
@@ -15,9 +21,9 @@ export class RoomList extends Component {
     }
 
     refresh() {
-        fetch('/api/room').then((e) => e.json()).then(function (e) {
-            updateState(function (state) {
-                state.roomlist = e.map(room => ({ "id": room.id, "name": room.id, "userCount": room.userCount }))
+        fetch('/api/room').then((e) => e.json()).then((e) => {
+            this.setState({
+                roomlist: e.map(room => ({ "id": room.id, "name": room.id, "userCount": room.userCount }))
             })
         });
     }
@@ -29,7 +35,7 @@ export class RoomList extends Component {
     render({ state }, { xyz = [] }) {
     return html`
         <div class="room-list-background">
-            <${InviteModal} state=${state}/>
+            ${this.state.inviteModal && html`<${InviteModal} state=${state} roomId=${this.state.currentRoom} updateSettingsState=${this.setState.bind(this)}/>`}
             <div class="room-list">
                 <div class="room-list-title">
                     Rooms
@@ -41,14 +47,14 @@ export class RoomList extends Component {
                        <col style="width: 20%;"/>
                     </colgroup>
                     <tbody>
-                    ${state.roomlist.map(room => html`
+                    ${this.state.roomlist.map(room => html`
                         <tr>
                             <td><span class="room-list-entry-name"><a href="/room/${room.id}">${room.name}</a></span></td>
                             <td><span class="room-list-entry-usercount">${room.userCount} users</span></td>
                             <td><button type="button" class="btn btn-primary" onclick=${e => this.deleteRoom(room.id)}>
                                 Delete
                             </button></td>
-                            <td><button type="button" class="btn btn-primary" onclick=${e => openInvite(room.id)}>
+                            <td><button type="button" class="btn btn-primary" onclick=${e => this.setState({inviteModal: true, currentRoom: room.id})}>
                                 Invite
                             </button></td>
                         </tr>

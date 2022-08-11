@@ -1,55 +1,55 @@
 import { Component } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
-import { state, updateState, queryParams } from '/js/index.js'
-import { sendMessage } from '/js/Room.js'
-
-function closeInvite() {
-    updateState(function (state) {
-        delete state.inviteModal;
-    })
-}
-
-export function openInvite(room) {
-    updateState(function (state) {
-        state.inviteModal = {
-            room: room,
-            maxUses: null,
-            expiration: null
-        };
-    })
-    generateInvite()
-}
-
-export function generateInvite() {
-    var token = localStorage.getItem("adminToken");
-    fetch('/api/invite/new' + queryParams({
-            room: state.inviteModal.room,
-            maxUses: state.inviteModal.maxUses,
-            expiration: state.inviteModal.expiration
-        }),
-        { headers: { 'Authorization': "Bearer " + token } })
-    .then((e) => e.json()).then(function (e) {
-        updateState(function (state) {
-            state.inviteModal.code = location.host + '/invite/' + e.code
-        })
-    });
-}
-
-function selectMaxUses(e) {
-    updateState(function (state) {
-        state.inviteModal.maxUses = e.target.value;
-    })
-    generateInvite()
-}
-
-function selectExpiration(e) {
-    updateState(function (state) {
-        state.inviteModal.expiration = e.target.value;
-    })
-    generateInvite()
-}
+import { queryParams } from '/js/index.js'
 
 export class InviteModal extends Component {
+    constructor(props){
+        super(props);
+        this.state = {
+            room: this.props.roomId,
+            maxUses: null,
+            expiration: null,
+            code: "Press Generate"
+        }
+    }
+
+    selectMaxUses = (e) => {
+        this.setState({
+            maxUses: e.target.value
+        })
+    }
+    
+    selectExpiration = (e) => {
+        this.setState({
+            expiration: e.target.value
+        })
+    }
+
+    closeInvite = () => {
+        this.setState({
+            maxUses: null,
+            expiration: null,
+        })
+        this.props.updateSettingsState({
+            inviteModal: false
+        })
+    }
+
+    generateInvite = () => {
+        var token = localStorage.getItem("adminToken");
+        fetch('/api/invite/new' + queryParams({
+                room: this.state.room,
+                maxUses: this.state.maxUses,
+                expiration: this.state.expiration
+            }),
+            { headers: { 'Authorization': "Bearer " + token } })
+        .then((e) => {if(e.status == 401){return Promise.reject("Unauthorized");}; e.json().then((e) => {
+                console.log(e)
+                this.setState({
+                    code: location.host + '/invite/' + e.code
+                })
+        })}).catch((error) => this.setState({code: 'error: ' + error}));;
+    }
 
     componentDidUpdate() {
         var codeInput = document.getElementById("invite-modal-code")
@@ -60,22 +60,22 @@ export class InviteModal extends Component {
     }
 
     render({ state }, { xyz = [] }) {
-        return html`${state.inviteModal && html`
+        return html`
             <div class="modal-background">
                 <div class="invite modal">
                     <div class="title">
                         <div>
                             Invite Link
                         </div>
-                        <button type="button" class="modal-close" onclick=${closeInvite}>X</button>
+                        <button type="button" class="modal-close" onclick=${this.closeInvite}>X</button>
                     </div>
                     <div class="modal-row">
                         <div class="modal-label">
                             Max Uses
                         </div>
                         <div class="modal-widget">
-                            <select value=${state.inviteModal.maxUses}
-                                onChange=${e => selectMaxUses(e)}>
+                            <select value=${this.state.maxUses}
+                                onChange=${e => this.selectMaxUses(e)}>
                                 <option value="1">1</option>
                                 <option value="5">5</option>
                                 <option value="10">10</option>
@@ -88,8 +88,8 @@ export class InviteModal extends Component {
                             Expiration
                         </div>
                         <div class="modal-widget">
-                            <select value=${state.inviteModal.expiration}
-                                onChange=${e => selectExpiration(e)}>
+                            <select value=${this.state.expiration}
+                                onChange=${e => this.selectExpiration(e)}>
                                  <option value="5">5 minutes</option>
                                  <option value="60">1 hour</option>
                                  <option value="1440">1 day</option>
@@ -99,12 +99,12 @@ export class InviteModal extends Component {
                     </div>
                     <div class="modal-row">
                         <input id="invite-modal-code" class="modal-username" type="text"
-                            name="code" value="${state.inviteModal.code}"/>
+                            name="code" value="${this.state.code}"/>
                     </div>
                     <div class="modal-row">
-                        <button class="btn btn-primary" onclick=${e => generateInvite()}>Generate</button>
+                        <button class="btn btn-primary" onclick=${e => this.generateInvite()}>Generate</button>
                     </div>
                 </div>
-        </div>`}`
+        </div>`
     }
 }

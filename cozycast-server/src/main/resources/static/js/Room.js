@@ -1,16 +1,14 @@
 import { Component, render } from '/js/libs/preact.js'
 import { html } from '/js/libs/htm/preact/index.js'
 
-import { Chat } from '/js/Chat.js'
 import { RoomSidebar } from '/js/RoomSidebar.js'
-import { ProfileModal, openProfile } from '/js/ProfileModal.js'
+import { ProfileModal } from '/js/ProfileModal.js'
 import { ScheduleSidebar, openSchedule } from '/js/ScheduleSidebar.js'
 import { Userlist } from '/js/Userlist.js'
 
 import { VideoControls } from '/js/VideoControls.js'
-import { Button } from '/js/Button.js'
-import { SidebarState, state, updateState } from '/js/index.js'
-import { RemoteIcon } from '/js/RemoteIcon.js'
+import { Controls } from '/js/Controls.js'
+import { SidebarState, WorkerStatus } from '/js/index.js'
 import { UserHoverName } from '/js/UserHoverName.js'
 import { typing, filterTyping, clearTyping } from '/js/ChatInput.js'
 
@@ -19,213 +17,9 @@ var favicon = new Favico({
     animation:'none'
 });
 
-var webRtcPeer;
-var websocket;
-
-export class Room extends Component {
-
-    componentDidMount() {
-        document.onvisibilitychange = function functionName() {
-            updateState(function (state) {
-                if(!document.hidden) {
-                    state.newMessageCount = 0
-                    favicon.badge(state.newMessageCount);
-                }
-            })
-        }
-        var roomId = this.props.roomId
-        updateState(function (state) {
-            state.roomToken = localStorage.getItem("room-" + roomId + "-token");
-            state.username = localStorage.getItem("username");
-            state.banned = localStorage.getItem("banned");
-            if(localStorage.hasOwnProperty('muteChatNotification'))
-                state.muteChatNotification = localStorage.getItem("muteChatNotification") == 'true';
-            if(localStorage.hasOwnProperty('muted'))
-                state.muted = localStorage.getItem("muted") == 'true';
-            if(localStorage.hasOwnProperty('showUsernames'))
-                state.showUsernames = localStorage.getItem("showUsernames") == 'true';
-            if(localStorage.hasOwnProperty('legacyDesign'))
-                state.legacyDesign = localStorage.getItem("legacyDesign") == 'true';
-            if(localStorage.hasOwnProperty('showIfMuted'))
-                state.showIfMuted = localStorage.getItem("showIfMuted") == 'true';
-            if(localStorage.hasOwnProperty('userlistOnLeft'))
-                state.userlistOnLeft = localStorage.getItem("userlistOnLeft") == 'true';
-            const volume = parseInt(localStorage.getItem("volume"));
-            if(!isNaN(volume)) state.volume = Math.max(Math.min(volume,100),0);
-            if(!state.username) {
-                state.username = "Anonymous"
-            }
-            state.avatarUrl = localStorage.getItem("avatarUrl");
-            if(!state.avatarUrl) {
-                state.avatarUrl = '/png/default_avatar.png'
-            } else {
-                fetch(state.avatarUrl).then((e) => {
-                    if(e.status != 200) {
-                        updateState(function(state) {
-                            state.avatarUrl = '/png/default_avatar.png'
-                        })
-                    }
-                })
-            }
-        })
-        if(state.muted){
-            document.getElementById("volumeControl").value = 0;
-        }
-        else{
-            document.getElementById("volumeControl").value = state.volume;
-        }
- 
-        connect(this.props.roomId)
-        window.onbeforeunload = function() {
-            if(websocket) {
-                websocket.close();
-            }
-        }
-    }
-
-    componentWillUnmount() {
-        websocket.close();
-    }
-
-    componentDidUpdate() {
-        document.title = state.windowTitle
-    }
-
-    toggleRoomSettings() {
-        updateState(function (state) {
-            if(state.roomSidebar != SidebarState.SETTINGS) {
-                state.roomSidebar = SidebarState.SETTINGS
-            } else {
-                state.roomSidebar = SidebarState.NOTHING
-            }
-        })
-    }
-
-    toggleUserSidebar() {
-        updateState(function (state) {
-            if(state.roomSidebar != SidebarState.USERS) {
-                state.roomSidebar = SidebarState.USERS
-            } else {
-                state.roomSidebar = SidebarState.NOTHING
-            }
-        })
-    }
-
-    toggleChatSidebar() {
-        updateState(function (state) {
-            if(state.roomSidebar != SidebarState.CHAT) {
-                state.roomSidebar = SidebarState.CHAT
-            } else {
-                state.roomSidebar = SidebarState.NOTHING
-            }
-        })
-    }
-
-    hideUserlist(){
-        updateState(function (state) {
-            state.userlistHidden = !state.userlistHidden
-        })
-    }
-
-    toggleSchedule() {
-        updateState(function (state) {
-            if(state.scheduleSidebar) {
-                state.scheduleSidebar = true
-            } else {
-                state.scheduleSidebar = false
-            }
-        })
-    }
-
-    render({ roomId }, { xyz = [] }) {
-    return html`
-        <div id="pagecontent" class="${state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}">
-            ${isBanned() && html`Banned until ${state.banned}`}
-            ${!isBanned() && html`
-            ${!state.userlistHidden && !state.fullscreen && state.userlistOnLeft && html`<div><${Userlist} state=${state} isLeft=${true}/></div>`}
-            <div id="contentWithoutSidebar" class="contentWithoutSidebar">
-                <${VideoControls} state=${state}/>
-                ${state.scheduleSidebar && html`
-                    <${ScheduleSidebar} state=${state}/>`}
-                <div id="pagetoolbar" class="${state.fullscreen ? "toolbarFullscreen" : ""}">
-                    <div id="controls"  class="${state.fullscreen ? "controlsFullscreen" : "visibleControls" }">
-                        <div class="subControls">
-                            ${!state.fullscreen && html`<${Button} enabled=${state.userlistHidden} onclick=${this.hideUserlist} 
-                                title="${state.userlistHidden ? 'Show Users' : 'Hide Users'}" style="buttonSmall optional">
-                                <img class="video-control-icon" src="${state.userlistOnLeft? state.userlistHidden ? '/svg/chevron-right.svg' : '/svg/chevron-left.svg' : state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}"/>
-                            <//>`}
-                            <${Button} enabled=${state.profileModal} onclick=${openProfile} style="buttonBig">Profile<//>
-                        </div>
-                        <div class="subControls">
-                            ${!state.fullscreen && html`
-                            ${html`<${Button} enabled=${false} onclick=${dropRemoteAndCenter} 
-                                title="Drop and center Remote" style="buttonSmall optional ${ state.remote ? "" :"remoteHidden"}">
-                                <img class="video-control-icon" src="/svg/crosshair.svg"/>
-                            <//>`}
-                            <${Button} enabled=${state.remote} onclick=${remote} style="buttonSmall" title="remote">
-                                <div class="video-control-icon">
-                                <${RemoteIcon} enabled=${state.remoteUsed && false}/>
-                                </div>
-                            <//>`}
-                            <${Button} enabled=${state.videoPaused} onclick=${pauseVideo}
-                                title="${state.videoPaused ? 'Pause' : 'Play'}" style="buttonSmall">
-                                <img class="video-control-icon" src="${state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}"/>
-                            <//>
-                            <${Button} enabled=${state.fullscreen}
-                                title="Fullscreen" onclick=${toggleFullscreen} style="buttonSmall">
-                                <img class="video-control-icon" src="/svg/fullscreen_button.svg"/>
-                            <//>
-                            <${Button} enabled=${state.muted} onclick=${mute}
-                                title="${state.muted ? 'Unmute' : 'Mute'}" style="buttonSmall">
-                                <img class="video-control-icon" src="${state.muted ? '/svg/sound-mute.svg' : '/svg/sound-max.svg'}"/>
-                            <//>
-                            <input id="volumeControl" type="range" min="0" max="100" class="volumeSlider buttonBig" oninput=${changeVolume}/>
-                            ${html`<${Button}} style="buttonSmall optional remoteHidden"><//>`}
-                        </div>
-                        <div class="subControls">
-                            ${state.roomToken
-                            && html`<${Button} enabled=${state.roomSidebar == SidebarState.SETTINGS}
-                                    onclick=${e => this.toggleRoomSettings(roomId)} style="buttonSmall">
-                                    <img class="room-settings-icon" src="/png/settings.png"/>
-                                <//>`}
-                            <${Button} enabled=${state.roomSidebar == SidebarState.USERS}
-                                       onclick=${e => this.toggleUserSidebar()} style="buttonSmall optional">
-                                <img class="video-control-icon" src="/svg/users.svg"/>
-                            <//>
-                            <${Button} enabled=${state.roomSidebar == SidebarState.CHAT}
-                                       onclick=${e => this.toggleChatSidebar()} style="buttonSmall optional">
-                                <img class="video-control-icon" src="/svg/message-circle.svg"/>
-                            <//>
-                        </div>
-                    </div>
-                    ${!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && html`<${Userlist} state=${state}/>`}
-                </div>
-            </div>
-                
-            ${(state.roomSidebar != SidebarState.NOTHING) && html`<${RoomSidebar} state=${state}/>`}
-            <${ProfileModal} state=${state}/>`}
-            ${state.hoverText && html`<${UserHoverName} state=${state}/>`}
-        </div>
-    `;
-    }
-}
-
-
-
-
-document.addEventListener('fullscreenchange', (event) => {
-  if(document.fullscreenElement == null){
-        document.getElementById("videoBig").removeEventListener('mousemove',removeCursor);
-  };
-  updateState(function(state) {
-      state.fullscreen = document.fullscreenElement !== null
-  })
-});
-
-
 let idleTimer = null;
 let idleState = false;
-function removeCursor(e) {
+export function removeCursor(e) {
   let time = 1500;
   clearTimeout(idleTimer);
   if (idleState == true) {
@@ -241,563 +35,682 @@ function removeCursor(e) {
   }, time);
 }
 
-function toggleFullscreen() {
-    if(document.fullscreenElement != null) {
-        document.exitFullscreen()
-    } else {
-        document.getElementById("pagecontent").requestFullscreen()
-        document.getElementById("pagecontent").addEventListener('mousemove',removeCursor);
-        if(state.remote) {
-            sendMessage({
-                action : 'drop_remote'
-            });
+export class Room extends Component {
+    constructor(props) {
+        super(props);
+        //state setup
+        let volume = parseInt(localStorage.getItem("volume"));
+            if(!isNaN(volume)) volume = Math.max(Math.min(volume,100),0);
+            else volume = 100;
+        let roomId = props.roomId;
+        this.state = {
+            roomId: roomId,
+            roomToken: localStorage.getItem("room-" + roomId + "-token"),
+            userlist: [],
+            roomlist: [],
+            chatMessages: [],
+            newMessage: false,
+            forceChatScroll: false,
+            remote: false,
+            remoteUsed: false,
+            username: localStorage.hasOwnProperty("username") ? localStorage.getItem("username"): "Anonymous",
+            avatarUrl: localStorage.hasOwnProperty("avatarUrl") ? localStorage.getItem("avatarUrl") : '/png/default_avatar.png',
+            volume: volume,
+            videoPaused: true,
+            videoLoading: false,
+            viewPort: {
+                width: 1280,
+                height: 720,
+            },
+            roomSidebar: SidebarState.CHAT,
+            workerStatus: WorkerStatus.STARTED,
+            roomSettings: {
+                workerStarted: true,
+                desktopResolution: 720,
+                streamResolution: 720,
+                framerate: 25,
+                videoBitrate: 1000,
+                audioBitrate: 96,
+                accessType: "public",
+                centerRemote: false
+            },
+            session: null,
+            windowTitle: "CozyCast: Low latency screen capture via WebRTC",
+            historyMode: false,
+            fullscreen: false,
+            kicked: false,
+            banned: localStorage.getItem("banned"),
+            newMessageCount: 0,
+            scheduleSidebar: false,
+            scheduleMenu: "ROOM_AVAILABILITY",
+            editSchedule: {
+                days: []
+            },
+            userlistHidden: false,
+            muteChatNotification: localStorage.hasOwnProperty('muteChatNotification') ?  localStorage.getItem("muteChatNotification") == 'true' : true,
+            showUsernames: localStorage.hasOwnProperty('showUsernames') ?  localStorage.getItem("showUsernames") == 'true' : true,
+            legacyDesign: localStorage.hasOwnProperty('legacyDesign') ?  localStorage.getItem("legacyDesign") == 'true' : false,
+            muted: localStorage.hasOwnProperty('muted') ?  localStorage.getItem("muted") == 'true' : false,
+            showIfMuted: localStorage.hasOwnProperty('showIfMuted') ?  localStorage.getItem("showIfMuted") == 'true' : false,
+            userlistOnLeft: localStorage.hasOwnProperty('userlistOnLeft') ?  localStorage.getItem("userlistOnLeft") == 'true' : false,
+            websocket: null,
+            webRtcPeer: null
+        };
+        //check if valid profile picture was used and replace if not
+        if(this.state != '/png/default_avatar.png'){
+            fetch(this.state.avatarUrl).then((e) => {
+                if(e.status != 200) {
+                    this.setState({
+                        avatarUrl: '/png/default_avatar.png'
+                    })
+                }
+            })
         }
+        //bind function so they can be passed down as props
+        this.pauseVideo = this.pauseVideo.bind(this)
+        this.sendMessage = this.sendMessage.bind(this)
+        this.updateRoomState = this.updateRoomState.bind(this)
     }
-}
 
-export function pauseVideo(e) {
-    updateState(function(state) {
-        state.videoPaused = !state.videoPaused;
-        if(state.videoPaused) {
+    //lets children change room state
+    updateRoomState = this.setState;
+
+    componentDidMount() {
+        document.onvisibilitychange = () => {
+            if(!document.hidden){
+                this.setState({
+                    newMessageCount: 0
+                })
+                favicon.badge(0);
+            }
+        }
+        //if no websocket present create a new one
+        if(!this.state.websocket) this.connect(this.props.roomId)
+        
+        window.onbeforeunload = () => {
+            if(this.state.websocket) {
+                this.state.websocket.close();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', (event) => {
+            if(document.fullscreenElement == null){
+                  document.getElementById("videoBig").removeEventListener('mousemove',removeCursor);
+            };
+            this.setState({
+                fullscreen: document.fullscreenElement !== null
+            })
+        });
+    }
+
+    componentWillUnmount() {
+        this.state.websocket.close();
+    }
+
+    componentDidUpdate() {
+        document.title = this.state.windowTitle
+    }
+
+    pauseVideo = (e) => {
+        let updatedPaused = !this.state.videoPaused;
+        if(updatedPaused) {
             var videoElement = document.getElementById('video');
             videoElement.pause();
-            webrtc_stop()
+            this.webrtc_stop();
         } else {
             var videoElement = document.getElementById('video');
             videoElement.play();
-            webrtc_start()
+            this.webrtc_start();
         }
-    })
-    if(state.showIfMuted) {
-        sendMessage({
-            action : 'userMuted',
-            muted: state.muted || state.videoPaused
-        });
-    }
-}
-
-function changeVolume(e) {
-    if(e.target.value == 0){
-        mute();
-    }
-    else{
-        if(state.muted){
-            toggleMute()
+        if(this.state.showIfMuted) {
+            this.sendMessage({
+                action : 'userMuted',
+                muted: this.state.muted || updatedPaused
+            });
         }
-        localStorage.setItem("volume",e.target.value);
-        updateState(function(state) {
-            state.volume = e.target.value;
-        })
+        this.setState({videoPaused: updatedPaused})
     }
-}
-
-function mute() {
-    if(!state.muted){
-        toggleMute()
-        document.getElementById("volumeControl").value = 0;
-    }
-    else {
-        toggleMute()
-        document.getElementById("volumeControl").value = state.volume;
-    }
-}
-
-function toggleMute(){
-    updateState(function(state) {
-        state.muted = !state.muted;
-    });
-    localStorage.setItem("muted",state.muted);
-    if(state.showIfMuted) {
-        sendMessage({
-            action : 'userMuted',
-            muted: state.muted || state.videoPaused
-        });
-    }
-}
-
-let inactiveTimer = null;
-let active = true;
-function calcActiveStatus(tabbedOut) {
-  let time = 5 * 60 * 1000;
-  if(!tabbedOut){
-    clearTimeout(inactiveTimer);
+    
     inactiveTimer = null;
-    if(!active){
-        active = true;
-        sendActivityStatus();
-    }
-  }
-  else {
-    if(inactiveTimer != null) return;
-    inactiveTimer = setTimeout(function() {
-      active = false;
-      sendActivityStatus();
-    }, time);
-  }
-}
-
-function sendActivityStatus(){
-    console.log(`user is: ${active}`);
-    sendMessage({
-        action : 'userActivity',
-        tabbedOut: !active,
-    });
-}
-
-function dropRemoteAndCenter() {
-    if(state.remote) {
-    	sendMessage({
-    		action :'drop_remote',
-            center: true
-    	});
-    } 
-}
-
-function remote() {
-    if(state.remote) {
-    	sendMessage({
-    		action : 'drop_remote'
-    	});
-    } else {
-    	sendMessage({
-    		action : 'pickup_remote'
-    	});
-    }
-}
-
-function deletemessage(parsedMessage){
-    updateState(function (state){
-        state.chatMessages = state.chatMessages.map(function(message) {
-                message.data = message.data.map(data => {
-                    if(data.id == parsedMessage.id){
-                        data.messages = data.messages.map(message =>{
-                            message.href = "";
-                            message.message = "";
-                            message.type = "deleted";
-                            return message;
-                        })
-                        data.deleted = true;
-                    }
-                    return data;
-                });
-            return message;
-        })
-    })
-}
-
-function completeDeletemessage(parsedMessage){
-    updateState(function (state){
-        state.chatMessages = state.chatMessages.map(function(message) {
-            if(message.data.length == 1 && message.data[0].id == parsedMessage.id) {return};
-            message.data = message.data.filter(data => data.id != parsedMessage.id);
-            return message;
-        }).filter(x=>x)
-    })
-}
-
-function chatmessage(parsedMessage, skip_notifications) {
-    var msg = parsedMessage.message || "";
-    var queuedMessages = [];
-    if(parsedMessage.type == "video") {
-        queuedMessages.push({ "type": "video", "href": parsedMessage.image });
-    } else if(parsedMessage.type == "image") {
-        queuedMessages.push({ "type": "image", "href": parsedMessage.image });
-    } else {
-        var offset = 0;
-        var urls = linkify.find(msg);
-        var remaining = msg;
-        urls.forEach(function(element) {
-            var end = remaining.indexOf(element.value, offset);
-            if(offset != end) {
-                queuedMessages.push({ "type": "text", "message": remaining.substring(offset, end) });
-            }
-            if(element.value.indexOf("http") != -1) {
-                queuedMessages.push({ "type": "url", "href": element.value });
-            } else {
-                queuedMessages.push({ "type": "text", "message": element.value });
-            }
-            offset = end + element.value.length;
-        });
-        if(offset < remaining.length) {
-        	queuedMessages.push({ "type": "text", "message": remaining.substring(offset, remaining.length) });
+    active = true;
+    calcActiveStatus = (tabbedOut) => {
+      let time = 5 * 60 * 1000;
+      if(!tabbedOut){
+        clearTimeout(this.inactiveTimer);
+        this.inactiveTimer = null;
+        if(!this.active){
+            this.active = true;
+            this.sendActivityStatus();
         }
+      }
+      else {
+        if(this.inactiveTimer != null) return;
+        this.inactiveTimer = setTimeout(() => {
+          this.active = false;
+          this.sendActivityStatus();
+        }, time);
+      }
+    }
+    
+    sendActivityStatus = () => {
+        this.sendMessage({
+            action : 'userActivity',
+            tabbedOut: !this.active,
+        });
+    }
+    
+    //deletes messages based on id and leaves a deleted in its place, the deleted symbol is client side only
+    deletemessage = (parsedMessage) => {
+        this.setState({
+            chatMessages:
+                this.state.chatMessages.map(function(message) {
+                    message.data = message.data.map(data => {
+                            if(data.id == parsedMessage.id){
+                                data.messages = data.messages.map(message =>{
+                                    message.href = "";
+                                    message.message = "";
+                                    message.type = "deleted";
+                                    return message;
+                                })
+                                data.deleted = true;
+                            }
+                            return data;
+                            });
+                return message;
+                }),
+            newMessage: false
+        })
     }
 
-    updateState(function (state) {
-        var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
-        if(state.chatMessages.length > 0 && state.chatMessages[state.chatMessages.length-1].session == parsedMessage.session) {
-            var lastMessage = state.chatMessages[state.chatMessages.length-1];
-            lastMessage.data.push({messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A')})
+    //fully deletes a message based on id
+    completeDeletemessage = (parsedMessage) => {
+        this.setState({chatMessages:    
+            this.state.chatMessages.map(function(message) {
+                if(message.data.length == 1 && message.data[0].id == parsedMessage.id) {return};
+                message.data = message.data.filter(data => data.id != parsedMessage.id);
+                return message;
+            }).filter(x=>x),
+            newMessage: false
+        })
+    }
+
+
+    parseMessage = (parsedMessage) => {
+        var msg = parsedMessage.message || "";
+        var queuedMessages = [];
+        if(parsedMessage.type == "video") {
+            queuedMessages.push({ "type": "video", "href": parsedMessage.image });
+        } else if(parsedMessage.type == "image") {
+            queuedMessages.push({ "type": "image", "href": parsedMessage.image });
         } else {
-            state.chatMessages.push({
+            var offset = 0;
+            var urls = linkify.find(msg);
+            var remaining = msg;
+            urls.forEach(function(element) {
+                var end = remaining.indexOf(element.value, offset);
+                if(offset != end) {
+                    queuedMessages.push({ "type": "text", "message": remaining.substring(offset, end) });
+                }
+                if(element.value.indexOf("http") != -1) {
+                    queuedMessages.push({ "type": "url", "href": element.value });
+                } else {
+                    queuedMessages.push({ "type": "text", "message": element.value });
+                }
+                offset = end + element.value.length;
+            });
+            if(offset < remaining.length) {
+                queuedMessages.push({ "type": "text", "message": remaining.substring(offset, remaining.length) });
+            }
+        }
+        return queuedMessages;
+    }
+
+    /* parses the chatHistory in the messages array used in states. Called once upon entering a room. 
+    Faster since it only calls setState once with the entire chat history*/
+    chatHistory = (allMessages) => {
+        var list = [];
+        allMessages.forEach(parsedMessage => {
+            var msg = parsedMessage.message || "";
+            var queuedMessages = this.parseMessage(parsedMessage);
+            var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
+            if(list.length > 0 && list[list.length-1].session == parsedMessage.session) {
+                var lastMessage = list[list.length-1];
+                lastMessage.data.push({messages: queuedMessages, id: parsedMessage.id, timestamp: timestamp})
+            } else {
+                list.push({
+                    username: parsedMessage.username,
+                    session: parsedMessage.session,
+                    data: [{messages: queuedMessages, id: parsedMessage.id, timestamp: timestamp}]
+                })
+            }
+        } )
+        this.setState({
+            newMessage: true, 
+            chatMessages: list,
+            forceChatScroll: true
+        })
+    }
+    
+    chatmessage = (parsedMessage, skip_notifications) => {
+        var msg = parsedMessage.message || "";
+        var queuedMessages = this.parseMessage(parsedMessage);
+
+        var list;
+        if(this.state.chatMessages.length > 0 && this.state.chatMessages[this.state.chatMessages.length-1].session == parsedMessage.session) {
+            var lastMessageID = this.state.chatMessages[this.state.chatMessages.length-1].data[0].id;
+            list = this.state.chatMessages.map((message) => {
+                if(message.data[0].id === lastMessageID){
+                    const updatedMessage = {
+                        ...message,
+                        data: [...message.data,{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A')}]
+                    }
+                    return updatedMessage;
+                }
+                return message;
+            })
+        } else {
+            list = [...this.state.chatMessages, {
                 username: parsedMessage.username,
                 session: parsedMessage.session,
                 data: [{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A')}]
+            }]
+        }
+        this.setState({
+            newMessage: true, 
+            chatMessages: list
+        })
+
+        if(skip_notifications) {
+            return
+        }
+
+        var lowerCaseMsg = msg.toLowerCase()
+        var pattern = "@" + this.state.username.toLowerCase()
+        var mentionPos = lowerCaseMsg.indexOf(pattern)
+        var lookahead = lowerCaseMsg.substring(mentionPos, (pattern + " ").length).trim()
+        var mention = lookahead == pattern
+        if (this.state.historyMode || mention || !this.state.muteChatNotification && document.hidden && parsedMessage.session !== this.state.session) {
+            var audio = new Audio('/audio/pop.wav');
+            audio.play();
+        }
+
+        if(document.hidden) {
+            this.setState({newMessageCount: this.state.newMessageCount + 1 })
+            favicon.badge(this.state.newMessageCount + 1);
+        }
+
+    }
+    
+    join = (parsedMessage) => {
+        this.leave(parsedMessage)
+        this.setState({
+            userlist: [...this.state.userlist, {
+                username: parsedMessage.username,
+                url: parsedMessage.url,
+                session: parsedMessage.session,
+                remote: false,
+                lastTimeSeen: moment(parsedMessage.lastTimeSeen).format('h:mm A'),
+                active: parsedMessage.active,
+                muted: parsedMessage.muted
+            }]
+        })
+    }
+    
+    updateActivity = (parsedMessage) => {
+        this.setState({
+            userlist: this.state.userlist.map(function(element) {
+                if(element.session == parsedMessage.session) {
+                    const updatedElement = {
+                        ...element,
+                        active: parsedMessage.active,
+                        lastTimeSeen:  moment(parsedMessage.lastTimeSeen).format('h:mm A')
+                    }
+                    return updatedElement;
+                }
+                return element;
+            })
+        })
+    }
+    
+    updateMuted = (parsedMessage) => {
+        this.setState({
+            userlist: this.state.userlist.map(function(element) {
+                if(element.session == parsedMessage.session) {
+                    const newElement = {
+                        ...element,
+                        muted:  parsedMessage.muted
+                    }
+                    return newElement;
+                }
+                return element;
+            })
+        })
+    }
+    
+    changeusername = (parsedMessage) => {
+        this.setState({
+            userlist: this.state.userlist.map(function(element) {
+                if(element.session == parsedMessage.session) {
+                    return {
+                        ...element,
+                        username: parsedMessage.username
+                    }
+                }
+                return element;
+            }),
+            chatMessages: this.state.chatMessages.map(function(message) {
+                if(message.session == parsedMessage.session)
+                    return {
+                        ...message,
+                        username: parsedMessage.username
+                    }
+                return message;
+            })
+        })
+    }
+    
+    changeprofilepicture = (parsedMessage) => {
+        this.setState({
+            userlist: this.state.userlist.map(function(element) {
+                if(element.session == parsedMessage.session) {
+                    return {
+                        ...element,
+                        url: parsedMessage.url
+                    }
+                }
+                return element;
+            })
+            }
+        )
+    }
+    
+    leave = (parsedMessage) => {
+        this.setState({
+            userlist: this.state.userlist.filter(function(element) {
+                return element.session != parsedMessage.session;
+            })
+        })
+        filterTyping(parsedMessage.session);
+    }
+    
+    ban = (parsedMessage) => {
+        if(parsedMessage.session == this.state.session) {
+            localStorage.setItem("banned", parsedMessage.expiration);
+            this.setState({
+                banned: parsedMessage.expiration
+            })
+            this.state.websocket.close();
+        }
+    }
+    
+    isBanned = () => {
+        if(this.state.banned == null) {
+            return false;
+        }
+        if(this.state.banned == "unlimited") {
+            return true
+        } else {
+            var expiration = new Date(this.state.banned)
+            if(new Date().getTime() < expiration.getTime()) {
+                return true
+            }
+        }
+        return false
+    }
+    
+    keepAlive;
+    connect = (room) => {
+        if(this.isBanned()) {
+            return;
+        }
+        var wsProtocol = 'wss'
+        if(document.location.protocol != 'https:') {
+            wsProtocol = 'ws'
+        }
+        let newWebsocket = new WebSocket(wsProtocol + '://' + location.host + '/player/' + room);
+        newWebsocket.onmessage = (message) => {
+            var parsedMessage = JSON.parse(message.data);
+            console.log(parsedMessage)
+            switch (parsedMessage.action) {
+                case 'keepalive':
+                    break;
+                case 'ban':
+                    this.ban(parsedMessage)
+                    break;
+                case 'session_id':
+                    this.setState({
+                        session: parsedMessage.session
+                    })
+                    break;
+                case 'startResponse':
+                    this.startResponse(parsedMessage);
+                    break;
+                case 'error':
+                    console.log('Error from server: ' + parsedMessage.message);
+                    break;
+                case 'typing':
+                    typing(parsedMessage);
+                    break;
+                case 'userActivityChange':
+                    this.updateActivity(parsedMessage);
+                    break;
+                case 'userMutedChange':
+                    this.updateMuted(parsedMessage);
+                    break;
+                case 'chat_history':
+                    //TODO: optimize this
+                    if(parsedMessage.messages) {
+                        this.chatHistory(parsedMessage.messages)
+                    }
+                    break;
+                case 'receivemessage':
+                    this.chatmessage(parsedMessage);
+                    break;
+                case 'deletemessage':
+                    this.deletemessage(parsedMessage);
+                    break;
+                case 'changeusername':
+                    this.changeusername(parsedMessage);
+                    break;
+                case 'changeprofilepicture':
+                    this.changeprofilepicture(parsedMessage);
+                    break;
+                case 'join':
+                    this.join(parsedMessage);
+                    break;
+                case 'leave':
+                    this.leave(parsedMessage);
+                    break;
+                case 'drop_remote':
+                    this.setState({
+                        remote: false,
+                        remoteUsed: false,
+                        userlist: this.state.userlist.map((user) => {
+                            if(user.session == parsedMessage.session) {
+                                return {
+                                    ...user,
+                                    remote: false
+                                }
+                            }
+                            return user;
+                        })
+                    })
+                    break;
+                case 'pickup_remote':
+                    this.setState({
+                        remote: parsedMessage.has_remote,
+                        remoteUsed: !parsedMessage.has_remote,
+                        userlist: this.state.userlist.map((user) => {
+                            return {
+                                ...user,
+                                remote: user.session == parsedMessage.session
+                            }
+                        })
+                    })
+                    break;
+                case 'window_title':
+                    this.setState({windowTitle: parsedMessage.title})
+                    break;
+                case 'iceCandidate':
+                    this.state.webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
+                        if (error) {
+                            console.log('Error iceCandidate: ' + error);
+                            return;
+                        } else {
+                            console.log("Successful iceCandidate")
+                        }
+                    });
+                    break;
+                default:
+                    console.log('Unknown action: ', parsedMessage);
+            }
+        }
+        newWebsocket.onclose = (event) => {
+            this.setState({
+                userlist: [],
+                chatMessages: [],
+                remote: false
+            })
+            clearTyping();
+            this.webrtc_stop()
+            clearInterval(this.keepAlive)
+            this.keepAlive = null;
+            setTimeout(() => this.connect(room), 1500)
+        }
+      
+        newWebsocket.onopen = (event) => {
+            setTimeout(() => {
+                this.start();
+                document.addEventListener("visibilitychange", () => {
+                    this.calcActiveStatus(document.visibilityState != "visible");
+                  });
+            }, 300);
+        };
+
+        this.setState({
+            websocket: newWebsocket,
+            roomId: room
+        })
+      
+        this.keepAlive = setInterval(() => {
+            this.sendMessage({
+                action : 'keepalive',
+            });
+        }, 30000);
+    }
+    
+    start = () => {
+        this.sendMessage({
+            action : 'join',
+            username: this.state.username,
+            url: this.state.avatarUrl,
+            token: this.state.roomToken,
+            muted: (this.state.showIfMuted ? this.state.muted : false)
+        });
+        this.webrtc_start()
+    }
+    
+    webrtc_start = () => {
+        fetch("/turn/credential").then((e) => e.json()).then((iceServer) => {
+            var options = {
+                remoteVideo : document.getElementById("video"),
+                mediaConstraints : {
+                    audio : true,
+                    video : true
+                },
+                onicecandidate : this.onIceCandidate,
+                configuration: {
+                    iceServers: [iceServer]
+                }
+            }
+          
+            this.setState({webRtcPeer: new kurentoUtils.WebRtcPeer.WebRtcPeerRecvonly(options,
+                (error) => {
+                    if (error) {
+                        console.log(error);
+                        return;
+                    }
+                    this.state.webRtcPeer.generateOffer(this.onOffer);
+                })})
+        });
+    }
+    
+    webrtc_stop = () => {
+        if (this.state.webRtcPeer) {
+            this.state.webRtcPeer.dispose();
+            this.setState({
+                webRtcPeer: null
             })
         }
-        state.newMessage = true
-    })
-    if(skip_notifications) {
-        return
     }
-    var lowerCaseMsg = msg.toLowerCase()
-    var pattern = "@" + state.username.toLowerCase()
-    var mentionPos = lowerCaseMsg.indexOf(pattern)
-    var lookahead = lowerCaseMsg.substring(mentionPos, (pattern + " ").length).trim()
-    var mention = lookahead == pattern
-    if (state.historyMode || mention || !state.muteChatNotification && document.hidden && parsedMessage.session !== state.session) {
-        var audio = new Audio('/audio/pop.wav');
-        audio.play();
-    }
-    updateState(function (state) {
-        if(document.hidden) {
-            state.newMessageCount++;
-            favicon.badge(state.newMessageCount);
+    
+    onOffer = (error, sdpOffer) => {
+        if (error) {
+            console.log(error);
+            return;
         }
-    })
-}
-
-function join(parsedMessage) {
-    leave(parsedMessage)
-    updateState(function (state) {
-        state.userlist.push({
-            username: parsedMessage.username,
-            url: parsedMessage.url,
-            session: parsedMessage.session,
-            remote: false,
-            lastTimeSeen: moment(parsedMessage.lastTimeSeen).format('h:mm A'),
-            active: parsedMessage.active,
-            muted: parsedMessage.muted
-        })
-    })
-}
-
-function updateActivity(parsedMessage) {
-    updateState(function (state) {
-        state.userlist = state.userlist.map(function(element) {
-            if(element.session == parsedMessage.session) {
-                element.active = parsedMessage.active;
-                element.lastTimeSeen = moment(parsedMessage.lastTimeSeen).format('h:mm A');
+      
+        this.sendMessage({
+            action : 'start',
+            sdpOffer : sdpOffer
+        });
+    }
+    
+    onIceCandidate = (candidate) => {
+        this.sendMessage({
+            action : 'onIceCandidate',
+            candidate : candidate
+        });
+    }
+    
+    startResponse = (message) => {
+        this.state.webRtcPeer.processAnswer(message.sdpAnswer, (error) => {
+            if (error) {
+                console.log(error);
+                return;
             }
-            return element;
         });
-    })
-}
-
-function updateMuted(parsedMessage) {
-    updateState(function (state) {
-        state.userlist = state.userlist.map(function(element) {
-            if(element.session == parsedMessage.session) {
-                element.muted = parsedMessage.muted;
-            }
-            return element;
-        });
-    })
-}
-
-function changeusername(parsedMessage) {
-    updateState(function (state) {
-        state.userlist = state.userlist.map(function(element) {
-            if(element.session == parsedMessage.session) {
-                element.username = parsedMessage.username;
-            }
-            return element;
-        });
-        state.chatMessages = state.chatMessages.map(function(message) {
-            if(message.session == parsedMessage.session)
-                message.username = parsedMessage.username;
-            return message;
-        })
-    })
-}
-
-function changeprofilepicture(parsedMessage) {
-    updateState(function (state) {
-        state.userlist = state.userlist.map(function(element) {
-            if(element.session == parsedMessage.session) {
-                element.url = parsedMessage.url;
-            }
-            return element;
-        });
-    })
-}
-
-function leave(parsedMessage) {
-    updateState(function (state) {
-        state.userlist = state.userlist.filter(function(element) {
-            return element.session != parsedMessage.session;
-        });
-    })
-    filterTyping(parsedMessage.session);
-}
-
-function ban(parsedMessage) {
-    if(parsedMessage.session == state.session) {
-        updateState(function (state) {
-            localStorage.setItem("banned", parsedMessage.expiration);
-            state.banned = parsedMessage.expiration
-            websocket.close();
-        })
-    }
-}
-
-function isBanned() {
-    if(state.banned == null) {
-        return false;
-    }
-    if(state.banned == "unlimited") {
-        return true
-    } else {
-        var expiration = new Date(state.banned)
-        if(new Date().getTime() < expiration.getTime()) {
-            return true
-        }
-    }
-    return false
-}
-
-var keepAlive;
-
-function connect(room) {
-    if(isBanned()) {
-        return;
-    }
-    updateState(function (state) {
-        state.roomId = room;
-    })
-    var wsProtocol = 'wss'
-    if(document.location.protocol != 'https:') {
-        wsProtocol = 'ws'
-    }
-    websocket = new WebSocket(wsProtocol + '://' + location.host + '/player/' + room);
-    websocket.onmessage = function(message) {
-    	var parsedMessage = JSON.parse(message.data);
-        console.log(parsedMessage)
-    	switch (parsedMessage.action) {
-            case 'keepalive':
-    			break;
-            case 'ban':
-                ban(parsedMessage)
-    			break;
-            case 'session_id':
-                updateState(function (state) {
-                    state.session = parsedMessage.session;
-                })
-                break;
-    		case 'startResponse':
-    			startResponse(parsedMessage);
-    			break;
-    		case 'error':
-    			console.log('Error from server: ' + parsedMessage.message);
-    			break;
-    		case 'typing':
-    			typing(parsedMessage);
-    			break;
-            case 'userActivityChange':
-                updateActivity(parsedMessage);
-                break;
-            case 'userMutedChange':
-                updateMuted(parsedMessage);
-                break;
-            case 'chat_history':
-                if(parsedMessage.messages) {
-                    parsedMessage.messages
-                        .forEach(e => chatmessage(e, true))
-                    updateState(function (state) {
-                        state.forceChatScroll = true
-                    })
-                }
-                break;
-    		case 'receivemessage':
-    			chatmessage(parsedMessage);
-    			break;
-            case 'deletemessage':
-                deletemessage(parsedMessage);
-                break;
-            case 'changeusername':
-                changeusername(parsedMessage);
-                break;
-            case 'changeprofilepicture':
-                changeprofilepicture(parsedMessage);
-                break;
-    		case 'join':
-    			join(parsedMessage);
-    			break;
-    		case 'leave':
-    			leave(parsedMessage);
-    			break;
-    		case 'drop_remote':
-                updateState(function (state) {
-                    state.remote = false;
-                    state.remoteUsed = false;
-                    state.userlist = state.userlist.map(function(user) {
-                        if(user.session == parsedMessage.session) {
-                            user.remote = false;
-                        }
-                        return user;
-                    })
-                })
-    			break;
-    		case 'pickup_remote':
-                updateState(function (state) {
-                    state.userlist = state.userlist.map(function(user) {
-                        user.remote = user.session == parsedMessage.session;
-                        return user;
-                    })
-                    state.remote = parsedMessage.has_remote;
-                    state.remoteUsed = !state.remote;
-                })
-    			break;
-            case 'window_title':
-                updateState(function (state) {
-                    state.windowTitle = parsedMessage.title
-                })
-                break;
-    		case 'iceCandidate':
-    			webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
-    				if (error) {
-    					console.log('Error iceCandidate: ' + error);
-    					return;
-    				} else {
-                        console.log("Successful iceCandidate")
-                    }
-    			});
-    			break;
-    		default:
-    			console.log('Unknown action: ', parsedMessage);
-    	}
-    }
-    websocket.onclose = function (event) {
-        updateState(function (state) {
-            state.userlist = [];
-            state.chatMessages = [];
-            state.remote = false;
-        })
-        clearTyping();
-        webrtc_stop()
-        clearInterval(keepAlive)
-        keepAlive = null;
-    	connect(room);
-    }
-
-    websocket.onopen = function (event) {
-    	setTimeout(function() {
-    		start();
-            document.addEventListener("visibilitychange", () => {
-                calcActiveStatus(document.visibilityState != "visible");
-              });
-    	}, 300);
-    };
-
-     keepAlive = setInterval(function(){
-         sendMessage({
-         	action : 'keepalive',
-         });
-     }, 30000);
-}
-
-export function sendRoomSettings(settings) {
-    sendMessage({
-    	action : 'room_settings_save',
-        token: state.roomToken,
-        accessType: settings.accessType,
-        centerRemote: settings.centerRemote,
-        desktopResolution: settings.desktopResolution,
-        streamResolution: settings.streamResolution,
-        framerate: settings.framerate,
-        videoBitrate: settings.videoBitrate,
-        audioBitrate: settings.audioBitrate
-    });
-}
-
-export function sendWorkerRestart() {
-    sendMessage({
-    	action : 'worker_restart',
-        token: state.roomToken
-    });
-}
-
-function start() {
-    sendMessage({
-    	action : 'join',
-    	username: state.username,
-        url: state.avatarUrl,
-        token: state.roomToken,
-        muted: (state.showIfMuted ? state.muted : false)
-    });
-    webrtc_start()
-}
-
-function webrtc_start() {
-    fetch("/turn/credential").then((e) => e.json()).then(function(iceServer) {
-    	var options = {
-    		remoteVideo : document.getElementById("video"),
-    		mediaConstraints : {
-    			audio : true,
-    			video : true
-    		},
-    		onicecandidate : onIceCandidate,
-    		configuration: {
-    			iceServers: [iceServer]
-    		}
-    	}
-
-    	webRtcPeer = new kurentoUtils.WebRtcPeer.WebRtcPeerRecvonly(options,
-    		function(error) {
-    			if (error) {
-    				console.log(error);
-    				return;
-    			}
-    			webRtcPeer.generateOffer(onOffer);
-    		});
-    });
-}
-
-function webrtc_stop() {
-    if (webRtcPeer) {
-        webRtcPeer.dispose();
-        webRtcPeer = null;
-    }
-}
-
-function onOffer(error, sdpOffer) {
-    if (error) {
-    	console.log(error);
-    	return;
-    }
-
-    sendMessage({
-    	action : 'start',
-    	sdpOffer : sdpOffer
-    });
-}
-
-function onIceCandidate(candidate) {
-    sendMessage({
-    	action : 'onIceCandidate',
-    	candidate : candidate
-    });
-}
-
-function startResponse(message) {
-    webRtcPeer.processAnswer(message.sdpAnswer, function(error) {
-    	if (error) {
-    		console.log(error);
-    		return;
-    	}
-    });
-    updateState(function (state) {
         var settings = message.videoSettings
-        state.viewPort.width = settings.desktopWidth
-        state.viewPort.height = settings.desktopHeight
-        state.roomSettings.desktopResolution = settings.desktopHeight
-        state.roomSettings.streamResolution = settings.scaleHeight
-        state.roomSettings.framerate = settings.framerate
-        state.roomSettings.videoBitrate = settings.videoBitrate
-        state.roomSettings.audioBitrate = settings.audioBitrate
-    })
-}
+        this.setState({
+            viewPort: { width: settings.desktopWidth,
+                height: settings.desktopHeight
+            },
+            roomSettings: {
+                ...this.state.roomSettings,
+                desktopResolution: settings.desktopHeight,
+                streamResolution: settings.scaleHeight,
+                framerate: settings.framerate,
+                videoBitrate: settings.videoBitrate,
+                audioBitrate: settings.audioBitrate
+            }
+        }
+        )
+    }
+    
+    sendMessage = (message) => {
+        this.state.websocket.send(JSON.stringify(message));
+    }
 
-export function sendMessage(message) {
-    websocket.send(JSON.stringify(message));
+    render({ roomId }, state) {
+    return html`
+        <div id="pagecontent" class="${state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}">
+            ${this.isBanned() && html`Banned until ${state.banned}`}
+            ${!this.isBanned() && html`
+            ${!state.userlistHidden && !state.fullscreen && state.userlistOnLeft && html`<div><${Userlist} showUsernames=${state.showUsernames} userlist=${state.userlist} isLeft=${true} updateRoomState=${this.updateRoomState}/></div>`}
+            <div id="contentWithoutSidebar" class="contentWithoutSidebar">
+                <${VideoControls} state=${state} sendMessage=${this.sendMessage} pauseVideo=${this.pauseVideo} updateRoomState=${this.updateRoomState} />
+                ${state.scheduleSidebar && html`
+                    <${ScheduleSidebar} state=${state}/>`}
+                <div id="pagetoolbar" class="${state.fullscreen ? "toolbarFullscreen" : ""}">
+                    <${Controls} state=${state} state=${state} sendMessage=${this.sendMessage} updateRoomState=${this.updateRoomState} startVideo=${this.webrtc_start.bind(this)} stopVideo=${this.webrtc_stop.bind(this)}/>
+                    ${!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && html`<${Userlist} showUsernames=${state.showUsernames} userlist=${state.userlist} isLeft=${false} updateRoomState=${this.updateRoomState}/>`}
+                </div>
+            </div>
+                
+            ${(state.roomSidebar != SidebarState.NOTHING) && html`<${RoomSidebar} state=${state} sendMessage=${this.sendMessage} updateRoomState=${this.updateRoomState}/>`}
+            <${ProfileModal} state=${state} sendMessage=${this.sendMessage} updateRoomState=${this.updateRoomState}/>`}
+            ${state.hoverText && html`<${UserHoverName} state=${state}/>`}
+        </div>
+    `;
+    }
 }

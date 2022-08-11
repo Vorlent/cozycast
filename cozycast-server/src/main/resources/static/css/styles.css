@@ -150,7 +150,7 @@ html, body, #pagecontent, #videosizer {
     pointer-events:none;
 }
 
-.controlsFullscreen > * {
+.controlsFullscreen .btn {
     pointer-events: all;
 }
 
@@ -285,7 +285,7 @@ button{
 }
 
 .btn-primary:hover {
-    background-color: var(--cozyButtonAccent);
+    background-color: var(--cozyButtonAccent,#f90);
 }
 
 .btn-danger {
@@ -324,7 +324,7 @@ button{
 .subMessage {
     position:relative;
     padding: .15em;
-    padding-left: 1em;
+    padding-right: 0;
 }
 
 .subMessage:hover {
@@ -357,8 +357,17 @@ button{
     background-color: var(--cozyOrange);
 }
 
+.message .chat-image, .message .chat-video, .message .chat-deleted {
+    padding-right: 1em;
+}
+
+.message .chat-text {
+    padding-right: .15em;
+}
+
 .message > div:not(.username) {
 	font-size: 0.9em;
+    padding-left: 1em;
 }
 
 #videocontrols {
@@ -432,6 +441,7 @@ button{
 .chat-video video {
     height: 100%;
     width: 100%;
+    border-radius: 0.2em;
 }
 
 .chat-image {
@@ -445,6 +455,7 @@ button{
     display: block;
     height: 100%;
     width: 100%;
+    border-radius: 0.2em;
 }
 
 .chat-deleted {
@@ -1249,7 +1260,7 @@ input[type=range]::-webkit-slider-thumb {
     z-index: 3;
     transition: opacity 0.15s ease;
     pointer-events: none;
-    font-size: 1.3em;
+    font-size: 1.1em;
     color: white;
 }
 
@@ -1300,6 +1311,7 @@ input[type=range]::-webkit-slider-thumb {
     z-index: 3;
     transition: opacity 0.15s ease;
     pointer-events: none;
+    font-size: 0.6em;
 }
 
 .hoverInfo::before{
@@ -1309,7 +1321,7 @@ input[type=range]::-webkit-slider-thumb {
     pointer-events: none;
 }
 
-.avatarContainer:hover .hoverInfo{
+.subMessage:hover .hoverInfo{
     visibility: visible;
     opacity: 1;
 }
@@ -1325,10 +1337,13 @@ input[type=range]::-webkit-slider-thumb {
     border-color: var(--cozyColorAccent) transparent transparent transparent;
 }
 
-.avatarContainer:hover .hoverInfo.top{
-    top: -50%;
+.subMessage:hover .hoverInfo.top{
+    top: -2em;
 }
 
+.hoverInfo.top{
+    right: 0.5em;
+}
 
 /*right*/
 
@@ -1343,7 +1358,7 @@ input[type=range]::-webkit-slider-thumb {
     border-color: transparent var(--cozyColorAccent) transparent transparent;
 }
 
-.avatarContainer:hover .hoverInfo.right{
+.subMessage:hover .hoverInfo.right{
     left: 110%;
 }
 

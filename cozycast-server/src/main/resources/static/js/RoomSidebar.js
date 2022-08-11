@@ -6,11 +6,11 @@ import { RoomSettings } from '/js/RoomSettings.js'
 import { Button } from '/js/Button.js'
 import { UserlistSidebar } from '/js/UserlistSidebar.js'
 
-import { SidebarState, state, updateState } from '/js/index.js'
+import { SidebarState} from '/js/index.js'
 
 export class RoomSidebar extends Component {
 
-    render({ roomId }, { xyz = [] }) {
+    render({ roomId, state }, { xyz = [] }) {
         return html`
             <div id="sidebar">
                 ${state.roomToken
@@ -18,12 +18,12 @@ export class RoomSidebar extends Component {
                     <span class="cozycast-titletext">${roomId}</span>
                 </div>`}
                 ${state.roomSidebar == SidebarState.CHAT &&
-                    html`<${Chat} state=${state}/>`}
+                    html`<${Chat} state=${state} sendMessage=${this.props.sendMessage} updateRoomState=${this.props.updateRoomState}/>`}
                 ${state.roomSidebar == SidebarState.USERS &&
                 html`<${UserlistSidebar} state=${state}/>`}
                 ${state.roomSidebar == SidebarState.SETTINGS
                     && state.roomToken
-                    && html`<${RoomSettings} state=${state}/>`}
+                    && html`<${RoomSettings} state=${state} sendMessage=${this.props.sendMessage} updateRoomState=${this.props.updateRoomState}/>`}
             </div>
         `;
     }

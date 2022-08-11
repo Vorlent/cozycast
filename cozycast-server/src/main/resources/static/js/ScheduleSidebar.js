@@ -6,7 +6,7 @@ import { ScheduleEditAvailability } from '/js/ScheduleEditAvailability.js'
 import { ScheduleCalendar } from '/js/ScheduleCalendar.js'
 import { Button } from '/js/Button.js'
 
-import { SidebarState, state, updateState } from '/js/index.js'
+import { SidebarState } from '/js/index.js'
 
 
 export function openSchedule() {
@@ -21,20 +21,25 @@ function selectScheduleMenu(name) {
     })
 }
 
+function updateState(e) {console.log(e)} 
+
 export class ScheduleSidebar extends Component {
+
+    state = {}
+
     render({ roomId }, { xyz = [] }) {
         return html`
             <div id="schedule">
                 <div class="navigation">
-                    <${Button} enabled=${state.scheduleMenu == "ROOM_AVAILABILITY"}
+                    <${Button} enabled=${this.state.scheduleMenu == "ROOM_AVAILABILITY"}
                         onclick=${() => selectScheduleMenu("ROOM_AVAILABILITY")}>
                         Room Availability
                     <//>
-                    <${Button} enabled=${state.scheduleMenu == "ROOM_SCHEDULE"}
+                    <${Button} enabled=${this.state.scheduleMenu == "ROOM_SCHEDULE"}
                         onclick=${() => selectScheduleMenu("ROOM_SCHEDULE")}>
                         Room Calendar
                     <//>
-                    <${Button} enabled=${state.scheduleMenu == "EDIT_AVAILABILITY"}
+                    <${Button} enabled=${this.state.scheduleMenu == "EDIT_AVAILABILITY"}
                         onclick=${() => selectScheduleMenu("EDIT_AVAILABILITY")}>
                         Edit Availability
                     <//>
