@@ -438,6 +438,10 @@ button{
     margin: auto;
 }
 
+.chat-video, .chat-image {
+    cursor: pointer;
+}
+
 .chat-video video {
     height: 100%;
     width: 100%;
@@ -658,6 +662,30 @@ input[type=range]::-webkit-slider-thumb {
     width: 100%;
     background-color: rgba(0, 0, 0, 0.7);
     display: flex;
+}
+
+.imageModal {
+    position: relative;
+    max-width: 80%;
+    max-height: 80%;
+    margin: auto auto;
+}
+
+.imageModal video, .imageModal img{
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.imageModal .modal-close {
+    font-size: 2em;
+    top: -1.5em;
+    right: -1.5em;
+    background-color: var(--cozyButton);
+}
+
+.imageModal .modal-close:hover {
+    background-color: var(--cozyOrange);
+    color: white;
 }
 
 .modal {

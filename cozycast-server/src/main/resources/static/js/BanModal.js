@@ -42,10 +42,6 @@ export class BanModal extends Component {
         })
     }
 
-    componentDidUpdate() {
-        console.log("Ban Modal update!")
-    }
-
     render({ state }, { xyz = [] }) {
         return html`
             <div class="modal-background">
