@@ -700,14 +700,12 @@ input[type=range]::-webkit-slider-thumb {
 
 .imageModal {
     position: relative;
-    max-width: 80%;
-    max-height: 80%;
     margin: auto auto;
 }
 
 .imageModal video, .imageModal img{
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 80vw;
+    max-height: 80vh;
 }
 
 .imageModal .modal-close {

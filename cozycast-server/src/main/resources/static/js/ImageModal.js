@@ -13,9 +13,8 @@ export class ImageModal extends Component {
 
     render({type,href}) {
         return html`
-            <div class="modal-background">
+            <div class="modal-background" onclick=${this.closeModal}>
                 <div class="imageModal">
-                    <button type="button" class="modal-close" onclick=${this.closeModal}>X</button>
                     ${type == "image" &&
                         html`<div>
                             <a class="chat-link" target="_blank" href="${href}"><img src="${href}" /></a>
@@ -23,7 +22,7 @@ export class ImageModal extends Component {
                     `}
                     ${type == "video" &&
                         html`<div>
-                            <a class="chat-link" target="_blank" href="${href}"> <video loop autoplay src="${href}" /></a>
+                            <a class="chat-link" target="_blank" href="${href}"> <video loop autoplay controls src="${href}" /></a>
                         </div>
                     `}
                 </div>
