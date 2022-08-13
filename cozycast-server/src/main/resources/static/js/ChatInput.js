@@ -47,11 +47,12 @@ export class ChatInput extends Component {
         this.clearFile = this.clearFile.bind(this);
         this.lastTypingEvent = Date.now();
         this.state = { 
-            isTyping: false,
             chatBox: "",
             typingUsers: [],
             sendFile: false,
-            pasteFile: false};
+            pasteFile: false,
+            editTarget: null
+        };
     }
 
     clearFile() {
@@ -60,7 +61,15 @@ export class ChatInput extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState){
-        return this.state !== nextState;
+        return this.state !== nextState || nextProps.editTarget !== this.state.editTarget;
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if(this.state.editTarget !== this.props.editTarget) {
+            this.setState({editTarget: this.props.editTarget, chatBox: this.props.editContent})
+            this.refChatboxText.current.focus();
+        }
+        this.autosize();
     }
 
     componentDidMount() {
@@ -98,9 +107,8 @@ export class ChatInput extends Component {
     }
 
     chatInput = (e) => {
-        this.autosize();
         var enterKeycode = 13;
-        this.setState({chatBox: e.target.value, isTyping: e.target.value.length != 0})
+        this.setState({chatBox: e.target.value})
         var now = Date.now();
         if(now - this.lastTypingEvent > 1000) {
             this.props.sendMessage({
@@ -118,24 +126,34 @@ export class ChatInput extends Component {
             if(e.shiftKey) {
                 let newChatBox = this.state.chatBox += "\n";
                 this.setState({chatBox: newChatBox})
-                e.target.value = newChatBox; // hack
-                this.autosize();
             } else {
                 if(this.state.chatBox.trim() != "") {
-                    this.props.sendMessage({
-                        action : 'chatmessage',
-                        type: "text",
-                        message: this.state.chatBox
-                    });
+                    if(this.state.editTarget !== null){
+                        this.props.sendMessage({
+                            action : 'editmessage',
+                            id: this.state.editTarget,
+                            message: this.state.chatBox
+                        });
+                    }
+                    else{
+                        this.props.sendMessage({
+                            action : 'chatmessage',
+                            type: "text",
+                            message: this.state.chatBox
+                        });
+                    }
                 }
-                this.setState({chatBox: "",isTyping: false})
-                e.target.value = ""; // hack
+                if(this.state.editTarget !== null){
+                    this.exitEdit();
+                }
+                else {
+                this.setState({chatBox: ""})
+                }
 
                 this.props.sendMessage({
                     action : 'typing',
                     state: 'stop'
                 });
-                this.autosize();
             }
         }
     }
@@ -159,19 +177,23 @@ export class ChatInput extends Component {
         this.refImageUploadFile.current.click();
     }
 
+    exitEdit = () => {
+        this.props.setChatState({editTarget: null, editContent: ""});
+    }
+
     render({state}) {
         return html`
             <${ConfirmUpload} sendFile=${this.state.sendFile} pasteFile=${this.state.pasteFile} clear=${this.clearFile} sendMessage=${this.props.sendMessage}/>
             <div id="chatbox" onclick=${() => this.refChatboxText.current.focus()}>
+                ${this.state.editTarget && html`<button class="editMode" onclick=${this.exitEdit}>End Edit</button>`}
                 <div class="image-uploader">
                     <div class="ta-wrapper" ref=${this.refTaWrapper}>
-                    <textarea id="chat-textbox" ref=${this.refChatboxText} class="chatbox-textarea" oninput=${this.chatInput} onkeypress=${this.chatEnter} onpaste=${(e)=>{this.autosize();this.openConfirmWindowPaste(e)}}>
-                        ${this.state.chatBox}
+                    <textarea id="chat-textbox" ref=${this.refChatboxText} value=${this.state.chatBox} class="chatbox-textarea" oninput=${this.chatInput} onkeypress=${this.chatEnter} onpaste=${this.openConfirmWindowPaste}>
                     </textarea>
                     </div>
                     <div class="image-uploader-button-wrapper">
                         <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange=${this.openConfirmWindow} ref=${this.refImageUploadFile}/>
-                        ${!this.state.isTyping &&
+                        ${!this.state.chatBox.length != 0 &&
                             html`<img class="image-uploader-button" src="/svg/image_upload.svg" onclick=${this.openPictureUpload}/>`}
                     </div>
                 </div>

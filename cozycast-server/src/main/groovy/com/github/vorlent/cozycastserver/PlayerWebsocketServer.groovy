@@ -98,11 +98,18 @@ class ReceiveMessageEvent {
     String username
     String session
     String timestamp
+    boolean edited
 }
 
 class DeleteMessageEvent {
     String action = "deletemessage"
     String id
+}
+
+class EditMessageEvent {
+    String action = "editmessage"
+    String id
+    String message
 }
 
 class ChangeUsernameEvent {
@@ -353,7 +360,8 @@ class PlayerWebsocketServer {
                 type: jsonMessage.type,
                 username: user.username,
                 session: session.getId(),
-                timestamp: zonedDateTime
+                timestamp: zonedDateTime,
+                edited: false
             )
             if(chatMessage.validate()) {
                 chatMessage.save();
@@ -365,7 +373,8 @@ class PlayerWebsocketServer {
                     type: jsonMessage.type,
                     username: user.username,
                     session: session.getId(),
-                    timestamp: nowAsISO
+                    timestamp: nowAsISO,
+                    edited: false
                 ))
             }
             } else {
@@ -383,6 +392,23 @@ class PlayerWebsocketServer {
                 room.users.each { key, value ->
                     sendMessage(value.webSocketSession, new DeleteMessageEvent (
                         id: message.id
+                    ))
+                }
+            }
+        }
+    }
+
+    private void editmessage(Room room, WebSocketSession session, Map jsonMessage) {
+        ChatMessage.withTransaction {
+            def message = ChatMessage.get(jsonMessage.id)
+            if(jsonMessage.message && (jsonMessage.message instanceof String) && jsonMessage.message.length() > 0 && message && message.type == "text" && message.room == room.name && message.session == session.getId()){
+                message.message = jsonMessage.message;
+                message.edited = true;
+                message.save();
+                room.users.each { key, value ->
+                    sendMessage(value.webSocketSession, new EditMessageEvent (
+                        id: message.id,
+                        message: message.message
                     ))
                 }
             }
@@ -465,7 +491,8 @@ class PlayerWebsocketServer {
                         username: it.username,
                         session: it.session,
                         timestamp: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'")
-                            .format(it.timestamp)
+                            .format(it.timestamp),
+                        edited: it.edited
                     )
                 }
             ))
@@ -775,6 +802,9 @@ class PlayerWebsocketServer {
                     break;
                 case "deletemessage":
                     deletemessage(currentRoom, session, jsonMessage)
+                    break;
+                case "editmessage":
+                    editmessage(currentRoom, session, jsonMessage)
                     break;
                 case "changeusername":
                     changeusername(currentRoom, session, jsonMessage)

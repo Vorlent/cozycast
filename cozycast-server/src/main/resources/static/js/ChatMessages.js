@@ -3,7 +3,6 @@ import { html } from '/js/libs/htm/preact/index.js'
 
 export class ChatMessages extends Component {
 
-
     chatScroll = () => {
         var messages = document.getElementById("messages");
         //chrome fix for scrollTopMax
@@ -14,8 +13,8 @@ export class ChatMessages extends Component {
         }
     }
     
-    scrollToBottom = (noHistoryChange) => {
-        if(this.props.forceChatScroll || (!this.props.historyMode && noHistoryChange)) {
+    scrollToBottom = () => {
+        if(this.props.forceChatScroll || !this.props.historyMode) {
             var messages = document.getElementById("messages");
             messages.scrollTop = messages.scrollHeight;
             if(this.props.forceChatScroll) {
@@ -32,7 +31,7 @@ export class ChatMessages extends Component {
 
     componentDidUpdate(prevProps, prevState) {
         if(this.props.newMessage) {
-            this.scrollToBottom(prevProps.historyMode == this.props.historyMode);
+            this.scrollToBottom();
         }
     }
 
@@ -41,6 +40,13 @@ export class ChatMessages extends Component {
             action : 'deletemessage',
             id: id
         });
+    }
+
+    editMessage = (id, message) => {
+        this.props.setChatState({
+            editTarget: id,
+            editContent: message
+        })
     }
 
     stringToColor(str){
@@ -73,37 +79,39 @@ export class ChatMessages extends Component {
                         html`
                         <div class="subMessage">
                         ${session == message.session && !data.deleted && html`<button class="deleteMessageButton" onclick=${() => this.deleteMessage(data.id)}>X</button>`}
+                        ${session == message.session && data.msg != "" && html`<button class="deleteMessageButton edit" onclick=${() => this.editMessage(data.id,data.msg)}><img class="editIcon" src="/svg/edit.svg"/></button>`}
                         <div class="hoverInfo top">${data.timestamp}</div>
                         ${
                             data.messages.map( msg => html`
                                 ${msg.type == "url" &&
-                                    html`<div><a class="chat-link" target="_blank" href="${msg.href}">${msg.href}</a></div>
-                                `}
+                                    html`<span><a class="chat-link" target="_blank" href="${msg.href}">${msg.href}</a></span>
+                                    `}
                                 ${msg.type == "image" &&
                                     html`<div class="chat-image">
                                         <img onload="${this.scrollToBottom}" src="${msg.href}" onclick=${() => this.clickImage("image", msg.href)} />
                                     </div>
-                                `}
+                                    `}
                                 ${msg.type == "video" &&
                                     html`<div class="chat-video">
                                         <video loop autoplay muted onloadeddata="${this.scrollToBottom}" src="${msg.href}" onclick=${() => this.clickImage("video", msg.href)}/>
                                     </div>
-                                `}
+                                    `}
                                 ${msg.type == "text" &&
-                                    html`<div class="chat-text">${msg.message.split("\n")
-                                        .map(message => html`
+                                    html`
+                                    <span class="chat-text">${msg.message.split("\n")
+                                        .map((message,index) => html`
+                                            ${index != 0 && html`<br/>`}
                                             ${message}
-                                            <br/>
-                                        `)}</div>
-                                `}
+                                        `)}</span>
+                                    `}
                                 ${msg.type == "deleted" &&
                                     html`<div class="chat-deleted">
                                         deleted
                                         </div>
-                                `}
-                            `)
+                                    `}
+                                `)
                         }
-                        </div>`)}
+                        ${data.edited && !data.deleted && html`<span class="messageEditBadge"> (edited)</span> `} </div>`)}
                     </div>
                 `)}
             </div>
