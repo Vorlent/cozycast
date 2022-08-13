@@ -206,19 +206,44 @@ export class Room extends Component {
                 this.state.chatMessages.map(function(message) {
                     message.data = message.data.map(data => {
                             if(data.id == parsedMessage.id){
-                                data.messages = data.messages.map(message =>{
-                                    message.href = "";
-                                    message.message = "";
-                                    message.type = "deleted";
-                                    return message;
-                                })
-                                data.deleted = true;
+                                return {
+                                    ...data,
+                                    messages: [{
+                                            href: "",
+                                            message: "",
+                                            type: "deleted"
+                                        }],
+                                    msg: "",
+                                    deleted: true
+                                }
                             }
                             return data;
                             });
                 return message;
                 }),
             newMessage: false
+        })
+    }
+
+    editmessage = (parsedMessage) => {
+        var msg = parsedMessage.message || "";
+        this.setState({
+            chatMessages:
+                this.state.chatMessages.map((message) => {
+                    message.data = message.data.map(data => {
+                            if(data.id == parsedMessage.id){
+                                return {
+                                    ...data,
+                                    messages: this.parseMessage(parsedMessage),
+                                    msg: msg,
+                                    edited: true
+                                }
+                            }
+                            return data;
+                            });
+                return message;
+                }),
+            newMessage: true
         })
     }
 
@@ -275,12 +300,12 @@ export class Room extends Component {
             var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
             if(list.length > 0 && list[list.length-1].session == parsedMessage.session) {
                 var lastMessage = list[list.length-1];
-                lastMessage.data.push({messages: queuedMessages, id: parsedMessage.id, timestamp: timestamp})
+                lastMessage.data.push({messages: queuedMessages, id: parsedMessage.id, timestamp: timestamp, edited: parsedMessage.edited})
             } else {
                 list.push({
                     username: parsedMessage.username,
                     session: parsedMessage.session,
-                    data: [{messages: queuedMessages, id: parsedMessage.id, timestamp: timestamp}]
+                    data: [{messages: queuedMessages, id: parsedMessage.id, timestamp: timestamp, msg: msg, edited: parsedMessage.edited}]
                 })
             }
         } )
@@ -302,7 +327,7 @@ export class Room extends Component {
                 if(message.data[0].id === lastMessageID){
                     const updatedMessage = {
                         ...message,
-                        data: [...message.data,{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A')}]
+                        data: [...message.data,{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A'),msg: msg, edited: parsedMessage.edited}]
                     }
                     return updatedMessage;
                 }
@@ -312,7 +337,7 @@ export class Room extends Component {
             list = [...this.state.chatMessages, {
                 username: parsedMessage.username,
                 session: parsedMessage.session,
-                data: [{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A')}]
+                data: [{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A'),msg: msg, edited: parsedMessage.edited}]
             }]
         }
         this.setState({
@@ -508,6 +533,9 @@ export class Room extends Component {
                     break;
                 case 'deletemessage':
                     this.deletemessage(parsedMessage);
+                    break;
+                case 'editmessage':
+                    this.editmessage(parsedMessage);
                     break;
                 case 'changeusername':
                     this.changeusername(parsedMessage);

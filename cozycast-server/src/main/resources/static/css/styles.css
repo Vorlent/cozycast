@@ -130,6 +130,30 @@ html, body, #pagecontent, #videosizer {
 #chatbox {
     margin: 15px 10px 5px 10px;
     cursor: text;
+    position: relative;
+}
+
+.editMode{
+    top: -1.9em;
+    right: 0;
+    position: absolute;
+    font-size: 1em;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 0.35em;
+    border: 2px solid black;
+    padding: 0.05em 0.3em;
+    font-weight: bold;
+    height: auto;
+    color: white;
+}
+
+.editMode:hover{
+    background-color: var(--cozyOrange);
+}
+
+.messageEditBadge{
+    font-size: 0.6em;
+    color: rgba(255, 255, 255, 0.7);
 }
 
 #pagetoolbar {
@@ -352,6 +376,16 @@ button{
     text-align: center;
     padding: 0;
 }
+.deleteMessageButton.edit {
+    right: 1.5em;
+}
+
+.editIcon {
+    padding: 15%;
+    width: 100%;
+    height: 100%;
+}
+
 
 .deleteMessageButton:hover{
     background-color: var(--cozyOrange);
@@ -436,6 +470,10 @@ button{
 
 #history-mode {
     margin: auto;
+}
+
+.chat-video, .chat-image {
+    cursor: pointer;
 }
 
 .chat-video video {
@@ -658,6 +696,28 @@ input[type=range]::-webkit-slider-thumb {
     width: 100%;
     background-color: rgba(0, 0, 0, 0.7);
     display: flex;
+}
+
+.imageModal {
+    position: relative;
+    margin: auto auto;
+}
+
+.imageModal video, .imageModal img{
+    max-width: 80vw;
+    max-height: 80vh;
+}
+
+.imageModal .modal-close {
+    font-size: 2em;
+    top: -1.5em;
+    right: -1.5em;
+    background-color: var(--cozyButton);
+}
+
+.imageModal .modal-close:hover {
+    background-color: var(--cozyOrange);
+    color: white;
 }
 
 .modal {

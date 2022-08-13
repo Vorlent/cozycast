@@ -118,4 +118,12 @@
             </column>
         </addColumn>
     </changeSet>
+
+    <changeSet id="9" author="vorlent">
+        <addColumn tableName="chat_message">
+            <column name="edited" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

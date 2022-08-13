@@ -22,7 +22,7 @@ export class ConfirmUpload extends Component {
                             type: e.type,
                             message: ""
                         });
-                    })}).catch(error => {alert("Failed to post: " + error)});
+                    })}).catch(error => {alert("Failed to upload image")});
             e.target.value = "";
             this.closeConfirmWindow();
         }
@@ -52,7 +52,7 @@ export class ConfirmUpload extends Component {
                         type: e.type,
                         message: ""
                     });
-                })}).catch(error => {alert("Failed to post: " + error)});
+                })}).catch(error => {alert("Failed to upload image")});
         this.closeConfirmWindow();
     }
         
