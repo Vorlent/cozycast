@@ -88,12 +88,12 @@ export class ChatMessages extends Component {
                                     `}
                                 ${msg.type == "image" &&
                                     html`<div class="chat-image">
-                                        <img onload="${this.scrollToBottom}" src="${msg.href}" onclick=${() => this.clickImage("image", msg.href)} />
+                                        <a class="chat-link" target="_blank" href="${msg.href}"><img onload="${this.scrollToBottom}" src="${msg.href}" onclick=${(e) =>{e.preventDefault(); this.clickImage("image", msg.href)}} /></a>
                                     </div>
                                     `}
                                 ${msg.type == "video" &&
                                     html`<div class="chat-video">
-                                        <video loop autoplay muted onloadeddata="${this.scrollToBottom}" src="${msg.href}" onclick=${() => this.clickImage("video", msg.href)}/>
+                                        <a class="chat-link" target="_blank" href="${msg.href}"><video loop autoplay muted onloadeddata="${this.scrollToBottom}" src="${msg.href}" onclick=${(e) => {e.preventDefault();this.clickImage("video", msg.href)}}/></a>
                                     </div>
                                     `}
                                 ${msg.type == "text" &&

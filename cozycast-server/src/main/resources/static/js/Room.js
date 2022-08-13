@@ -294,7 +294,7 @@ export class Room extends Component {
     Faster since it only calls setState once with the entire chat history*/
     chatHistory = (allMessages) => {
         var list = [];
-        allMessages.forEach(parsedMessage => {
+        allMessages.slice().reverse().forEach(parsedMessage => {
             var msg = parsedMessage.message || "";
             var queuedMessages = this.parseMessage(parsedMessage);
             var timestamp = moment(parsedMessage.timestamp).format('h:mm A');

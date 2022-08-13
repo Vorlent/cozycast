@@ -482,7 +482,7 @@ class PlayerWebsocketServer {
             sendMessage(session, new ChatHistoryEvent(
                 messages: ChatMessage.where { room == room.name &&
                         timestamp > ZonedDateTime.now(ZoneId.of("UTC")).minusHours(1)
-                    }.list(sort: "timestamp", order: "asc", max: 500).collect {
+                    }.list(sort: "timestamp", order: "desc", max: 500).collect {
                     new ReceiveMessageEvent(
                         id: it.id,
                         message: it.message,
