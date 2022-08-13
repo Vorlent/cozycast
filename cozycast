@@ -142,11 +142,14 @@ case $1 in
             keystore)
                 DIRECTORY=$(sudo -E realpath data/certbot/live/$DUCKDNS_DOMAIN)
                 echo $DIRECTORY
+                if test -z "$CHAIN_FILE"; then
+                    CA_FILE="chain.pem"
+                fi
                 sudo -E openssl pkcs12 -export \
                          -in $DIRECTORY/cert.pem \
                          -inkey $DIRECTORY/privkey.pem \
                          -out $DIRECTORY/server.p12 \
-                         -CAfile $DIRECTORY/chain.pem -chain \
+                         -CAfile $DIRECTORY/$CHAIN_FILE -chain \
                          -name $DUCKDNS_DOMAIN \
                          -passout 'env:KEYSTORE_PASSWORD'
                 exit;
