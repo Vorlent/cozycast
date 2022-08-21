@@ -100,12 +100,12 @@ class ImageController {
     }
 
     @Get("/asset/{filename:.+}")
-    public SystemFile download(String filename) {
+    public HttpResponse<?> download(String filename) {
         try {
             File file = new File(imageDirectory, filename);
             log.info "Dowloaded file: $file"
             if(file.getCanonicalFile().getParentFile().equals(new File(imageDirectory))) {
-                return new SystemFile(file);
+                return HttpResponse.ok(new SystemFile(file)).header("Cache-Control", "private, max-age=5400");;
             } else {
                 throw new RuntimeException("Invalid filename");
             }

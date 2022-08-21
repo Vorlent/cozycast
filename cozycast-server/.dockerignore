@@ -3,3 +3,8 @@ Dockerfile
 cache
 build
 .gradle
+
+npm-website/.gradle
+npm-website/build
+npm-website/build_packageNpmApp
+npm-website/node_modules

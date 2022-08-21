@@ -11,6 +11,7 @@ services:
         volumes:
             - "../data/cozycast-server/avatar:/var/cozycast/avatar/"
             - "../cozycast-server:/root/cozycast/cozycast-server"
+            - "../cozycast-server/npm-website/src:/root/cozycast/cozycast-server/src/main/website"
             - "../data/cozycast-server/cache/.gradle:/root/.gradle/repository"
             - "../data/cozycast-server/cache/build:/root/cozycast/cozycast-server/build"
     cozycast-worker:

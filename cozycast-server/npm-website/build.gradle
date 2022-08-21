@@ -1,0 +1,60 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+    dependencies {
+        classpath 'com.moowork.gradle:gradle-node-plugin:1.2.0'
+    }
+}
+
+apply plugin: 'base'
+apply plugin: 'com.moowork.node'
+
+node {
+    version = '10.14.1'
+
+    npmVersion = '6.4.1'
+
+    download = true
+}
+
+npm_run_build{
+    inputs.files fileTree('src')
+
+    inputs.file 'package.json'
+    inputs.file 'package-lock.json'
+
+    outputs.dir 'build'
+}
+
+task packageNpmApp(type: Zip) {
+    dependsOn npm_run_build
+    baseName 'npm-website'
+    extension 'jar'
+    destinationDir file("${projectDir}/build_packageNpmApp")
+    from('build') {
+        into 'static'
+    }
+}
+
+configurations {
+    npmResources
+}
+
+configurations.default.extendsFrom(configurations.npmResources)
+
+artifacts {
+    npmResources(packageNpmApp.archivePath) {
+        builtBy packageNpmApp
+        type 'jar'
+    }
+}
+
+assemble.dependsOn packageNpmApp
+
+clean {
+    delete packageNpmApp.archivePath
+}
