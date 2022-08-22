@@ -3,6 +3,7 @@ import { html } from 'htm/preact'
 import moment from 'moment'
 import kurentoUtils from 'kurento-utils'
 import * as linkify from 'linkifyjs'
+import Favico from './libs/favico-0.3.10.min.js'
 
 import { RoomSidebar } from './RoomSidebar.js'
 import { ProfileModal } from './ProfileModal.js'
