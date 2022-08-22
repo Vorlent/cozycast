@@ -1,1 +1,0 @@
-import{h as r,Component as t,render as o}from"/js/libs/preact.js";export{h,Component}from"/js/libs/preact.js";import e from"/js/libs/htm.js";function m(r,t){o(r,t,t.firstElementChild)}var n=e.bind(r);export{n as html,m as render};

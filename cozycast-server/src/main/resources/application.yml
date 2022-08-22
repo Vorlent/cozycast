@@ -36,8 +36,10 @@ micronaut:
                 http-method: GET
                 access:
                     - isAnonymous()
-
-
+netty:
+    responses:
+        file:
+            cache-seconds: 604800
 grails:
     gorm:
         failOnError: true

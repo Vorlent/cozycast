@@ -41,6 +41,8 @@ dependencies {
     runtimeOnly "com.h2database:h2"
 
     runtimeOnly "ch.qos.logback:logback-classic:1.2.3"
+    runtimeOnly project(':npm-website')
+    
     testCompileOnly platform("io.micronaut:micronaut-bom:$micronautVersion")
     testImplementation platform("io.micronaut:micronaut-bom:$micronautVersion")
     testImplementation("org.spockframework:spock-core") {
