@@ -303,6 +303,7 @@ button{
 .buttonSmall {
     min-width: 2em;
     width: 2.25em;
+    padding: 0;
 }
 
 .btn-primary {
