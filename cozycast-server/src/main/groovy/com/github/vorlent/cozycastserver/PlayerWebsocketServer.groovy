@@ -184,6 +184,11 @@ class PlayEndEvent {
     String action = "playEnd"
 }
 
+class LoadUsersEvent {
+    String action = "load_users"
+    List<JoinEvent> users
+}
+
 class JoinEvent {
     String action = "join"
     String session
@@ -498,8 +503,21 @@ class PlayerWebsocketServer {
             ))
         }
 
+        //send existing users to new user
+        sendMessage(session, new LoadUsersEvent(
+            users: room.users.collect{key,value -> new JoinEvent(
+                    session: key,
+                    username: value.getUsername(),
+                    url: value.getAvatarUrl(),
+                    active:  value.getActive(),
+                    lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(value.getLastTimeSeen()),
+                    muted: value.getMuted()
+                ) 
+                }
+        ))
+
         room.users.each { key, value ->
-            // send existing users to new user
+            // send new user to existing users
             if(value.getWebSocketSession() != session) {
                 sendMessage(value.webSocketSession, new JoinEvent(
                     session: session.getId(),
@@ -508,18 +526,6 @@ class PlayerWebsocketServer {
                     active:  user.active,
                     lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen),
                     muted: user.muted
-                ))
-            }
-
-            // send new user to existing users
-            if (value.getUsername() != null) {
-                sendMessage(session, new JoinEvent(
-                    session: key,
-                    username: value.getUsername(),
-                    url: value.getAvatarUrl(),
-                    active:  value.getActive(),
-                    lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(value.getLastTimeSeen()),
-                    muted: value.getMuted()
                 ))
             }
         }

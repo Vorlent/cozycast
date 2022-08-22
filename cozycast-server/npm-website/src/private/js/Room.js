@@ -383,6 +383,19 @@ export class Room extends Component {
             }]
         })
     }
+
+    loadUsers = (parseMessage) => {
+        let users = parseMessage.users.map(user => {return {
+                username: user.username,
+                url: user.url,
+                session: user.session,
+                remote: user.remote,
+                lastTimeSeen: moment(user.lastTimeSeen).format('h:mm A'),
+                active: user.active,
+                muted: user.muted
+            }});
+        this.setState((state) => { return {userlist: users}})
+    }
     
     updateActivity = (parsedMessage) => {
         this.setState({
@@ -545,6 +558,9 @@ export class Room extends Component {
                 case 'changeprofilepicture':
                     this.changeprofilepicture(parsedMessage);
                     break;
+                case 'load_users':
+                    this.loadUsers(parsedMessage);
+                    break;
                 case 'join':
                     this.join(parsedMessage);
                     break;
@@ -552,10 +568,10 @@ export class Room extends Component {
                     this.leave(parsedMessage);
                     break;
                 case 'drop_remote':
-                    this.setState({
+                    this.setState((state) =>  {return {
                         remote: false,
                         remoteUsed: false,
-                        userlist: this.state.userlist.map((user) => {
+                        userlist: state.userlist.map((user) => {
                             if(user.session == parsedMessage.session) {
                                 return {
                                     ...user,
@@ -564,19 +580,19 @@ export class Room extends Component {
                             }
                             return user;
                         })
-                    })
+                    }})
                     break;
                 case 'pickup_remote':
-                    this.setState({
+                    this.setState((state) =>  {return {
                         remote: parsedMessage.has_remote,
                         remoteUsed: !parsedMessage.has_remote,
-                        userlist: this.state.userlist.map((user) => {
+                        userlist: state.userlist.map((user) => {
                             return {
                                 ...user,
                                 remote: user.session == parsedMessage.session
                             }
                         })
-                    })
+                    }})
                     break;
                 case 'window_title':
                     this.setState({windowTitle: parsedMessage.title})
