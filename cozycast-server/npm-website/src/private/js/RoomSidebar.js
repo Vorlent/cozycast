@@ -10,7 +10,7 @@ export class RoomSidebar extends Component {
 
     render({ roomId, state }, { xyz = [] }) {
         return html`
-            <div id="sidebar">
+            <div id="sidebar" class="sidebar ${state.fullscreen ? "fullscreenSidebar" : "" }">
                 ${state.roomToken
                 && html`<div class="cozycast-pagetitle">
                     <span class="cozycast-titletext">${roomId}</span>

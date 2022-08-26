@@ -22,17 +22,27 @@ var favicon = new Favico({
 let idleTimer = null;
 let idleState = false;
 export function removeCursor(e) {
+  let sidebar = document.getElementById("sidebar");
   let time = 1500;
   clearTimeout(idleTimer);
   if (idleState == true) {
     document.getElementById("pagetoolbar").classList.remove("hideToolbar");
     document.getElementById("videoBig").classList.remove("hideCursor");
+    if(sidebar) {
+        sidebar.classList.add("showChat");
+        sidebar.classList.remove("hideChat");
+    }
   }
   idleState = false;
   idleTimer = setTimeout(function() {
     if(document.fullscreenElement == null) return;
     document.getElementById("pagetoolbar").classList.add("hideToolbar");
     document.getElementById("videoBig").classList.add("hideCursor");
+    let sidebar = document.getElementById("sidebar");
+    if(sidebar) {
+        sidebar.classList.add("hideChat");
+        sidebar.classList.remove("showChat");
+    }
     idleState = true;
   }, time);
 }
@@ -137,6 +147,12 @@ export class Room extends Component {
         }
 
         document.addEventListener('fullscreenchange', (event) => {
+            setTimeout(()=>{
+                let messages = document.getElementById("messages");
+                if(messages) {
+                    messages.scrollTop = messages.scrollHeight;
+                    console.log("hello")
+                }},1)
             if(document.fullscreenElement == null){
                   document.getElementById("videoBig").removeEventListener('mousemove',removeCursor);
             };
@@ -204,9 +220,9 @@ export class Room extends Component {
     
     //deletes messages based on id and leaves a deleted in its place, the deleted symbol is client side only
     deletemessage = (parsedMessage) => {
-        this.setState({
+        this.setState(state => {return {
             chatMessages:
-                this.state.chatMessages.map(function(message) {
+                state.chatMessages.map(function(message) {
                     message.data = message.data.map(data => {
                             if(data.id == parsedMessage.id){
                                 return {
@@ -225,14 +241,14 @@ export class Room extends Component {
                 return message;
                 }),
             newMessage: false
-        })
+        }})
     }
 
     editmessage = (parsedMessage) => {
         var msg = parsedMessage.message || "";
-        this.setState({
+        this.setState((state) => {return {
             chatMessages:
-                this.state.chatMessages.map((message) => {
+                state.chatMessages.map((message) => {
                     message.data = message.data.map(data => {
                             if(data.id == parsedMessage.id){
                                 return {
@@ -247,7 +263,7 @@ export class Room extends Component {
                 return message;
                 }),
             newMessage: true
-        })
+        }})
     }
 
     //fully deletes a message based on id
@@ -312,41 +328,44 @@ export class Room extends Component {
                 })
             }
         } )
-        this.setState({
+        this.setState(state => {return {
             newMessage: true, 
             chatMessages: list,
             forceChatScroll: true
-        })
+        }})
     }
     
     chatmessage = (parsedMessage, skip_notifications) => {
         var msg = parsedMessage.message || "";
         var queuedMessages = this.parseMessage(parsedMessage);
 
-        var list;
-        if(this.state.chatMessages.length > 0 && this.state.chatMessages[this.state.chatMessages.length-1].session == parsedMessage.session) {
-            var lastMessageID = this.state.chatMessages[this.state.chatMessages.length-1].data[0].id;
-            list = this.state.chatMessages.map((message) => {
-                if(message.data[0].id === lastMessageID){
-                    const updatedMessage = {
-                        ...message,
-                        data: [...message.data,{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A'),msg: msg, edited: parsedMessage.edited}]
+        this.setState((state) => {
+            var list;
+            if(this.state.chatMessages.length > 0 && state.chatMessages[state.chatMessages.length-1].session == parsedMessage.session) {
+                var lastMessageID = state.chatMessages[state.chatMessages.length-1].data[0].id;
+                list = state.chatMessages.map((message) => {
+                    if(message.data[0].id === lastMessageID){
+                        const updatedMessage = {
+                            ...message,
+                            data: [...message.data,{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A'),msg: msg, edited: parsedMessage.edited}]
+                        }
+                        return updatedMessage;
                     }
-                    return updatedMessage;
-                }
-                return message;
-            })
-        } else {
-            list = [...this.state.chatMessages, {
-                username: parsedMessage.username,
-                session: parsedMessage.session,
-                data: [{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A'),msg: msg, edited: parsedMessage.edited}]
-            }]
+                    return message;
+                })
+            } else {
+                list = [...state.chatMessages, {
+                    username: parsedMessage.username,
+                    session: parsedMessage.session,
+                    data: [{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A'),msg: msg, edited: parsedMessage.edited}]
+                }]
+            };
+            return {
+                newMessage: true, 
+                chatMessages: list
+            }
         }
-        this.setState({
-            newMessage: true, 
-            chatMessages: list
-        })
+        )
 
         if(skip_notifications) {
             return
@@ -371,8 +390,8 @@ export class Room extends Component {
     
     join = (parsedMessage) => {
         this.leave(parsedMessage)
-        this.setState({
-            userlist: [...this.state.userlist, {
+        this.setState(state => {return {
+            userlist: [...state.userlist, {
                 username: parsedMessage.username,
                 url: parsedMessage.url,
                 session: parsedMessage.session,
@@ -381,7 +400,7 @@ export class Room extends Component {
                 active: parsedMessage.active,
                 muted: parsedMessage.muted
             }]
-        })
+        }})
     }
 
     loadUsers = (parseMessage) => {
@@ -398,8 +417,8 @@ export class Room extends Component {
     }
     
     updateActivity = (parsedMessage) => {
-        this.setState({
-            userlist: this.state.userlist.map(function(element) {
+        this.setState(state => { return {
+            userlist: state.userlist.map(function(element) {
                 if(element.session == parsedMessage.session) {
                     const updatedElement = {
                         ...element,
@@ -410,12 +429,12 @@ export class Room extends Component {
                 }
                 return element;
             })
-        })
+        }})
     }
     
     updateMuted = (parsedMessage) => {
-        this.setState({
-            userlist: this.state.userlist.map(function(element) {
+        this.setState(state => {return {
+            userlist: state.userlist.map(function(element) {
                 if(element.session == parsedMessage.session) {
                     const newElement = {
                         ...element,
@@ -425,12 +444,12 @@ export class Room extends Component {
                 }
                 return element;
             })
-        })
+        }})
     }
     
     changeusername = (parsedMessage) => {
-        this.setState({
-            userlist: this.state.userlist.map(function(element) {
+        this.setState(state => {return{
+            userlist: state.userlist.map(function(element) {
                 if(element.session == parsedMessage.session) {
                     return {
                         ...element,
@@ -439,7 +458,7 @@ export class Room extends Component {
                 }
                 return element;
             }),
-            chatMessages: this.state.chatMessages.map(function(message) {
+            chatMessages: state.chatMessages.map(function(message) {
                 if(message.session == parsedMessage.session)
                     return {
                         ...message,
@@ -447,12 +466,12 @@ export class Room extends Component {
                     }
                 return message;
             })
-        })
+        }})
     }
     
     changeprofilepicture = (parsedMessage) => {
-        this.setState({
-            userlist: this.state.userlist.map(function(element) {
+        this.setState(state => {return {
+            userlist: state.userlist.map(function(element) {
                 if(element.session == parsedMessage.session) {
                     return {
                         ...element,
@@ -461,16 +480,16 @@ export class Room extends Component {
                 }
                 return element;
             })
-            }
+            }}
         )
     }
     
     leave = (parsedMessage) => {
-        this.setState({
-            userlist: this.state.userlist.filter(function(element) {
+        this.setState(state => {return{
+            userlist: state.userlist.filter(function(element) {
                 return element.session != parsedMessage.session;
             })
-        })
+        }})
         filterTyping(parsedMessage.session);
     }
     
@@ -519,9 +538,9 @@ export class Room extends Component {
                     this.ban(parsedMessage)
                     break;
                 case 'session_id':
-                    this.setState({
+                    this.setState(state => {return {
                         session: parsedMessage.session
-                    })
+                    }})
                     break;
                 case 'startResponse':
                     this.startResponse(parsedMessage);
@@ -612,11 +631,11 @@ export class Room extends Component {
             }
         }
         this.websocket.onclose = (event) => {
-            this.setState({
+            this.setState(state => {return {
                 userlist: [],
                 chatMessages: [],
                 remote: false
-            })
+            }})
             clearTyping();
             this.webrtc_stop()
             clearInterval(this.keepAlive)
@@ -738,7 +757,7 @@ export class Room extends Component {
         <div id="pagecontent" class="${state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}">
             ${this.isBanned() && html`Banned until ${state.banned}`}
             ${!this.isBanned() && html`
-            ${!state.userlistHidden && !state.fullscreen && state.userlistOnLeft && html`<div><${Userlist} showUsernames=${state.showUsernames} userlist=${state.userlist} isLeft=${true} updateRoomState=${this.updateRoomState}/></div>`}
+            ${!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && html`<div><${Userlist} showUsernames=${state.showUsernames} userlist=${state.userlist} isLeft=${true} fullscreen=${state.fullscreen} updateRoomState=${this.updateRoomState}/></div>`}
             <div id="contentWithoutSidebar" class="contentWithoutSidebar">
                 <${VideoControls} state=${state} sendMessage=${this.sendMessage} pauseVideo=${this.pauseVideo} updateRoomState=${this.updateRoomState} />
                 ${state.scheduleSidebar && html`

@@ -68,10 +68,10 @@ export class ChatMessages extends Component {
     }
 
     render({chatMessages,session}) {
-        return html`<div id="chat">
+        return html`
             <div id="messages" onscroll=${this.chatScroll}>
                 ${chatMessages.map(message => html`
-                    <div class="message" key=${message.data[0].id} id=${message.data[0].id}>
+                    <div class="message" key=${message.data[0].id + message.data.length} id=${message.data[0].id}>
                         <div class="username">${message.username + "  "}<span class="timestamp">${message.data[0].timestamp}</span> 
                             ${false && html`<div class="idSquare" style="background-color:${this.stringToColor(message.session)};"> ${session == message.session ? "You" : message.session.substr(0,3).toLowerCase()} </div>`}
                         </div>
@@ -115,6 +115,6 @@ export class ChatMessages extends Component {
                     </div>
                 `)}
             </div>
-        </div>`
+        `
     }
 }

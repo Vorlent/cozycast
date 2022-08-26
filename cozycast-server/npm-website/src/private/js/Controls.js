@@ -108,6 +108,11 @@ export class Controls extends Component {
         } else {
             document.getElementById("pagecontent").requestFullscreen()
             document.getElementById("pagecontent").addEventListener('mousemove',removeCursor);
+            if(this.props.state.remote){
+                this.props.sendMessage({
+                    action : 'drop_remote'
+                });
+            }
         }
     }
 
@@ -147,10 +152,10 @@ export class Controls extends Component {
         return html`
             <div id="controls"  class="${state.fullscreen ? "controlsFullscreen" : "visibleControls" }">
                 <div class="subControls">
-                    ${!state.fullscreen && html`<${Button} enabled=${state.userlistHidden} onclick=${this.hideUserlist} 
+                    <${Button} enabled=${false} onclick=${this.hideUserlist} 
                         title="${state.userlistHidden ? 'Show Users' : 'Hide Users'}" style="buttonSmall optional">
-                        <img class="video-control-icon" src="${state.userlistOnLeft? state.userlistHidden ? '/svg/chevron-right.svg' : '/svg/chevron-left.svg' : state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}"/>
-                    <//>`}
+                        <img class="video-control-icon" src="${state.userlistOnLeft||state.fullscreen? state.userlistHidden ? '/svg/chevron-right.svg' : '/svg/chevron-left.svg' : state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}"/>
+                    <//>
                     <${Button} enabled=${state.profileModal} onclick=${() => this.props.updateRoomState({profileModal: true})} style="buttonBig">Profile<//>
                 </div>
                 <div class="subControls">
