@@ -178,6 +178,10 @@ html, body, #pagecontent, #videosizer {
     pointer-events: all;
 }
 
+.controlsFullscreen #volumeControl {
+    pointer-events: all;
+}
+
 .toolbarFullscreen{
     z-index: 2;
     position: absolute;
@@ -187,8 +191,7 @@ html, body, #pagecontent, #videosizer {
 
 .hideToolbar{
     opacity: 0;
-    transition: opacity 1s;
-    transition-timing-function: ease-in;
+    transition: opacity 1s cubic-bezier(.95,.05,.8,.04);
 }
 
 .hideToolbar:hover{
@@ -234,10 +237,19 @@ html, body, #pagecontent, #videosizer {
 }
 
 .userlist.left {
-    min-height: 100%;
+    height: 100%;
     flex-direction: column;
     width: 5em;
-    max-height: 100%;
+}
+
+.userlist.fullscreenUserlist{
+    background: transparent;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: calc(100% - 3em);
+    z-index: 3;
+    opacity: 50%;
 }
 
 .userprofileName{
@@ -303,6 +315,7 @@ button{
 .buttonSmall {
     min-width: 2em;
     width: 2.25em;
+    padding: 0;
 }
 
 .btn-primary {
@@ -398,7 +411,7 @@ button{
 }
 
 .message .chat-text {
-    padding-right: .15em;
+    padding-right: .35em;
 }
 
 .message > div:not(.username) {
@@ -471,6 +484,69 @@ button{
     word-break: break-word;
 }
 
+.sidebar.fullscreenSidebar{
+    background: transparent;
+    position: absolute;
+    height: calc(100% - 3em);
+    top: 0;
+    right: 0;
+    z-index: 3;
+}
+
+.fullscreenSidebar .message, .fullscreenSidebar .image-uploader{
+    animation-name: fadeout;
+    animation-delay: 5s;
+    animation-fill-mode: backwards;
+    animation-duration: 1ms;
+}
+
+.fullscreenSidebar .message, .fullscreenSidebar .ta-wrapper{
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background-color: rgba(0, 0, 0, 0.45);
+    box-shadow: 0 0 2px black inset;
+}
+
+.fullscreenSidebar *, .fullscreenSidebar #chat-textbox{
+    text-shadow:
+        0.07em 0 black,
+        0 0.07em black,
+        -0.07em 0 black,
+        0 -0.07em black;
+}
+
+.fullscreenSidebar .timestamp, .fullscreenSidebar .chat-deleted{
+    text-shadow: none
+}
+
+.fullscreenSidebar .messageEditBadge{
+    text-shadow: none
+}
+
+.fullscreenSidebar #chat:hover *{
+    opacity: 1;
+    transition: opacity 0s;
+}
+
+#chat-textbox:focus{
+    opacity: 1;
+}
+
+.hideChat.fullscreenSidebar .message,.hideChat.fullscreenSidebar .image-uploader {
+    opacity: 0;
+    transition: opacity 1s cubic-bezier(.95,.05,.8,.04);
+}
+
+.showChat.fullscreenSidebar .message,.showChat.fullscreenSidebar .image-uploader {
+    opacity: 1;
+    transition: opacity 0s;
+}
+
+@keyframes fadeout{
+    0% {opacity: 1;}
+    99% {opacity: 1;}
+    100% {opacity: 0;}
+}
+
 #history-mode {
     margin: auto;
 }
@@ -511,7 +587,7 @@ button{
     resize: none;
     width: 100%;
     font-size: 15px;
-    height: 100%;
+    height: 18px;
 }
 
 .ta-wrapper{
@@ -733,7 +809,6 @@ input[type=range]::-webkit-slider-thumb {
     border: 1px solid black;
     border-radius: 1em;
     box-shadow: 0 0 1em black;
-    width: 30%;
     color: #fff;
     min-width: 250px;
 }
@@ -794,9 +869,22 @@ input[type=range]::-webkit-slider-thumb {
     padding: 5px 15px 5px 15px;
 }
 
+.profile.modal{
+    max-height: 95vh;
+    max-width: 95vw;
+    overflow: scroll;
+}
+
 .userOptions{
+    display: flex;
+    flex-direction: row;
     line-height: 1.5em;
     margin-top: 0.5em;
+}
+
+.usersubOptions{
+    display: flex;
+    flex-direction: column;
 }
 
 /* Modal.js END */
@@ -817,6 +905,7 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .avatar {
+    background-color: var(--cozyColorMenu);
     border-radius: 50%;
     width: 60px;
     height: 60px;
@@ -998,13 +1087,14 @@ input[type=range]::-webkit-slider-thumb {
 /* RoomList.js End */
 
 /* RoomSidebar.js START */
-#sidebar {
+.sidebar {
     min-width:var(--chat-size);
     max-width:var(--chat-size);
     grid-area: sidebar;
     display: flex;
     flex-direction: column;
     color: white;
+    background-color: var(--cozyColorMenu);
 }
 
 #settings .btn {
@@ -1017,10 +1107,6 @@ input[type=range]::-webkit-slider-thumb {
 
 #stream-settings select {
     width: 100%;
-}
-
-#pagecontent > #sidebar {
-    background-color: var(--cozyColorMenu);
 }
 
 /* RoomSidebar.js END */
@@ -1317,10 +1403,10 @@ input[type=range]::-webkit-slider-thumb {
 
 .hoverInfoScript {
     position: absolute;
-    background-color: var(--cozyColorAccent);
+    background: var(--cozyColorAccent);
     white-space: nowrap;
     padding: 0.15em 0.3em;
-    border-radius: 0.2em;
+    border-radius: 0.2em 0 0 0.2em;
     z-index: 3;
     transition: opacity 0.15s ease;
     pointer-events: none;
@@ -1333,6 +1419,19 @@ input[type=range]::-webkit-slider-thumb {
     position: absolute;
     border: 0.3em solid;
     pointer-events: none;
+}
+
+.hoverInfoScript::after{
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    right: -0.15em;
+    height: 100%;
+    background: var(--onlineStatus,var(--cozyColorAccent));
+    width: 0.3em;
+    top: 0;
+    z-index: 2;
+    border-radius: 0 0.2em 0.2em 0;
 }
 
 .hoverInfoScript.top{
@@ -1449,7 +1548,7 @@ input[type=range]::-webkit-slider-thumb {
         justify-content: center;
     }
 
-    #sidebar{
+    .sidebar{
         max-width: 100%;
     }
 
@@ -1474,7 +1573,7 @@ input[type=range]::-webkit-slider-thumb {
         width: 12px;
     }
 
-    #sidebar {
+    .sidebar {
         overflow: hidden;
         width: 100%;
         height: 100%;

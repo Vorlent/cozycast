@@ -1,5 +1,4 @@
-import { Component } from 'preact'
-import { html } from 'htm/preact'
+import { Component, h } from 'preact'
 
 export class UserlistSidebar extends Component {
     constructor() {
@@ -13,23 +12,22 @@ export class UserlistSidebar extends Component {
     }
 
     render({state}) {
-        return html`<div class="userlistSidebar">
-        ${state.userlist.map(user => html`
+        return <div class="userlistSidebar">
+        {state.userlist.map(user =>
             <div class="userSidebar">
                  <div class="avatarContainer">
-                    <div class="image avatar" style="background-image: url('${user.url}');"/>
-                    <div class="onlineDot ${user.active? "isOnline": "isInactive"}"></div>
-                    <img class="mutedDot ${user.muted? "": "noDisplay"}" src="/svg/headphone-slash.svg"></img>
+                    <div class="image avatar" style={{'background-image': `url(${user.url})`}}/>
+                    <div class={`onlineDot ${user.active? "isOnline": "isInactive"}`}></div>
+                    <img class={`mutedDot ${user.muted? "": "noDisplay"}`} src="/svg/headphone-slash.svg"></img>
                 </div>
                 <div class="usernameSidebar">
-                    <div class="usernameList">${user.username}</div>
-                    ${!user.active && html`
-                        <div class="lastSeen">last seen: <span>${user.lastTimeSeen}</span></div>
-                        `}
+                    <div class="usernameList">{user.username}</div>
+                    {!user.active && 
+                        <div class="lastSeen">last seen: <span>{user.lastTimeSeen}</span></div>
+                        }
                 </div>
             </div>
-        `)}
+        )}
     </div>
-    `
     }
 }

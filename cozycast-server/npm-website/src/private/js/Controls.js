@@ -1,6 +1,5 @@
-import { Component } from 'preact'
+import { Component,Fragment,h } from 'preact'
 import { Button } from './Button.js'
-import { html } from 'htm/preact'
 import { SidebarState } from './index.js'
 import { removeCursor } from './Room.js'
 
@@ -108,6 +107,11 @@ export class Controls extends Component {
         } else {
             document.getElementById("pagecontent").requestFullscreen()
             document.getElementById("pagecontent").addEventListener('mousemove',removeCursor);
+            if(this.props.state.remote){
+                this.props.sendMessage({
+                    action : 'drop_remote'
+                });
+            }
         }
     }
 
@@ -144,58 +148,58 @@ export class Controls extends Component {
     }
 
     render({state, roomId}){
-        return html`
-            <div id="controls"  class="${state.fullscreen ? "controlsFullscreen" : "visibleControls" }">
+        return <div id="controls"  class={state.fullscreen ? "controlsFullscreen" : "visibleControls" }>
                 <div class="subControls">
-                    ${!state.fullscreen && html`<${Button} enabled=${state.userlistHidden} onclick=${this.hideUserlist} 
-                        title="${state.userlistHidden ? 'Show Users' : 'Hide Users'}" style="buttonSmall optional">
-                        <img class="video-control-icon" src="${state.userlistOnLeft? state.userlistHidden ? '/svg/chevron-right.svg' : '/svg/chevron-left.svg' : state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}"/>
-                    <//>`}
-                    <${Button} enabled=${state.profileModal} onclick=${() => this.props.updateRoomState({profileModal: true})} style="buttonBig">Profile<//>
+                    <Button enabled={false} onclick={this.hideUserlist} 
+                        title={state.userlistHidden ? 'Show Users' : 'Hide Users'} style="buttonSmall optional">
+                        <img class="video-control-icon" src={state.userlistOnLeft||state.fullscreen? state.userlistHidden ? '/svg/chevron-right.svg' : '/svg/chevron-left.svg' : state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}/>
+                    </Button>
+                    <Button enabled={state.profileModal} onclick={() => this.props.updateRoomState({profileModal: true})} style="buttonBig">Profile</Button>
                 </div>
                 <div class="subControls">
-                    ${!state.fullscreen && html`
-                    ${html`<${Button} enabled=${false} onclick=${this.dropRemoteAndCenter} 
-                        title="Drop and center Remote" style="buttonSmall optional ${ state.remote ? "" :"remoteHidden"}">
-                        <img class="video-control-icon" src="/svg/crosshair.svg"/>
-                    <//>`}
-                    <${Button} enabled=${state.remote} onclick=${this.remote} style="buttonSmall" title="remote">
-                        <div class="video-control-icon">
-                        <${RemoteIcon} enabled=${state.remoteUsed && false}/>
-                        </div>
-                    <//>
-                    `}
-                    <${Button} enabled=${state.videoPaused} onclick=${this.pauseVideo}
-                        title="${state.videoPaused ? 'Pause' : 'Play'}" style="buttonSmall">
-                        <img class="video-control-icon" src="${state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}"/>
-                    <//>
-                    <${Button} enabled=${state.fullscreen}
-                        title="Fullscreen" onclick=${this.toggleFullscreen} style="buttonSmall">
+                    {!state.fullscreen && 
+                        <Fragment>
+                            <Button enabled={false} onclick={this.dropRemoteAndCenter} 
+                                title="Drop and center Remote" style={`buttonSmall optional ${state.remote ? "" :"remoteHidden"}`}>
+                                <img class="video-control-icon" src="/svg/crosshair.svg"/>
+                            </Button>
+                            <Button enabled={state.remote} onclick={this.remote} style="buttonSmall" title="remote">
+                                <div class="video-control-icon">
+                                <RemoteIcon enabled={state.remoteUsed && false}/>
+                                </div>
+                            </Button>
+                        </Fragment>
+                    }
+                    <Button enabled={state.videoPaused} onclick={this.pauseVideo}
+                        title={state.videoPaused ? 'Pause' : 'Play'} style="buttonSmall">
+                        <img class="video-control-icon" src={state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}/>
+                    </Button>
+                    <Button enabled={state.fullscreen}
+                        title="Fullscreen" onclick={this.toggleFullscreen} style="buttonSmall">
                         <img class="video-control-icon" src="/svg/fullscreen_button.svg"/>
-                    <//>
-                    <${Button} enabled=${state.muted} onclick=${this.mute}
-                        title="${state.muted ? 'Unmute' : 'Mute'}" style="buttonSmall">
-                        <img class="video-control-icon" src="${state.muted ? '/svg/sound-mute.svg' : '/svg/sound-max.svg'}"/>
-                    <//>
-                    <input id="volumeControl" type="range" min="0" max="100" class="volumeSlider buttonBig" oninput=${this.changeVolume} value=${this.props.state.muted ? 0 : this.props.state.volume}/>
-                    ${html`<${Button}} style="buttonSmall optional remoteHidden"><//>`}
+                    </Button>
+                    <Button enabled={state.muted} onclick={this.mute}
+                        title={state.muted ? 'Unmute' : 'Mute'} style="buttonSmall">
+                        <img class="video-control-icon" src={state.muted ? '/svg/sound-mute.svg' : '/svg/sound-max.svg'}/>
+                    </Button>
+                    <input id="volumeControl" type="range" min="0" max="100" class="volumeSlider buttonBig" oninput={this.changeVolume} value={this.props.state.muted ? 0 : this.props.state.volume}/>
+                    {!state.fullscreen && <Button style="buttonSmall optional remoteHidden"></Button>}
                 </div>
                 <div class="subControls">
-                    ${state.roomToken
-                    && html`<${Button} enabled=${state.roomSidebar == SidebarState.SETTINGS}
-                            onclick=${e => this.toggleRoomSettings(this.props.state.roomId)} style="buttonSmall">
+                    {state.roomToken && <Button enabled={state.roomSidebar == SidebarState.SETTINGS}
+                            onclick={e => this.toggleRoomSettings(this.props.state.roomId)} style="buttonSmall">
                             <img class="video-control-icon" src="/svg/settings.svg"/>
-                        <//>`}
-                    <${Button} enabled=${state.roomSidebar == SidebarState.USERS}
-                               onclick=${e => this.toggleUserSidebar()} style="buttonSmall optional">
+                        </Button>
+                        }
+                    <Button enabled={state.roomSidebar == SidebarState.USERS}
+                               onclick={e => this.toggleUserSidebar()} style="buttonSmall optional">
                         <img class="video-control-icon" src="/svg/users.svg"/>
-                    <//>
-                    <${Button} enabled=${state.roomSidebar == SidebarState.CHAT}
-                               onclick=${e => this.toggleChatSidebar()} style="buttonSmall optional">
+                    </Button>
+                    <Button enabled={state.roomSidebar == SidebarState.CHAT}
+                               onclick={e => this.toggleChatSidebar()} style="buttonSmall optional">
                         <img class="video-control-icon" src="/svg/message-circle.svg"/>
-                    <//>
+                    </Button>
                 </div>
             </div>
-        `
     }
 }

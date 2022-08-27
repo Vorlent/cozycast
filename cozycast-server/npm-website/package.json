@@ -1,12 +1,11 @@
 {
     "scripts": {
-        "build": "esbuild ./src/private/js/index.js --bundle --minify --outfile=build/js/cozy.js && copyfiles -u 2 ./src/public/audio/* ./src/public/* ./src/public/css/* ./src/public/js/libs/* ./src/public/png/* ./src/public/svg/* build"
+        "build": "esbuild ./src/private/js/index.js --bundle --minify --loader:.js=jsx --jsx-factory=h --jsx-fragment=Fragment --outfile=build/js/cozy.js && copyfiles -u 2 ./src/public/audio/* ./src/public/* ./src/public/css/* ./src/public/js/libs/* ./src/public/png/* ./src/public/svg/* build"
     },
     "dependencies": {
         "copyfiles": "^2.4.1",
         "esbuild": "^0.15.4",
         "events": "^3.3.0",
-        "htm": "^3.1.1",
         "kurento-utils": "^6.16.0",
         "linkifyjs": "^3.0.5",
         "moment": "^2.29.4",

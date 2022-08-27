@@ -1,5 +1,4 @@
-import { Component } from 'preact'
-import { html } from 'htm/preact'
+import { Component, h } from 'preact'
 
 export class ProfileModal extends Component {
     constructor(props) {
@@ -13,6 +12,7 @@ export class ProfileModal extends Component {
             legacyDesign: props.state.legacyDesign,
             showIfMuted: props.state.showIfMuted,
             userlistOnLeft: props.state.userlistOnLeft,
+            transparentChat: props.state.transparentChat,
             editMode: false
         }
     }
@@ -28,6 +28,7 @@ export class ProfileModal extends Component {
             legacyDesign: props.state.legacyDesign,
             showIfMuted: props.state.showIfMuted,
             userlistOnLeft: props.state.userlistOnLeft,
+            transparentChat: props.state.transparentChat,
             editMode: true
           };
         }
@@ -71,6 +72,7 @@ export class ProfileModal extends Component {
             legacyDesign: this.state.legacyDesign,
             showIfMuted: this.state.showIfMuted,
             userlistOnLeft: this.state.userlistOnLeft,
+            transparentChat: this.state.transparentChat,
             avatarUrl: newAvatarUrl,
             username: newUsername
         })
@@ -82,6 +84,7 @@ export class ProfileModal extends Component {
         localStorage.setItem("legacyDesign", this.state.legacyDesign);
         localStorage.setItem("showIfMuted", this.state.showIfMuted);
         localStorage.setItem("userlistOnLeft", this.state.userlistOnLeft);
+        localStorage.setItem("transparentChat",this.state.transparentChat);
         this.closeProfile()
     }
 
@@ -112,18 +115,17 @@ export class ProfileModal extends Component {
     }
 
     render({ state }, { xyz = [] }) {
-        return html`${state.profileModal && html`
-            <div class="modal-background">
-                <form class="profile modal" onSubmit=${this.onSubmit}>
+        return <div class="modal-background">
+                <form class="profile modal" onSubmit={this.onSubmit}>
                     <div class="title">
                         <div>
                             Profile
                         </div>
-                        <button type="button" class="modal-close" onclick=${this.closeProfile}>X</button>
+                        <button type="button" class="modal-close" onclick={this.closeProfile}>X</button>
                     </div>
-                    <div class="image avatar big" style="background-image: url('${this.state.avatarUrl}');">
-                        <div class="uploader-overlay" onclick=${() => document.getElementById('avatar-uploader').click()}>
-                            <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg, image/webp" onchange=${this.avatarSelected}/>
+                    <div class="image avatar big" style={{'background-image': `url(${this.state.avatarUrl})`}}>
+                        <div class="uploader-overlay" onclick={() => document.getElementById('avatar-uploader').click()}>
+                            <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg, image/webp" onchange={this.avatarSelected}/>
                             <div class="center">Upload</div>
                         </div>
                     </div>
@@ -131,27 +133,34 @@ export class ProfileModal extends Component {
                         Username
                     </div>
                     <input class="modal-username" type="text"
-                        onInput=${e => this.onInput(e.target.value)}
-                        name="username" maxlength="12" value="${this.state.username}"/>
+                        onInput={e => this.onInput(e.target.value)}
+                        name="username" maxlength="12" value={this.state.username}/>
                     <div class="userOptions">
-                        <div><input class="modal-username" type="checkbox" id="muteChatNotification" onClick=${e => this.toggle(e,'muteChatNotification')}
-                            name="muteChatNotification" checked="${this.state.muteChatNotification}"/> <label for="muteChatNotification">Mute Chat Notification</label>
+                        <div class="usersubOptions">
+                            <div><input class="modal-username" type="checkbox" id="muteChatNotification" onClick={e => this.toggle(e,'muteChatNotification')}
+                                name="muteChatNotification" checked={this.state.muteChatNotification}/> <label for="muteChatNotification">Mute Chat Notification</label>
+                            </div>
+                            <div><input class="modal-username" type="checkbox" id="legacyDesign" onClick={e => this.toggle(e,'legacyDesign')}
+                                name="legacyDesign" checked={this.state.legacyDesign}/> <label for="legacyDesign">Use Legacy Design</label>
+                            </div>
+                            <div><input class="modal-username" type="checkbox" id="showIfMuted" onClick={e => this.toggle(e,'showIfMuted')}
+                                name="showIfMuted" checked={this.state.showIfMuted}/> <label for="showIfMuted">Show Others If Muted</label>
+                            </div>
                         </div>
-                        <div><input class="modal-username" type="checkbox" id="showUsernames" onClick=${e => this.toggle(e,'showUsernames')}
-                            name="showUsernames" checked="${this.state.showUsernames}"/> <label for="showUsernames">Show Usernames</label>
-                        </div>
-                        <div><input class="modal-username" type="checkbox" id="legacyDesign" onClick=${e => this.toggle(e,'legacyDesign')}
-                            name="legacyDesign" checked="${this.state.legacyDesign}"/> <label for="legacyDesign">Use Legacy Design</label>
-                        </div>
-                        <div><input class="modal-username" type="checkbox" id="showIfMuted" onClick=${e => this.toggle(e,'showIfMuted')}
-                            name="showIfMuted" checked="${this.state.showIfMuted}"/> <label for="showIfMuted">Show Others If Muted</label>
-                        </div>
-                        <div><input class="modal-username" type="checkbox" id="userlistOnLeft" onClick=${e => this.toggle(e,'userlistOnLeft')}
-                            name="userlistOnLeft" checked="${this.state.userlistOnLeft}"/> <label for="userlistOnLeft">Show Users On Left</label>
+                        <div class="usersubOptions">
+                            <div><input class="modal-username" type="checkbox" id="showUsernames" onClick={e => this.toggle(e,'showUsernames')}
+                                name="showUsernames" checked={this.state.showUsernames}/> <label for="showUsernames">Show Usernames</label>
+                            </div>
+                            <div><input class="modal-username" type="checkbox" id="userlistOnLeft" onClick={e => this.toggle(e,'userlistOnLeft')}
+                                name="userlistOnLeft" checked={this.state.userlistOnLeft}/> <label for="userlistOnLeft">Show Users On Left</label>
+                            </div>
+                            <div><input class="modal-username" type="checkbox" id="transparentChat" onClick={e => this.toggle(e,'transparentChat')}
+                                name="transparentChat" checked={this.state.transparentChat}/> <label for="transparentChat">Fullscreen Transparent Chat</label>
+                            </div>
                         </div>
                     </div>
                     <button class="btn btn-primary" type="summit" >Save</button>
                 </form>
-        </div>`}`
+        </div>
     }
 }

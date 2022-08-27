@@ -1,5 +1,4 @@
-import { Component } from 'preact'
-import { html } from 'htm/preact'
+import { h, Component } from 'preact'
 
 
 export class BanModal extends Component {
@@ -41,27 +40,26 @@ export class BanModal extends Component {
     }
 
     render({ state }, { xyz = [] }) {
-        return html`
-            <div class="modal-background">
+        return <div class="modal-background">
                 <div class="ban modal">
                     <div class="title">
                         <div>
                             Ban User
                         </div>
-                        <button type="button" class="modal-close" onclick=${this.closeBanModal}>X</button>
+                        <button type="button" class="modal-close" onclick={this.closeBanModal}>X</button>
                     </div>
                     <div class="modal-row">
                         <div class="modal-label">
                             User
                         </div>
                         <select id="settings-desktop-resolution"
-                            value=${this.state.selectedUser}
-                            onChange=${e => this.selectUser(e)}>
+                            value={this.state.selectedUser}
+                            onChange={e => this.selectUser(e)}>
 
-                          <option value=${null} >Select a User</option>
-                          ${state.userlist.map(user => html`
-                              <option value="${user.session}">${user.username}</option>
-                          `)}
+                          <option value={null} >Select a User</option>
+                          {state.userlist.map(user => 
+                              <option value={user.session}>{user.username}</option>
+                          )}
                         </select>
                     </div>
                     <div class="modal-row">
@@ -69,8 +67,8 @@ export class BanModal extends Component {
                             Expiration
                         </div>
                         <div class="modal-widget">
-                            <select value=${this.state.expiration}
-                                onChange=${e => this.selectExpiration(e)}>
+                            <select value={this.state.expiration}
+                                onChange={e => this.selectExpiration(e)}>
                                  <option value="10">10 minutes</option>
                                  <option value="60">1 hour</option>
                                  <option value="1440">1 day</option>
@@ -81,9 +79,9 @@ export class BanModal extends Component {
                         </div>
                     </div>
                     <div class="modal-row">
-                        <button class="btn btn-primary" onclick=${e => this.banUser()}>Ban User</button>
+                        <button class="btn btn-primary" onclick={e => this.banUser()}>Ban User</button>
                     </div>
                 </div>
-        </div>`
+        </div>
     }
 }
