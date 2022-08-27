@@ -1,5 +1,4 @@
-import { Component } from 'preact'
-import { html } from 'htm/preact'
+import { Component, h } from 'preact'
 
 var lastMouseEvent = Date.now();
 
@@ -172,38 +171,38 @@ export class VideoControls extends Component {
         }
     }
 
-    render({ state }, { xyz = [] }) {
-        return html`<div id="videoBig" class="${state.scheduleSidebar ? 'hidden': ''}">
+    render({ state }) {
+        return <div id="videoBig" class={state.scheduleSidebar ? 'hidden': ''}>
             <div id="videocontrols" tabindex="0"
-              oncontextmenu=${disableContextmenu}
-              onmousemove=${this.videoMousemove}
-              onmouseup=${this.videoMouseUp}
-              onmousedown=${this.videoMouseDown}
-              onpaste=${this.paste}
-              onkeyup=${this.videoKeyUp}
-              onkeydown=${this.videoKeyDown}
-              onwheel=${this.videoScroll}
+              oncontextmenu={disableContextmenu}
+              onmousemove={this.videoMousemove}
+              onmouseup={this.videoMouseUp}
+              onmousedown={this.videoMouseDown}
+              onpaste={this.paste}
+              onkeyup={this.videoKeyUp}
+              onkeydown={this.videoKeyDown}
+              onwheel={this.videoScroll}
             >
-              ${state.videoPaused &&
-                html`<div class="paused-screen">
+              {state.videoPaused &&
+                <div class="paused-screen">
                   <div class="play-button"><img title="Play" src="/svg/initial_play_button.svg"/></div>
-              </div>`}
-              ${state.videoLoading == "loading" && !state.videoPaused &&
-                  html`<div class="paused-screen">
+                </div>}
+              {state.videoLoading == "loading" && !state.videoPaused &&
+                  <div class="paused-screen">
                   <div class="loading-screen">
                       <img class="loading-animation" src="/svg/loading.svg"/>
                       LOADING...
                   </div>
-              </div>`}
+              </div>}
             </div>
             <audio id="autoplay" controls="" volume="0" src="/audio/pop.wav" autoplay
-                preload="auto" onplay=${e => this.autoplayDetected(false)}/>
+                preload="auto" onplay={e => this.autoplayDetected(false)}/>
             <div id="videosizer">
               <video id="video" autoplay tabindex="0"
-                  oncanplay=${e => this.onCanPlay(e)}
-                  onloadstart=${e => this.onLoadStart(e)}
+                  oncanplay={e => this.onCanPlay(e)}
+                  onloadstart={e => this.onLoadStart(e)}
               ></video>
             </div>
-        </div>`
+        </div>
     }
 }

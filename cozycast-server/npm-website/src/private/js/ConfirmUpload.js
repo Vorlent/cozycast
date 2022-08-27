@@ -1,5 +1,4 @@
-import { Component } from 'preact'
-import { html } from 'htm/preact'
+import { Component, h } from 'preact'
 
 
 export class ConfirmUpload extends Component {
@@ -65,24 +64,19 @@ export class ConfirmUpload extends Component {
     }
 
     render({sendFile, pasteFile }, { xyz = [] }) {
-        return html`${(sendFile || pasteFile) && html`
-        <div class="confirmUpload">
-            ${sendFile && html`
-            ${sendFile.target.files[0].type.substring(0,5) == "image" &&
-                html`<img src="${URL.createObjectURL(sendFile.target.files[0])}" class="uploadPreview"/>`}
-            ${sendFile.target.files[0].type.substring(0,5) == "video" &&
-                html`<video loop autoplay muted src="${URL.createObjectURL(sendFile.target.files[0])}" class="uploadPreview"/>`}
-            `}
-            ${pasteFile && html`
-                <img src="${URL.createObjectURL(pasteFile)}" class="uploadPreview"/>
-            `}
-            <p>Upload this file?</p>
-            <div class="confirmButton">
-            <button type="button" onclick=${this.send} class="btn btn-danger buttonBorder">Upload</button>
-            <button type="button" onclick=${this.closeConfirmWindow} class="btn buttonCancel buttonBorder">Cancel</button>
+        return (sendFile || pasteFile) && 
+            <div class="confirmUpload">
+                {sendFile && (
+                    sendFile.target.files[0].type.substring(0,5) == "image" && <img src={URL.createObjectURL(sendFile.target.files[0])} class="uploadPreview"/> ||
+                    sendFile.target.files[0].type.substring(0,5) == "video" && <video loop autoplay muted src={URL.createObjectURL(sendFile.target.files[0])} class="uploadPreview"/>
+                    )}
+                {pasteFile && <img src={URL.createObjectURL(pasteFile)} class="uploadPreview"/>}
+                <p>Upload this file?</p>
+                <div class="confirmButton">
+                    <button type="button" onclick={this.send} class="btn btn-danger buttonBorder">Upload</button>
+                    <button type="button" onclick={this.closeConfirmWindow} class="btn buttonCancel buttonBorder">Cancel</button>
+                </div>
             </div>
-        </div>
-            `}`;
-            
+        ;     
     }
 }

@@ -1,5 +1,4 @@
-import { Component } from 'preact'
-import { html } from 'htm/preact'
+import { Component, h } from 'preact'
 import { queryParams } from './index.js'
 
 export class InviteModal extends Component {
@@ -60,26 +59,25 @@ export class InviteModal extends Component {
     }
 
     render({ state }, { xyz = [] }) {
-        return html`
-            <div class="modal-background">
+        return <div class="modal-background">
                 <div class="invite modal">
                     <div class="title">
                         <div>
                             Invite Link
                         </div>
-                        <button type="button" class="modal-close" onclick=${this.closeInvite}>X</button>
+                        <button type="button" class="modal-close" onclick={this.closeInvite}>X</button>
                     </div>
                     <div class="modal-row">
                         <div class="modal-label">
                             Max Uses
                         </div>
                         <div class="modal-widget">
-                            <select value=${this.state.maxUses}
-                                onChange=${e => this.selectMaxUses(e)}>
+                            <select value={this.state.maxUses}
+                                onChange={e => this.selectMaxUses(e)}>
                                 <option value="1">1</option>
                                 <option value="5">5</option>
                                 <option value="10">10</option>
-                                <option value="${null}">Unlimited</option>
+                                <option value={null}>Unlimited</option>
                             </select>
                         </div>
                     </div>
@@ -88,23 +86,23 @@ export class InviteModal extends Component {
                             Expiration
                         </div>
                         <div class="modal-widget">
-                            <select value=${this.state.expiration}
-                                onChange=${e => this.selectExpiration(e)}>
+                            <select value={this.state.expiration}
+                                onChange={e => this.selectExpiration(e)}>
                                  <option value="5">5 minutes</option>
                                  <option value="60">1 hour</option>
                                  <option value="1440">1 day</option>
-                                 <option value="${null}">Unlimited</option>
+                                 <option value={null}>Unlimited</option>
                             </select>
                         </div>
                     </div>
                     <div class="modal-row">
                         <input id="invite-modal-code" class="modal-username" type="text"
-                            name="code" value="${this.state.code}"/>
+                            name="code" value={this.state.code}/>
                     </div>
                     <div class="modal-row">
-                        <button class="btn btn-primary" onclick=${e => this.generateInvite()}>Generate</button>
+                        <button class="btn btn-primary" onclick={e => this.generateInvite()}>Generate</button>
                     </div>
                 </div>
-        </div>`
+        </div>
     }
 }

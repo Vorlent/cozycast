@@ -1,5 +1,4 @@
-import { Component } from 'preact'
-import { html } from 'htm/preact'
+import { h, Component, Fragment } from 'preact'
 
 export class Admin extends Component {
     constructor(props){
@@ -51,11 +50,11 @@ export class Admin extends Component {
     }
 
     render( _ , state) {
-    return html`
-        <div class="admin-background">
+    return <div class="admin-background">
             <div class="admin">
                 <div class="admin-modal">
-                ${!state.loggedIn && html`
+                {!state.loggedIn && 
+                <Fragment>
                     <div class="admin-title">
                         Login
                     </div>
@@ -64,27 +63,28 @@ export class Admin extends Component {
                     </div>
                     <div>
                         <input class="modal-username" type="text"
-                            onInput=${e => this.updateAdminUsername(e.target.value)}
-                            name="username" maxlength="12" value="${state.username}"/>
+                            onInput={e => this.updateAdminUsername(e.target.value)}
+                            name="username" maxlength="12" value={state.username}/>
                     </div>
                     <div>
                         Password
                     </div>
                     <div>
                         <input class="modal-username" type="password"
-                            onInput=${e => this.updateAdminPassword(e.target.value)}
-                            name="username" maxlength="64" value="${state.password}"/>
+                            onInput={e => this.updateAdminPassword(e.target.value)}
+                            name="username" maxlength="64" value={state.password}/>
                     </div>
-                    <button class="btn btn-primary" onclick=${this.login}>Login</button>
-                `}
-                ${state.loggedIn && html`
+                    <button class="btn btn-primary" onclick={this.login}>Login</button>
+                </Fragment>
+                }
+                {state.loggedIn && <Fragment>
                     <div class="admin-title">
                         Logged in
                     </div>
-                    <button class="btn btn-primary" onclick=${this.logout}>Logout</button>
-                `}
+                    <button class="btn btn-primary" onclick={this.logout}>Logout</button>
+                </Fragment>}
                 </div>
             </div>
-        </div>`;
+        </div>;
     }
 }

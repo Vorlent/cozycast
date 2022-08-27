@@ -1,5 +1,4 @@
-import { Component, render } from 'preact'
-import { html } from 'htm/preact'
+import { Component, h } from 'preact'
 
 import { Chat } from './Chat.js'
 import { RoomSettings } from './RoomSettings.js'
@@ -8,21 +7,18 @@ import { SidebarState} from './index.js'
 
 export class RoomSidebar extends Component {
 
-    render({ roomId, state }, { xyz = [] }) {
-        return html`
-            <div id="sidebar" class="sidebar ${state.fullscreen ? "fullscreenSidebar" : "" }">
-                ${state.roomToken
-                && html`<div class="cozycast-pagetitle">
-                    <span class="cozycast-titletext">${roomId}</span>
-                </div>`}
-                ${state.roomSidebar == SidebarState.CHAT &&
-                    html`<${Chat} state=${state} sendMessage=${this.props.sendMessage} updateRoomState=${this.props.updateRoomState}/>`}
-                ${state.roomSidebar == SidebarState.USERS &&
-                html`<${UserlistSidebar} state=${state}/>`}
-                ${state.roomSidebar == SidebarState.SETTINGS
-                    && state.roomToken
-                    && html`<${RoomSettings} state=${state} sendMessage=${this.props.sendMessage} updateRoomState=${this.props.updateRoomState}/>`}
+    render({ roomId, state }) {
+        return <div id="sidebar" class={`sidebar ${state.fullscreen && state.transparentChat ? "fullscreenSidebar" : "" }`}>
+                {state.roomToken && <div class="cozycast-pagetitle">
+                        <span class="cozycast-titletext">{roomId}</span>
+                    </div>
+                }
+                {state.roomSidebar == SidebarState.CHAT &&
+                   <Chat state={state} sendMessage={this.props.sendMessage} updateRoomState={this.props.updateRoomState}/>}
+                {state.roomSidebar == SidebarState.USERS && <UserlistSidebar state={state}/>}
+                {state.roomSidebar == SidebarState.SETTINGS && state.roomToken
+                    && <RoomSettings state={state} sendMessage={this.props.sendMessage} updateRoomState={this.props.updateRoomState}/>}
             </div>
-        `;
+        ;
     }
 }

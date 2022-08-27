@@ -1,5 +1,4 @@
-import { Component, render } from 'preact'
-import { html } from 'htm/preact'
+import { h, Component, Fragment, render } from 'preact'
 import moment from 'moment'
 import kurentoUtils from 'kurento-utils'
 import * as linkify from 'linkifyjs'
@@ -104,7 +103,8 @@ export class Room extends Component {
             legacyDesign: localStorage.hasOwnProperty('legacyDesign') ?  localStorage.getItem("legacyDesign") == 'true' : false,
             muted: localStorage.hasOwnProperty('muted') ?  localStorage.getItem("muted") == 'true' : false,
             showIfMuted: localStorage.hasOwnProperty('showIfMuted') ?  localStorage.getItem("showIfMuted") == 'true' : false,
-            userlistOnLeft: localStorage.hasOwnProperty('userlistOnLeft') ?  localStorage.getItem("userlistOnLeft") == 'true' : false
+            userlistOnLeft: localStorage.hasOwnProperty('userlistOnLeft') ?  localStorage.getItem("userlistOnLeft") == 'true' : false,
+            transparentChat: localStorage.hasOwnProperty('transparentChat') ?  localStorage.getItem("transparentChat") == 'true' : true
         };
         //check if valid profile picture was used and replace if not
         if(this.state != '/png/default_avatar.png'){
@@ -151,7 +151,6 @@ export class Room extends Component {
                 let messages = document.getElementById("messages");
                 if(messages) {
                     messages.scrollTop = messages.scrollHeight;
-                    console.log("hello")
                 }},1)
             if(document.fullscreenElement == null){
                   document.getElementById("videoBig").removeEventListener('mousemove',removeCursor);
@@ -753,25 +752,21 @@ export class Room extends Component {
     }
 
     render({ roomId }, state) {
-    return html`
-        <div id="pagecontent" class="${state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}">
-            ${this.isBanned() && html`Banned until ${state.banned}`}
-            ${!this.isBanned() && html`
-            ${!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && html`<div><${Userlist} showUsernames=${state.showUsernames} userlist=${state.userlist} isLeft=${true} fullscreen=${state.fullscreen} updateRoomState=${this.updateRoomState}/></div>`}
-            <div id="contentWithoutSidebar" class="contentWithoutSidebar">
-                <${VideoControls} state=${state} sendMessage=${this.sendMessage} pauseVideo=${this.pauseVideo} updateRoomState=${this.updateRoomState} />
-                ${state.scheduleSidebar && html`
-                    <${ScheduleSidebar} state=${state}/>`}
-                <div id="pagetoolbar" class="${state.fullscreen ? "toolbarFullscreen" : ""}">
-                    <${Controls} state=${state} state=${state} sendMessage=${this.sendMessage} updateRoomState=${this.updateRoomState} startVideo=${this.webrtc_start.bind(this)} stopVideo=${this.webrtc_stop.bind(this)}/>
-                    ${!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && html`<${Userlist} showUsernames=${state.showUsernames} userlist=${state.userlist} isLeft=${false} updateRoomState=${this.updateRoomState}/>`}
+    return <div id="pagecontent" class={state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}>
+            {this.isBanned() && <div>Banned until {state.banned}</div>}
+            {!this.isBanned() && <Fragment>
+                {!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && <div><Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={true} fullscreen={state.fullscreen} updateRoomState={this.updateRoomState}/></div>}
+                <div id="contentWithoutSidebar" class="contentWithoutSidebar">
+                    <VideoControls state={state} sendMessage={this.sendMessage} pauseVideo={this.pauseVideo} updateRoomState={this.updateRoomState} />
+                    <div id="pagetoolbar" class={state.fullscreen ? "toolbarFullscreen" : ""}>
+                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} startVideo={this.webrtc_start.bind(this)} stopVideo={this.webrtc_stop.bind(this)}/>
+                        {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} updateRoomState={this.updateRoomState}/>}
+                    </div>
                 </div>
-            </div>
-                
-            ${(state.roomSidebar != SidebarState.NOTHING) && html`<${RoomSidebar} state=${state} sendMessage=${this.sendMessage} updateRoomState=${this.updateRoomState}/>`}
-            <${ProfileModal} state=${state} sendMessage=${this.sendMessage} updateRoomState=${this.updateRoomState}/>`}
-            ${state.hoverText && html`<${UserHoverName} state=${state}/>`}
+                {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState}/>}
+                {state.profileModal && <ProfileModal state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState}/>}
+                {state.hoverText && <UserHoverName state={state}/>}
+                </Fragment>}
         </div>
-    `;
     }
 }

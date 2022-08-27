@@ -191,8 +191,7 @@ html, body, #pagecontent, #videosizer {
 
 .hideToolbar{
     opacity: 0;
-    transition: opacity 1s;
-    transition-timing-function: cubic-bezier(.95,.05,.8,.04);
+    transition: opacity 1s cubic-bezier(.95,.05,.8,.04);
 }
 
 .hideToolbar:hover{
@@ -412,7 +411,7 @@ button{
 }
 
 .message .chat-text {
-    padding-right: .15em;
+    padding-right: .35em;
 }
 
 .message > div:not(.username) {
@@ -495,51 +494,54 @@ button{
 }
 
 .fullscreenSidebar .message, .fullscreenSidebar .image-uploader{
-    animation: testing;
+    animation-name: fadeout;
     animation-delay: 5s;
     animation-fill-mode: backwards;
     animation-duration: 1ms;
 }
 
-.fullscreenSidebar .message{
-    background-color: rgba(0, 0, 0, 0.1);
+.fullscreenSidebar .message, .fullscreenSidebar .ta-wrapper{
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background-color: rgba(0, 0, 0, 0.45);
+    box-shadow: 0 0 2px black inset;
+}
+
+.fullscreenSidebar *, .fullscreenSidebar #chat-textbox{
     text-shadow:
-        0.05em 0 black,
-        0 0.05em black,
-        -0.05em 0 black,
-        0 -0.05em black,
-        -0.05em -0.05em black,
-        -0.05em 0.05em black,
-        0.05em -0.05em black,
-        0.05em 0.05em black;
+        0.07em 0 black,
+        0 0.07em black,
+        -0.07em 0 black,
+        0 -0.07em black;
 }
 
-.fullscreenSidebar #chat:hover .message, .fullscreenSidebar #chat:hover .image-uploader{
+.fullscreenSidebar .timestamp, .fullscreenSidebar .chat-deleted{
+    text-shadow: none
+}
+
+.fullscreenSidebar .messageEditBadge{
+    text-shadow: none
+}
+
+.fullscreenSidebar #chat:hover *{
     opacity: 1;
-    transition: opacity 0;
-}
-
-.fullscreenSidebar .ta-wrapper{
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: opacity 0s;
 }
 
 #chat-textbox:focus{
     opacity: 1;
 }
 
-.hideChat .message,.hideChat .image-uploader {
+.hideChat.fullscreenSidebar .message,.hideChat.fullscreenSidebar .image-uploader {
     opacity: 0;
-    transition: opacity 1s;
-    transition-timing-function: cubic-bezier(.95,.05,.8,.04);
+    transition: opacity 1s cubic-bezier(.95,.05,.8,.04);
 }
 
-.showChat .message,.showChat .image-uploader {
+.showChat.fullscreenSidebar .message,.showChat.fullscreenSidebar .image-uploader {
     opacity: 1;
     transition: opacity 0s;
 }
 
-@keyframes testing{
+@keyframes fadeout{
     0% {opacity: 1;}
     99% {opacity: 1;}
     100% {opacity: 0;}
@@ -807,7 +809,6 @@ input[type=range]::-webkit-slider-thumb {
     border: 1px solid black;
     border-radius: 1em;
     box-shadow: 0 0 1em black;
-    width: 30%;
     color: #fff;
     min-width: 250px;
 }
@@ -868,9 +869,22 @@ input[type=range]::-webkit-slider-thumb {
     padding: 5px 15px 5px 15px;
 }
 
+.profile.modal{
+    max-height: 95vh;
+    max-width: 95vw;
+    overflow: scroll;
+}
+
 .userOptions{
+    display: flex;
+    flex-direction: row;
     line-height: 1.5em;
     margin-top: 0.5em;
+}
+
+.usersubOptions{
+    display: flex;
+    flex-direction: column;
 }
 
 /* Modal.js END */
@@ -891,6 +905,7 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .avatar {
+    background-color: var(--cozyColorMenu);
     border-radius: 50%;
     width: 60px;
     height: 60px;
@@ -1388,10 +1403,10 @@ input[type=range]::-webkit-slider-thumb {
 
 .hoverInfoScript {
     position: absolute;
-    background-color: var(--cozyColorAccent);
+    background: var(--cozyColorAccent);
     white-space: nowrap;
     padding: 0.15em 0.3em;
-    border-radius: 0.2em;
+    border-radius: 0.2em 0 0 0.2em;
     z-index: 3;
     transition: opacity 0.15s ease;
     pointer-events: none;
@@ -1404,6 +1419,19 @@ input[type=range]::-webkit-slider-thumb {
     position: absolute;
     border: 0.3em solid;
     pointer-events: none;
+}
+
+.hoverInfoScript::after{
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    right: -0.15em;
+    height: 100%;
+    background: var(--onlineStatus,var(--cozyColorAccent));
+    width: 0.3em;
+    top: 0;
+    z-index: 2;
+    border-radius: 0 0.2em 0.2em 0;
 }
 
 .hoverInfoScript.top{

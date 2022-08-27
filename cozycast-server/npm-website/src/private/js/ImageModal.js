@@ -1,5 +1,4 @@
-import { Component } from 'preact'
-import { html } from 'htm/preact'
+import { h, Component } from 'preact'
 
 export class ImageModal extends Component {
 
@@ -12,20 +11,19 @@ export class ImageModal extends Component {
     }
 
     render({type,href}) {
-        return html`
-            <div class="modal-background" onclick=${this.closeModal}>
+        return <div class="modal-background" onclick={this.closeModal}>
                 <div class="imageModal">
-                    ${type == "image" &&
-                        html`<div>
-                            <a class="chat-link" target="_blank" href="${href}"><img src="${href}" /></a>
+                    {type == "image" && 
+                        <div>
+                            <a class="chat-link" target="_blank" href={href}><img src={href} /></a>
                         </div>
-                    `}
-                    ${type == "video" &&
-                        html`<div>
-                            <a class="chat-link" target="_blank" href="${href}"> <video loop autoplay controls src="${href}" /></a>
+                    }
+                    {type == "video" && 
+                        <div>
+                            <a class="chat-link" target="_blank" href={href}> <video loop autoplay controls src={href} /></a>
                         </div>
-                    `}
+                    }
                 </div>
-            </div>`
+            </div>
     }
 }

@@ -1,9 +1,9 @@
-import { Component, render } from 'preact'
-import { html } from 'htm/preact'
+import { Component, render, h } from 'preact'
 import { Router } from 'preact-router'
 
 import { Admin } from './Admin.js'
 import { RoomList } from './RoomList.js'
+import { Invite } from './Invite.js'
 import { Room } from './Room.js'
 
 export var SidebarState = {
@@ -27,15 +27,15 @@ export function queryParams(params) {
 
 class App extends Component {
     render() {
-        return html`
-            <${Router}>
-                <${Room} path="/" roomId="default"/>
-                <${Room} path="/room/:roomId"/>
-                <${RoomList} path="/management/"/>
-                <${Admin} path="/admin/"/>
-            <//>
-        `;
+        return <Router>
+                <Room path="/" roomId="default"/>
+                <Room path="/room/:roomId"/>
+                <Invite path="/invite/:code"/>
+                <RoomList path="/management/"/>
+                <Admin path="/admin/"/>
+            </Router>
+        ;
     }
 }
 
-render(html`<${App}/>`, document.body);
+render(<App/>, document.body);

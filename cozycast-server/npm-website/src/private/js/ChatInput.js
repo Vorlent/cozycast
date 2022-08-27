@@ -1,5 +1,4 @@
-import { Component, createRef } from 'preact'
-import { html } from 'htm/preact'
+import { Component, createRef, h, Fragment } from 'preact'
 import { ConfirmUpload } from './ConfirmUpload.js'
 import moment from 'moment'
 
@@ -183,28 +182,28 @@ export class ChatInput extends Component {
     }
 
     render({state}) {
-        return html`
-            <${ConfirmUpload} sendFile=${this.state.sendFile} pasteFile=${this.state.pasteFile} clear=${this.clearFile} sendMessage=${this.props.sendMessage}/>
-            <div id="chatbox" onclick=${() => this.refChatboxText.current.focus()}>
-                ${this.state.editTarget && html`<button class="editMode" onclick=${this.exitEdit}>End Edit</button>`}
+        return <Fragment>
+            <ConfirmUpload sendFile={this.state.sendFile} pasteFile={this.state.pasteFile} clear={this.clearFile} sendMessage={this.props.sendMessage}/>
+            <div id="chatbox" onclick={() => this.refChatboxText.current.focus()}>
+                {this.state.editTarget && <button class="editMode" onclick={this.exitEdit}>End Edit</button>}
                 <div class="image-uploader">
-                    <div class="ta-wrapper" ref=${this.refTaWrapper}>
-                    <textarea id="chat-textbox" ref=${this.refChatboxText} value=${this.state.chatBox} class="chatbox-textarea" oninput=${this.chatInput} onkeypress=${this.chatEnter} onpaste=${this.openConfirmWindowPaste}>
+                    <div class="ta-wrapper" ref={this.refTaWrapper}>
+                    <textarea id="chat-textbox" ref={this.refChatboxText} value={this.state.chatBox} class="chatbox-textarea" oninput={this.chatInput} onkeypress={this.chatEnter} onpaste={this.openConfirmWindowPaste}>
                     </textarea>
                     </div>
                     <div class="image-uploader-button-wrapper">
-                        <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange=${this.openConfirmWindow} ref=${this.refImageUploadFile}/>
-                        ${!this.state.chatBox.length != 0 &&
-                            html`<img class="image-uploader-button" src="/svg/image_upload.svg" onclick=${this.openPictureUpload}/>`}
+                        <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange={this.openConfirmWindow} ref={this.refImageUploadFile}/>
+                        {!this.state.chatBox.length != 0 &&
+                            <img class="image-uploader-button" src="/svg/image_upload.svg" onclick={this.openPictureUpload}/>}
                     </div>
                 </div>
                 <div id="typing">
-                    ${this.state.typingUsers.length > 0 && html`
-                        ${this.state.typingUsers.length > 2 ? "Several people" : this.state.typingUsers.map((user, i) => html`${user.username}${(this.state.typingUsers.length - 1 != i) && ', '}`)} ${this.state.typingUsers.length > 1 ? 'are ' : 'is '}
+                    {this.state.typingUsers.length > 0 && <Fragment>
+                        {this.state.typingUsers.length > 2 ? "Several people" : this.state.typingUsers.map((user, i) => `${user.username}${(this.state.typingUsers.length - 1 != i) ? ', ' : ''}`) } {this.state.typingUsers.length > 1 ? 'are ' : 'is '}
                         <div class="typingWrapper">typing<div class="loadingDotsWrapper"><div class="loadingDots"></div></div></div>
-                    `}
+                        </Fragment>}
                 </div>
             </div>
-            `
+            </Fragment>
     }
 }
