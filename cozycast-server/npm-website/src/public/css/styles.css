@@ -191,7 +191,7 @@ html, body, #pagecontent, #videosizer {
 
 .hideToolbar{
     opacity: 0;
-    transition: opacity 1s cubic-bezier(.95,.05,.8,.04);
+    transition: opacity 0.1s linear;
 }
 
 .hideToolbar:hover{
@@ -533,12 +533,38 @@ button{
 
 .hideChat.fullscreenSidebar .message,.hideChat.fullscreenSidebar .image-uploader {
     opacity: 0;
-    transition: opacity 1s cubic-bezier(.95,.05,.8,.04);
+    transition: opacity 0.1s linear;
 }
 
 .showChat.fullscreenSidebar .message,.showChat.fullscreenSidebar .image-uploader {
     opacity: 1;
     transition: opacity 0s;
+}
+
+.fullscreenSidebar .image-uploader.hasText {
+    opacity: 1;
+    transition: opacity 0s;
+}
+
+.subControls.fullscreenRemote {
+    left:0;
+    right:0;
+  
+    margin-left: auto;
+    margin-right: auto;
+
+    position: absolute;
+    bottom: 0px;
+    height: 2em;
+    width: fit-content;
+}
+
+.fullscreenSidebar.hasRemote {
+    visibility: hidden;
+}
+
+.fullscreenUserlist.hasRemote {
+    visibility: hidden;
 }
 
 @keyframes fadeout{
@@ -872,7 +898,7 @@ input[type=range]::-webkit-slider-thumb {
 .profile.modal{
     max-height: 95vh;
     max-width: 95vw;
-    overflow: scroll;
+    overflow: auto;
 }
 
 .userOptions{
