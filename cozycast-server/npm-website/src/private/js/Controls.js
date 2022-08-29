@@ -148,6 +148,32 @@ export class Controls extends Component {
     }
 
     render({state, roomId}){
+        let middle = <div class={`subControls ${state.fullscreen && state.remote ? "fullscreenRemote" : ""}`}>
+                <Button enabled={false} onclick={this.dropRemoteAndCenter} 
+                    title="Drop and center Remote" style={`buttonSmall optional ${state.remote ? "" :"remoteHidden"}`}>
+                    <img class="video-control-icon" src="/svg/crosshair.svg"/>
+                </Button>
+                <Button enabled={state.remote} onclick={this.remote} style="buttonSmall" title="remote">
+                    <div class="video-control-icon">
+                    <RemoteIcon enabled={state.remoteUsed && false}/>
+                    </div>
+                </Button>
+                <Button enabled={state.videoPaused} onclick={this.pauseVideo}
+                    title={state.videoPaused ? 'Pause' : 'Play'} style="buttonSmall">
+                    <img class="video-control-icon" src={state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}/>
+                </Button>
+                <Button enabled={state.fullscreen}
+                    title="Fullscreen" onclick={this.toggleFullscreen} style="buttonSmall">
+                    <img class="video-control-icon" src="/svg/fullscreen_button.svg"/>
+                </Button>
+                <Button enabled={state.muted} onclick={this.mute}
+                    title={state.muted ? 'Unmute' : 'Mute'} style="buttonSmall">
+                    <img class="video-control-icon" src={state.muted ? '/svg/sound-mute.svg' : '/svg/sound-max.svg'}/>
+                </Button>
+                <input id="volumeControl" type="range" min="0" max="100" class="volumeSlider buttonBig" oninput={this.changeVolume} value={this.props.state.muted ? 0 : this.props.state.volume}/>
+            </div>
+
+        if(state.fullscreen && state.remote) return middle;
         return <div id="controls"  class={state.fullscreen ? "controlsFullscreen" : "visibleControls" }>
                 <div class="subControls">
                     <Button enabled={false} onclick={this.hideUserlist} 
@@ -156,35 +182,7 @@ export class Controls extends Component {
                     </Button>
                     <Button enabled={state.profileModal} onclick={() => this.props.updateRoomState({profileModal: true})} style="buttonBig">Profile</Button>
                 </div>
-                <div class="subControls">
-                    {!state.fullscreen && 
-                        <Fragment>
-                            <Button enabled={false} onclick={this.dropRemoteAndCenter} 
-                                title="Drop and center Remote" style={`buttonSmall optional ${state.remote ? "" :"remoteHidden"}`}>
-                                <img class="video-control-icon" src="/svg/crosshair.svg"/>
-                            </Button>
-                            <Button enabled={state.remote} onclick={this.remote} style="buttonSmall" title="remote">
-                                <div class="video-control-icon">
-                                <RemoteIcon enabled={state.remoteUsed && false}/>
-                                </div>
-                            </Button>
-                        </Fragment>
-                    }
-                    <Button enabled={state.videoPaused} onclick={this.pauseVideo}
-                        title={state.videoPaused ? 'Pause' : 'Play'} style="buttonSmall">
-                        <img class="video-control-icon" src={state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}/>
-                    </Button>
-                    <Button enabled={state.fullscreen}
-                        title="Fullscreen" onclick={this.toggleFullscreen} style="buttonSmall">
-                        <img class="video-control-icon" src="/svg/fullscreen_button.svg"/>
-                    </Button>
-                    <Button enabled={state.muted} onclick={this.mute}
-                        title={state.muted ? 'Unmute' : 'Mute'} style="buttonSmall">
-                        <img class="video-control-icon" src={state.muted ? '/svg/sound-mute.svg' : '/svg/sound-max.svg'}/>
-                    </Button>
-                    <input id="volumeControl" type="range" min="0" max="100" class="volumeSlider buttonBig" oninput={this.changeVolume} value={this.props.state.muted ? 0 : this.props.state.volume}/>
-                    {!state.fullscreen && <Button style="buttonSmall optional remoteHidden"></Button>}
-                </div>
+                {middle}
                 <div class="subControls">
                     {state.roomToken && <Button enabled={state.roomSidebar == SidebarState.SETTINGS}
                             onclick={e => this.toggleRoomSettings(this.props.state.roomId)} style="buttonSmall">

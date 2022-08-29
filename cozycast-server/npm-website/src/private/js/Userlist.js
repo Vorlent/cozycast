@@ -10,12 +10,13 @@ export class Userlist extends Component {
         return this.props.userlist !== nextProps.userlist || 
             this.props.showUsernames !== nextProps.showUsernames ||
             this.props.isLeft !== nextProps.isLeft ||
-            this.props.fullscreen !== nextProps.fullscreen;
+            this.props.fullscreen !== nextProps.fullscreen ||
+            this.props.remote !== nextProps.remote;
     }
 
-    render({userlist, showUsernames, isLeft, updateRoomState, fullscreen}) {
+    render({userlist, showUsernames, isLeft, updateRoomState, fullscreen, hasRemote}) {
         return <Fragment>
-            <div id="userlist" class={`userlist ${showUsernames ? "big" : "small"} ${isLeft ? "left" : "bottom"} ${fullscreen ? "fullscreenUserlist" : ""}`} >
+            <div id="userlist" class={`userlist ${showUsernames ? "big" : "small"} ${isLeft ? "left" : "bottom"} ${fullscreen ? "fullscreenUserlist" : ""} ${hasRemote ? " hasRemote": ""}`} >
                 {userlist.map(user => 
                     <div class="user" key={user.session}>
                         <div class={`avatarContainer ${!showUsernames || isLeft ? "bar" : ""}`} onMouseover={e => showHover(e,user.username,isLeft ? "right" : "top",showUsernames,user.active,updateRoomState)} onMouseout={e => hideHover(updateRoomState)}>

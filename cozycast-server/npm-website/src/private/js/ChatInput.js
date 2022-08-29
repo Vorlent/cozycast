@@ -186,14 +186,14 @@ export class ChatInput extends Component {
             <ConfirmUpload sendFile={this.state.sendFile} pasteFile={this.state.pasteFile} clear={this.clearFile} sendMessage={this.props.sendMessage}/>
             <div id="chatbox" onclick={() => this.refChatboxText.current.focus()}>
                 {this.state.editTarget && <button class="editMode" onclick={this.exitEdit}>End Edit</button>}
-                <div class="image-uploader">
+                <div class={`image-uploader ${this.state.chatBox.length != 0 ? "hasText" : ""}`}>
                     <div class="ta-wrapper" ref={this.refTaWrapper}>
                     <textarea id="chat-textbox" ref={this.refChatboxText} value={this.state.chatBox} class="chatbox-textarea" oninput={this.chatInput} onkeypress={this.chatEnter} onpaste={this.openConfirmWindowPaste}>
                     </textarea>
                     </div>
                     <div class="image-uploader-button-wrapper">
                         <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange={this.openConfirmWindow} ref={this.refImageUploadFile}/>
-                        {!this.state.chatBox.length != 0 &&
+                        {this.state.chatBox.length == 0 &&
                             <img class="image-uploader-button" src="/svg/image_upload.svg" onclick={this.openPictureUpload}/>}
                     </div>
                 </div>

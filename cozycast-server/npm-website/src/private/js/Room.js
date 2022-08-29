@@ -22,7 +22,7 @@ let idleTimer = null;
 let idleState = false;
 export function removeCursor(e) {
   let sidebar = document.getElementById("sidebar");
-  let time = 1500;
+  let time = 2400;
   clearTimeout(idleTimer);
   if (idleState == true) {
     document.getElementById("pagetoolbar").classList.remove("hideToolbar");
@@ -755,7 +755,7 @@ export class Room extends Component {
     return <div id="pagecontent" class={state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}>
             {this.isBanned() && <div>Banned until {state.banned}</div>}
             {!this.isBanned() && <Fragment>
-                {!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && <div><Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={true} fullscreen={state.fullscreen} updateRoomState={this.updateRoomState}/></div>}
+                {!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && <div><Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={true} fullscreen={state.fullscreen} hasRemote={state.remote} updateRoomState={this.updateRoomState}/></div>}
                 <div id="contentWithoutSidebar" class="contentWithoutSidebar">
                     <VideoControls state={state} sendMessage={this.sendMessage} pauseVideo={this.pauseVideo} updateRoomState={this.updateRoomState} />
                     <div id="pagetoolbar" class={state.fullscreen ? "toolbarFullscreen" : ""}>
