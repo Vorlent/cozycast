@@ -191,7 +191,7 @@ html, body, #pagecontent, #videosizer {
 
 .hideToolbar{
     opacity: 0;
-    transition: opacity 0.1s linear;
+    transition: opacity 0.2s linear;
 }
 
 .hideToolbar:hover{
@@ -493,11 +493,12 @@ button{
     z-index: 3;
 }
 
-.fullscreenSidebar .message, .fullscreenSidebar .image-uploader{
+.fullscreenSidebar .message{
+    opacity: 0;
     animation-name: fadeout;
     animation-delay: 5s;
     animation-fill-mode: backwards;
-    animation-duration: 1ms;
+    animation-duration: 200ms;
 }
 
 .fullscreenSidebar .message, .fullscreenSidebar .ta-wrapper{
@@ -514,36 +515,32 @@ button{
         0 -0.07em black;
 }
 
-.fullscreenSidebar .timestamp, .fullscreenSidebar .chat-deleted{
+.fullscreenSidebar .timestamp, .fullscreenSidebar .chat-deleted, .fullscreenSidebar .messageEditBadge{
     text-shadow: none
 }
 
-.fullscreenSidebar .messageEditBadge{
-    text-shadow: none
-}
-
-.fullscreenSidebar #chat:hover *{
+.fullscreenSidebar #chat:hover #messages *{
     opacity: 1;
-    transition: opacity 0s;
+    animation: none;
 }
 
-#chat-textbox:focus{
+.fullscreenSidebar #chat:hover .image-uploader{
     opacity: 1;
 }
 
-.hideChat.fullscreenSidebar .message,.hideChat.fullscreenSidebar .image-uploader {
+.hideChat.fullscreenSidebar .image-uploader {
     opacity: 0;
-    transition: opacity 0.1s linear;
+    transition: opacity 0.2s linear;
 }
 
-.showChat.fullscreenSidebar .message,.showChat.fullscreenSidebar .image-uploader {
+.showChat.fullscreenSidebar .image-uploader,.fullscreenSidebar .image-uploader.hasText  {
     opacity: 1;
     transition: opacity 0s;
 }
 
-.fullscreenSidebar .image-uploader.hasText {
+.showChat.fullscreenSidebar #messages *{
     opacity: 1;
-    transition: opacity 0s;
+    animation: none;
 }
 
 .subControls.fullscreenRemote {
@@ -569,7 +566,6 @@ button{
 
 @keyframes fadeout{
     0% {opacity: 1;}
-    99% {opacity: 1;}
     100% {opacity: 0;}
 }
 
