@@ -556,7 +556,7 @@ button{
     position: absolute;
     bottom: 0px;
     height: 2em;
-    width: fit-content;
+    width: max-content;
 }
 
 .fullscreenSidebar.hasRemote {
