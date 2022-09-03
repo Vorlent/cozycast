@@ -97,7 +97,7 @@ html, body, #pagecontent, #videosizer {
     background: fixed repeat top left var(--cozycast-noise);
 }
 
-.contentWithoutSidebar {
+.videoWrapper {
     width: 100%;
     height: 100%;
     display: flex;
@@ -363,7 +363,9 @@ button{
 .subMessage {
     position:relative;
     padding: .15em;
-    padding-right: 0;
+    padding-right: 1em;
+    font-size: 0.9em;
+    padding-left: 1em;
 }
 
 .subMessage:hover {
@@ -404,19 +406,6 @@ button{
 
 .deleteMessageButton:hover{
     background-color: var(--cozyOrange);
-}
-
-.message .chat-image, .message .chat-video, .message .chat-deleted {
-    padding-right: 1em;
-}
-
-.message .chat-text {
-    padding-right: .35em;
-}
-
-.message > div:not(.username) {
-	font-size: 0.9em;
-    padding-left: 1em;
 }
 
 #videocontrols {
@@ -496,18 +485,20 @@ button{
 .fullscreenSidebar .message{
     opacity: 0;
     animation-name: fadeout;
-    animation-delay: 5s;
+    animation-delay: 8s;
     animation-fill-mode: backwards;
-    animation-duration: 200ms;
+    animation-duration: 300ms;
 }
 
-.fullscreenSidebar .message, .fullscreenSidebar .ta-wrapper{
+.fullscreenSidebar .message, 
+.fullscreenSidebar .ta-wrapper{
     border: 1px solid rgba(255, 255, 255, 0.45);
     background-color: rgba(0, 0, 0, 0.45);
     box-shadow: 0 0 2px black inset;
 }
 
-.fullscreenSidebar *, .fullscreenSidebar #chat-textbox{
+.fullscreenSidebar *, 
+.fullscreenSidebar #chat-textbox{
     text-shadow:
         0.07em 0 black,
         0 0.07em black,
@@ -515,32 +506,31 @@ button{
         0 -0.07em black;
 }
 
-.fullscreenSidebar .timestamp, .fullscreenSidebar .chat-deleted, .fullscreenSidebar .messageEditBadge{
+.fullscreenSidebar .timestamp, 
+.fullscreenSidebar .chat-deleted, 
+.fullscreenSidebar .messageEditBadge{
     text-shadow: none
 }
 
-.fullscreenSidebar #chat:hover #messages *{
-    opacity: 1;
-    animation: none;
-}
-
-.fullscreenSidebar #chat:hover .image-uploader{
-    opacity: 1;
-}
-
-.hideChat.fullscreenSidebar .image-uploader {
+.hideChat.fullscreenSidebar .image-uploader, 
+.hideChat.fullscreenSidebar .message {
     opacity: 0;
     transition: opacity 0.2s linear;
 }
 
-.showChat.fullscreenSidebar .image-uploader,.fullscreenSidebar .image-uploader.hasText  {
+.fullscreenSidebar .image-uploader.hasText,
+.fullscreenSidebar #chat:hover .message, 
+.fullscreenSidebar #chat:hover .image-uploader,
+.showChat.fullscreenSidebar .image-uploader, 
+.showChat.fullscreenSidebar .message {
     opacity: 1;
     transition: opacity 0s;
 }
 
-.showChat.fullscreenSidebar #messages *{
-    opacity: 1;
-    animation: none;
+.showChat.fullscreenSidebar .message,
+.fullscreenSidebar #chat:hover .message
+{
+    animation-duration: 0s;
 }
 
 .subControls.fullscreenRemote {
@@ -637,8 +627,8 @@ button{
 .image-uploader-button {
     /* svg hack*/
     filter: var(--cozySvgFilter);
-    width: 45px;
-    height: 35px;
+    width: 38px;
+    height: 32px;
 }
 
 .image-uploader-button:hover {
@@ -902,6 +892,7 @@ input[type=range]::-webkit-slider-thumb {
     flex-direction: row;
     line-height: 1.5em;
     margin-top: 0.5em;
+    font-size: min(3vw,1em);
 }
 
 .usersubOptions{
@@ -1341,10 +1332,28 @@ input[type=range]::-webkit-slider-thumb {
     padding: 1em;
 }
 
+.confirmUpload.centerMode{
+    z-index: 6;
+    height: max-content;
+    max-width: max-content;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+}
+
+.confirmUpload.centerMode img{
+    max-height: 40vh;
+    max-width: 50vw;
+    object-fit: contain;
+}
+
 .confirmButton{
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
     width: 100%;
+    gap: 2.5em;
 }
 
 .uploadPreview{
@@ -1549,13 +1558,40 @@ input[type=range]::-webkit-slider-thumb {
 
 /* hover tooltips END*/
 
-@media (max-width: 780px) {
+@media only screen and (max-width: 780px) and (orientation: portrait){
     #pagecontent {
         flex-direction: column;
+        height: 100vh;
     }
 
+    .videoWrapper{
+        justify-content: unset;
+        height: max-content;
+        overflow-x: unset;
+    }
+
+    .sidebar{
+        max-width: 100%;
+    }
+
+    .sidebar.fullscreenSidebar{
+        position: relative;
+        height: 100%;
+    }
+
+    .sidebar.fullscreenSidebar *{
+        opacity: 1;
+    }
+
+    .sidebar.fullscreenSidebar .image-uploader{
+        opacity: 1;
+    }
+}
+
+@media only screen and (max-width: 780px){
+
     #userlist {
-        height: 2.7em;
+        height: 2.8em;
     }
 
     .userlist.left {
@@ -1566,17 +1602,15 @@ input[type=range]::-webkit-slider-thumb {
         display: none;
     }
 
-    #controls {
-        justify-content: center;
-    }
-
-    .sidebar{
-        max-width: 100%;
-    }
-
     .subControls{
         justify-items: flex-end;
         margin-right: 0;
+    }
+
+    .subControls.fullscreenRemote {
+        margin-left: unset;
+        margin-right: unset;
+        position: unset;
     }
 
     .onlineDot{
@@ -1630,5 +1664,10 @@ input[type=range]::-webkit-slider-thumb {
 
     .user {
         font-size: 0.75em;
+    }
+
+    #copyright {
+        right: 3px;
+        left: unset;
     }
 }

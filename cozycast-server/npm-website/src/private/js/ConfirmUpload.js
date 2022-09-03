@@ -65,7 +65,7 @@ export class ConfirmUpload extends Component {
 
     render({sendFile, pasteFile }, { xyz = [] }) {
         return (sendFile || pasteFile) && 
-            <div class="confirmUpload">
+            <div class={`confirmUpload ${this.props.screenshot ? "centerMode" : ""}`}>
                 {sendFile && (
                     sendFile.target.files[0].type.substring(0,5) == "image" && <img src={URL.createObjectURL(sendFile.target.files[0])} class="uploadPreview"/> ||
                     sendFile.target.files[0].type.substring(0,5) == "video" && <video loop autoplay muted src={URL.createObjectURL(sendFile.target.files[0])} class="uploadPreview"/>
