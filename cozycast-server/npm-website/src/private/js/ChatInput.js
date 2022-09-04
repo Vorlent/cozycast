@@ -162,7 +162,7 @@ export class ChatInput extends Component {
     }
 
     screenshot = () => {
-        let canvas = document.getElementById('mycanvas');
+        let canvas = document.createElement('canvas');
         let video = document.getElementById('video');
 
         canvas.width = this.props.viewPort.width;
@@ -202,11 +202,12 @@ export class ChatInput extends Component {
         this.props.setChatState({editTarget: null, editContent: ""});
     }
 
-    render({state}) {
+    render(_,state) {
         return <Fragment>
-            <canvas id="mycanvas" width="0px" height="0px" style={{display: 'none'}}></canvas>
             {this.state.screenshotModal && <ScreenshotModal href={this.state.currentScreenshot} sendMessage={this.props.sendMessage} setChatState={this.setState.bind(this)}></ScreenshotModal>}
-            <ConfirmUpload sendFile={this.state.sendFile} pasteFile={this.state.pasteFile} clear={this.clearFile} sendMessage={this.props.sendMessage} screenshot={this.state.screenshotModal}/>
+            <div class={state.screenshotModal && (state.sendFile || state.pasteFile) ? "confirmUploadWrapperScreenshot": "confirmUploadWrapper"}>
+                <ConfirmUpload sendFile={this.state.sendFile} pasteFile={this.state.pasteFile} clear={this.clearFile} sendMessage={this.props.sendMessage} screenshot={this.state.screenshotModal}/>
+            </div>
             <div id="chatbox" onclick={() => this.refChatboxText.current.focus()}>
                 {this.state.editTarget && <button class="editMode" onclick={this.exitEdit}>End Edit</button>}
                 <div class={`image-uploader ${this.state.chatBox.length != 0 ? "hasText" : ""}`}>

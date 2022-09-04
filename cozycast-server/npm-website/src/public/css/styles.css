@@ -485,7 +485,7 @@ button{
 .fullscreenSidebar .message{
     opacity: 0;
     animation-name: fadeout;
-    animation-delay: 8s;
+    animation-delay: 10s;
     animation-fill-mode: backwards;
     animation-duration: 300ms;
 }
@@ -1316,6 +1316,21 @@ input[type=range]::-webkit-slider-thumb {
 
 /* ConfirmUpload.js */
 
+.confirmUploadWrapperScreenshot{
+    width: 100vw;
+    height: 100vh;
+    z-index: 5;
+    position: absolute;
+    right: 0;
+    top:0;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.confirmUploadWrapper{
+    display: flex;
+    justify-content: center;
+}
+
 .confirmUpload{
     background-color: var(--cozyColorAccent);
     border-color: var(--cozyColorMenu);
@@ -1370,6 +1385,13 @@ input[type=range]::-webkit-slider-thumb {
     border-width: light;
     padding: 0.6em;
     width: 4.5em;
+}
+
+
+.screenshotBorder {
+    outline: 1em solid var(--cozyButton);
+    border-radius: 0.1em;
+    margin-bottom: 2em;
 }
 /* ConfirmUpload.js End */
 

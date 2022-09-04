@@ -42,12 +42,11 @@ export class ScreenshotModal extends Component {
 
 
     render({href}) {
-        return <div class="modal-background" tabindex="0" ref={this.backgroundDiv} onkeydown={(e) => {if(e.key === "Escape"){ this.closeModal()} }}>
+        return <div class="modal-background" style={{'background-color': 'rgba(0, 0, 0, 0.93)'}} tabindex="0" ref={this.backgroundDiv} onkeydown={(e) => {if(e.key === "Escape"){ this.closeModal()} }}>
                 <div class="imageModal" style={{'max-width': '80vw'}}>
-                    <div>
+                    <div class="screenshotBorder">
                         <img style={{display: "block", 'max-width': '100%'}} ref={this.currentImage} src={href}/>
                     </div>
-                    <br></br>
                     <div class="confirmButton">
                         <button type="button" onclick={this.selectCrop} class="btn btn-danger buttonBorder">Crop</button>
                         <button type="button" onclick={this.closeModal} class="btn buttonCancel buttonBorder">Close</button>
