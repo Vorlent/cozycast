@@ -205,9 +205,7 @@ export class ChatInput extends Component {
     render(_,state) {
         return <Fragment>
             {this.state.screenshotModal && <ScreenshotModal href={this.state.currentScreenshot} sendMessage={this.props.sendMessage} setChatState={this.setState.bind(this)}></ScreenshotModal>}
-            <div class={state.screenshotModal && (state.sendFile || state.pasteFile) ? "confirmUploadWrapperScreenshot": "confirmUploadWrapper"}>
-                <ConfirmUpload sendFile={this.state.sendFile} pasteFile={this.state.pasteFile} clear={this.clearFile} sendMessage={this.props.sendMessage} screenshot={this.state.screenshotModal}/>
-            </div>
+            <ConfirmUpload sendFile={this.state.sendFile} pasteFile={this.state.pasteFile} clear={this.clearFile} sendMessage={this.props.sendMessage} screenshot={this.state.screenshotModal}/>
             <div id="chatbox" onclick={() => this.refChatboxText.current.focus()}>
                 {this.state.editTarget && <button class="editMode" onclick={this.exitEdit}>End Edit</button>}
                 <div class={`image-uploader ${this.state.chatBox.length != 0 ? "hasText" : ""}`}>

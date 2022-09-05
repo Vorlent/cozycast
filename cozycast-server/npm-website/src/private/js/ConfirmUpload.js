@@ -65,6 +65,7 @@ export class ConfirmUpload extends Component {
 
     render({sendFile, pasteFile }, { xyz = [] }) {
         return (sendFile || pasteFile) && 
+        <div class={this.props.screenshot ? "confirmUploadWrapperScreenshot": "confirmUploadWrapper"}>
             <div class={`confirmUpload ${this.props.screenshot ? "centerMode" : ""}`}>
                 {sendFile && (
                     sendFile.target.files[0].type.substring(0,5) == "image" && <img src={URL.createObjectURL(sendFile.target.files[0])} class="uploadPreview"/> ||
@@ -77,6 +78,7 @@ export class ConfirmUpload extends Component {
                     <button type="button" onclick={this.closeConfirmWindow} class="btn buttonCancel buttonBorder">Cancel</button>
                 </div>
             </div>
+        </div>
         ;     
     }
 }
