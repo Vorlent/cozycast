@@ -294,12 +294,7 @@ export class Room extends Component {
                     queuedMessages.push({ "type": "text", "message": remaining.substring(offset, element.start) });
                 }
                 if(element.type == "url") {
-                    if(regex.test(element.href)) {
-                        queuedMessages.push({ "type": "image", "href": element.href });
-                    }
-                    else {
                         queuedMessages.push({ "type": "url", "href": element.href,"value": element.value });
-                    }
                 } else {
                     queuedMessages.push({ "type": "text", "message": element.value });
                 }
