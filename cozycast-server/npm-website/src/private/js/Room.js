@@ -277,10 +277,10 @@ export class Room extends Component {
         })
     }
 
-
     parseMessage = (parsedMessage) => {
         var msg = parsedMessage.message || "";
         var queuedMessages = [];
+        const regex = new RegExp('^http.*\.(jpeg|jpg|gif|png)$');
         if(parsedMessage.type == "video") {
             queuedMessages.push({ "type": "video", "href": parsedMessage.image });
         } else if(parsedMessage.type == "image") {
@@ -290,16 +290,15 @@ export class Room extends Component {
             var urls = linkify.find(msg);
             var remaining = msg;
             urls.forEach(function(element) {
-                var end = remaining.indexOf(element.value, offset);
-                if(offset != end) {
-                    queuedMessages.push({ "type": "text", "message": remaining.substring(offset, end) });
+                if(element.start != offset) {
+                    queuedMessages.push({ "type": "text", "message": remaining.substring(offset, element.start) });
                 }
-                if(element.value.indexOf("http") != -1) {
-                    queuedMessages.push({ "type": "url", "href": element.value });
+                if(element.type == "url") {
+                        queuedMessages.push({ "type": "url", "href": element.href,"value": element.value });
                 } else {
                     queuedMessages.push({ "type": "text", "message": element.value });
                 }
-                offset = end + element.value.length;
+                offset = element.end;
             });
             if(offset < remaining.length) {
                 queuedMessages.push({ "type": "text", "message": remaining.substring(offset, remaining.length) });
@@ -315,7 +314,8 @@ export class Room extends Component {
         allMessages.slice().reverse().forEach(parsedMessage => {
             var msg = parsedMessage.message || "";
             var queuedMessages = this.parseMessage(parsedMessage);
-            var timestamp = moment(parsedMessage.timestamp).format('h:mm A');
+            var date = moment(parsedMessage.timestamp);
+            var timestamp = date.format('h:mm A');
             if(list.length > 0 && list[list.length-1].session == parsedMessage.session) {
                 var lastMessage = list[list.length-1];
                 lastMessage.data.push({messages: queuedMessages, id: parsedMessage.id, timestamp: timestamp, edited: parsedMessage.edited})
@@ -756,7 +756,7 @@ export class Room extends Component {
             {this.isBanned() && <div>Banned until {state.banned}</div>}
             {!this.isBanned() && <Fragment>
                 {!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && <div><Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={true} fullscreen={state.fullscreen} hasRemote={state.remote} updateRoomState={this.updateRoomState}/></div>}
-                <div id="contentWithoutSidebar" class="contentWithoutSidebar">
+                <div id="videoWrapper" class="videoWrapper">
                     <VideoControls state={state} sendMessage={this.sendMessage} pauseVideo={this.pauseVideo} updateRoomState={this.updateRoomState} />
                     <div id="pagetoolbar" class={state.fullscreen ? "toolbarFullscreen" : ""}>
                         <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} startVideo={this.webrtc_start.bind(this)} stopVideo={this.webrtc_stop.bind(this)}/>

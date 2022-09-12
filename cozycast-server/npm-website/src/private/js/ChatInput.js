@@ -1,5 +1,6 @@
 import { Component, createRef, h, Fragment } from 'preact'
 import { ConfirmUpload } from './ConfirmUpload.js'
+import { ScreenshotModal } from './ScreenshotModal.js';
 import moment from 'moment'
 
 var globalTypingUsers = [];
@@ -51,7 +52,9 @@ export class ChatInput extends Component {
             typingUsers: [],
             sendFile: false,
             pasteFile: false,
-            editTarget: null
+            editTarget: null,
+            screenshotModal: false,
+            currentScreenshot: null
         };
     }
 
@@ -157,6 +160,24 @@ export class ChatInput extends Component {
             }
         }
     }
+
+    screenshot = () => {
+        let canvas = document.createElement('canvas');
+        let video = document.getElementById('video');
+
+        canvas.width = this.props.viewPort.width;
+        canvas.height = this.props.viewPort.height;
+
+        let ctx = canvas.getContext('2d');
+        ctx.drawImage( video, 0, 0, canvas.width, canvas.height );
+
+        let image = canvas.toDataURL('image/png');
+
+        this.setState((oldState) => {return {
+            screenshotModal: true,
+            currentScreenshot: image,
+        }})
+    }
     
     refTaWrapper = createRef();
     refChatboxText = createRef();
@@ -181,20 +202,20 @@ export class ChatInput extends Component {
         this.props.setChatState({editTarget: null, editContent: ""});
     }
 
-    render({state}) {
+    render(_,state) {
         return <Fragment>
-            <ConfirmUpload sendFile={this.state.sendFile} pasteFile={this.state.pasteFile} clear={this.clearFile} sendMessage={this.props.sendMessage}/>
+            {this.state.screenshotModal && <ScreenshotModal href={this.state.currentScreenshot} sendMessage={this.props.sendMessage} setChatState={this.setState.bind(this)}></ScreenshotModal>}
+            <ConfirmUpload sendFile={this.state.sendFile} pasteFile={this.state.pasteFile} clear={this.clearFile} sendMessage={this.props.sendMessage} screenshot={this.state.screenshotModal}/>
             <div id="chatbox" onclick={() => this.refChatboxText.current.focus()}>
                 {this.state.editTarget && <button class="editMode" onclick={this.exitEdit}>End Edit</button>}
                 <div class={`image-uploader ${this.state.chatBox.length != 0 ? "hasText" : ""}`}>
                     <div class="ta-wrapper" ref={this.refTaWrapper}>
-                    <textarea id="chat-textbox" ref={this.refChatboxText} value={this.state.chatBox} class="chatbox-textarea" oninput={this.chatInput} onkeypress={this.chatEnter} onpaste={this.openConfirmWindowPaste}>
-                    </textarea>
+                        <textarea id="chat-textbox" ref={this.refChatboxText} value={this.state.chatBox} class="chatbox-textarea" oninput={this.chatInput} onkeypress={this.chatEnter} onpaste={this.openConfirmWindowPaste}>
+                        </textarea>
                     </div>
                     <div class="image-uploader-button-wrapper">
                         <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange={this.openConfirmWindow} ref={this.refImageUploadFile}/>
-                        {this.state.chatBox.length == 0 &&
-                            <img class="image-uploader-button" src="/svg/image_upload.svg" onclick={this.openPictureUpload}/>}
+                        {this.state.chatBox.length == 0 && <Fragment><img class="image-uploader-button" src="/svg/screenshot.svg" onclick={this.screenshot}/><img class="image-uploader-button" src="/svg/image_upload.svg" onclick={this.openPictureUpload}/></Fragment>}
                     </div>
                 </div>
                 <div id="typing">

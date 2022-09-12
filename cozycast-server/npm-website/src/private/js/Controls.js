@@ -107,11 +107,7 @@ export class Controls extends Component {
         } else {
             document.getElementById("pagecontent").requestFullscreen()
             document.getElementById("pagecontent").addEventListener('mousemove',removeCursor);
-            if(this.props.state.remote){
-                this.props.sendMessage({
-                    action : 'drop_remote'
-                });
-            }
+            setTimeout(removeCursor,100);
         }
     }
 
@@ -148,7 +144,7 @@ export class Controls extends Component {
     }
 
     render({state, roomId}){
-        let middle = <div class={`subControls ${state.fullscreen && state.remote ? "fullscreenRemote" : ""}`}>
+        let middle = <div class={`subControls ${state.fullscreen ? "fullscreenRemote" : ""}`}>
                 <Button enabled={false} onclick={this.dropRemoteAndCenter} 
                     title="Drop and center Remote" style={`buttonSmall optional ${state.remote ? "" :"remoteHidden"}`}>
                     <img class="video-control-icon" src="/svg/crosshair.svg"/>

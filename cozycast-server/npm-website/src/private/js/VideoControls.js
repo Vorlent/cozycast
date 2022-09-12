@@ -189,11 +189,12 @@ export class VideoControls extends Component {
                 </div>}
               {state.videoLoading == "loading" && !state.videoPaused &&
                   <div class="paused-screen">
-                  <div class="loading-screen">
-                      <img class="loading-animation" src="/svg/loading.svg"/>
-                      LOADING...
-                  </div>
-              </div>}
+                    <div class="loading-screen">
+                        <img class="loading-animation" src="/svg/loading.svg"/>
+                        LOADING...
+                    </div>
+                </div>
+                }
             </div>
             <audio id="autoplay" controls="" volume="0" src="/audio/pop.wav" autoplay
                 preload="auto" onplay={e => this.autoplayDetected(false)}/>
