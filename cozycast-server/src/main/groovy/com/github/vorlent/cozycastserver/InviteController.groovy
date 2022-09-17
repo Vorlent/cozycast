@@ -8,7 +8,6 @@ import javax.validation.constraints.Null
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.HttpResponse
 import io.micronaut.security.annotation.Secured
-import io.micronaut.security.authentication.UserDetails
 import io.micronaut.security.token.jwt.generator.JwtTokenGenerator
 import groovy.util.logging.Slf4j
 import java.time.ZonedDateTime
@@ -42,9 +41,9 @@ class InviteController {
             } else {
                 inv.uses += 1
                 inv.save(flush: true)
-                def token = jwtTokenGenerator.generateToken(new UserDetails(inv.id + inv.uses, ["ROLE_GUEST"]), TOKEN_EXPIRATION)
+                //def token = jwtTokenGenerator.generateToken(new UserDetails(inv.id + inv.uses, ["ROLE_GUEST"]), TOKEN_EXPIRATION)
                 return [ room: inv.room,
-                         token: token ]
+                         token: 'token' ]
             }
         }
     }

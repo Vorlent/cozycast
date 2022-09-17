@@ -31,7 +31,7 @@ class ChatMessage {
     }
 
     static mapping = {
-        id generator: 'uuid'
+        id generator: 'uuid2'
     }
 
     static constraints = {

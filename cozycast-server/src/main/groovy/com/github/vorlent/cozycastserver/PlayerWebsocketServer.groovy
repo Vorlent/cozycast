@@ -8,10 +8,10 @@ import io.micronaut.websocket.annotation.ServerWebSocket
 import io.micronaut.websocket.WebSocketSession
 import io.micronaut.websocket.CloseReason
 import io.micronaut.security.token.jwt.validator.JwtTokenValidator
+import io.micronaut.security.authentication.Authentication
 
-import io.reactivex.Flowable
-import io.reactivex.schedulers.Schedulers
 import com.github.vorlent.cozycastserver.domain.ChatMessage
+import com.github.vorlent.cozycastserver.UserState
 
 import java.time.format.DateTimeFormatter
 import java.time.ZonedDateTime
@@ -242,13 +242,15 @@ class PlayerWebsocketServer {
     private WebSocketBroadcaster broadcaster
     private RoomRegistry roomRegistry
     private JwtTokenValidator jwtTokenValidator
+    private final UserFetcher userFetcher
 
     PlayerWebsocketServer(WebSocketBroadcaster broadcaster, KurentoClient kurento,
-        RoomRegistry roomRegistry, JwtTokenValidator jwtTokenValidator) {
+        RoomRegistry roomRegistry, JwtTokenValidator jwtTokenValidator,UserFetcher userFetcher) {
         this.broadcaster = broadcaster
         this.kurento = kurento
         this.roomRegistry = roomRegistry
         this.jwtTokenValidator = jwtTokenValidator
+        this.userFetcher = userFetcher
     }
 
     private void keepalive(Room room, WebSocketSession session, Map jsonMessage) {
@@ -778,11 +780,40 @@ class PlayerWebsocketServer {
             ))
     }
 
+    private void validate(Room room, WebSocketSession session, Map jsonMessage) {
+        def token = jsonMessage.token
+        if(token != null) {
+            def completed = false;
+            jwtTokenValidator.validateToken(token,null).subscribe( 
+                auth -> {
+                    def name = auth.getName();
+                    completed =true;
+                    log.info name
+                    if(name != null) {
+                        UserState user = userFetcher.findByUsername(name);
+                        if(user != null){
+                            UserSession sessionUser = room.users.get(session.getId())
+                            sessionUser.username = user.getUsername();
+                            sessionUser.avatarUrl = user.getAvatarUrl();
+                        }
+                    }
+                },null,
+                comp -> 
+                {
+                    if(!completed){
+                        log.info "not completed"
+                    }
+                }
+            )
+        }
+    }
+
     @OnMessage
     void onMessage(WebSocketSession session, String room, Map jsonMessage) {
         String sessionId = session.getId()
         Room currentRoom = roomRegistry.getRoom(room)
 
+        validate(currentRoom, session, jsonMessage);
         try {
             switch (jsonMessage.action) {
                 case "keepalive":

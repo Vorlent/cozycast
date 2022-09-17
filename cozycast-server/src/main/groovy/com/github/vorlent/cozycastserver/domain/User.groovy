@@ -1,17 +1,24 @@
 package com.github.vorlent.cozycastserver.domain
 
+import com.github.vorlent.cozycastserver.UserState
+
 import grails.gorm.annotation.Entity
-import io.micronaut.security.authentication.providers.UserState
 import org.grails.datastore.gorm.GormEntity
+import io.micronaut.core.annotation.Introspected
 import java.time.ZonedDateTime
 import groovy.util.logging.Slf4j
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
 @Slf4j
+@Introspected
 @Entity
-class User implements GormEntity<User>, UserState {
+@JsonIgnoreProperties(['password'])
+class User implements GormEntity<User>, UserState{
     String email
     String username
-    String password
+    String password 
+    String avatarUrl = "/png/default_avatar.png"
+    String nameColor = "#fff"
     boolean enabled = true
     boolean accountExpired = false
     boolean accountLocked = false
