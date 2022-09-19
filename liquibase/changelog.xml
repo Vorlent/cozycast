@@ -155,6 +155,15 @@
             <column name="name_color" type="varchar(16)">
                 <constraints nullable="false"/>
             </column>
+            <column name="refresh_token" type="varchar(128)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="token_revoked" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="token_created" type="timestamp with time zone">
+                <constraints nullable="true"/>
+            </column>
         </addColumn>
     </changeSet>
 </databaseChangeLog>

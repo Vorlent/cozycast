@@ -13,6 +13,8 @@ import com.github.vorlent.cozycastserver.domain.User
 @Secured(["ROLE_USER"])
 @Controller("/account")
 class AccountManagementController {
+
+    
     @Get
     ArrayList accounts() {
         ArrayList user = null

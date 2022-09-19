@@ -29,6 +29,11 @@ micronaut:
         authentication: bearer
         token:
             jwt:
+                generator:
+                    access-token:
+                        expiration: 60000
+                    refresh-token:
+                        secret: ${COZYCAST_JWT_SECRET}
                 enabled: true
                 signatures:
                     secret:

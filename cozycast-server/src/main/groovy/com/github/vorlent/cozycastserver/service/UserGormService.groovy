@@ -10,7 +10,11 @@ interface UserGormService {
 
     User findByUsername(String username)
 
+    User findByRefreshToken(String refreshToken)
+
     User findById(Serializable id)
+
+    User updateUsername(String id, String refreshToken)
 
     void delete(Serializable id)
 
