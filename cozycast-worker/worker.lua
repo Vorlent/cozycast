@@ -106,6 +106,7 @@ local pressed_keys = {}
 
 function wait_for_pulseaudio()
     while true do
+        print("wait_for_pulseaudio ")
         local pgrep = io.popen('pgrep "pulseaudio" -c', 'r')
         local stdout = pgrep:read("*a")
         local count = tonumber(stdout)
