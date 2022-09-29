@@ -1,6 +1,7 @@
 package com.github.vorlent.cozycastserver.account
 
 import com.github.vorlent.cozycastserver.service.RegisterService
+import com.github.vorlent.cozycastserver.service.MessageSource
 
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Body
@@ -12,20 +13,38 @@ import javax.validation.Valid
 
 import io.micronaut.security.annotation.Secured
 
+
+import groovy.util.logging.Slf4j
+
+import javax.validation.ConstraintViolationException
+import io.micronaut.http.annotation.Error
+
+@Slf4j
 @Secured("isAnonymous()")
 @Validated
 @Controller("/register")
 class RegisterController {
 
     protected final RegisterService registerService
+    private final MessageSource messageSource
 
-    RegisterController(RegisterService registerService){
+    RegisterController(RegisterService registerService, MessageSource messageSource){
         this.registerService = registerService;
+        this.messageSource = messageSource;
     }
 
     @Post
-    String register(@Body @Valid Account account) {
-        registerService.register("email@mail.com",account.username, account.password, ['ROLE_USER']);
-        return "ok";
+    HttpResponse<?> register(@Body @Valid Account account) {
+        boolean registerd = registerService.register(null,account.username, account.password, false);
+        if(registerd) return HttpResponse.ok();
+        else { 
+            return HttpResponse.badRequest().body([errors: ["Username already taken"]]);
+            }
+    }
+
+    @Error(exception = ConstraintViolationException) 
+    HttpResponse<?> onInvalidJson(ConstraintViolationException ex) { // 
+        HttpResponse.badRequest().body([errors: messageSource.violationsMessages(ex.constraintViolations) ])
     }
 }
+

@@ -14,7 +14,9 @@ class ChatMessage {
     String message
     String type
     String image
+    String nameColor
     boolean edited
+    boolean anonymous
     ZonedDateTime timestamp
 
     void afterDelete() {

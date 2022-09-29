@@ -1,10 +1,11 @@
 import { Component } from 'preact'
 import { route } from 'preact-router'
+import { authFetch} from './Authentication.js'
 
 export class Invite extends Component {
 
     componentWillMount() {
-        fetch('/api/invite/use/' + this.props.code)
+        authFetch('/api/invite/use/' + this.props.code)
         .then((e) => {
             if(e.status != 200) {
                 route("/", true);

@@ -10,8 +10,12 @@ class Room {
     WorkerSession worker
     String remote
     String title
-    Boolean inviteOnly = false
+    Boolean accountOnly = false
+    Boolean verifiedOnly = false
+    Boolean inviteOnly = true
     Boolean centerRemote = false
+    Boolean default_remote_permission = false
+    Boolean default_image_permission = false
     VideoSettings videoSettings = new VideoSettings(
         desktopWidth: 1280,
         desktopHeight: 720,

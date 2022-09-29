@@ -1,5 +1,6 @@
-import { Component, h } from 'preact'
+import { Component, h, Fragment } from 'preact'
 import { InviteModal } from './InviteModal.js'
+import { authFetch} from './Authentication.js'
 
 export class RoomList extends Component {
     constructor(props){
@@ -12,8 +13,7 @@ export class RoomList extends Component {
     }
 
     deleteRoom(roomId) {
-        var token = localStorage.getItem("adminToken");
-        fetch('/api/room/' + roomId, { method: "DELETE", headers: { 'Authorization': "Bearer " + token } })
+        authFetch('/api/room/' + roomId, { method: "DELETE" })
         .then(e => {
             this.refresh()
         });
@@ -22,7 +22,7 @@ export class RoomList extends Component {
     refresh() {
         fetch('/api/room').then((e) => e.json()).then((e) => {
             this.setState({
-                roomlist: e.map(room => ({ "id": room.id, "name": room.id, "userCount": room.userCount }))
+                roomlist: e.map(room => ({ "id": room.id, "name": room.id, "userCount": room.userCount, "accountOnly": room.accountOnly,"verifiedOnly": room.verifiedOnly,"inviteOnly": room.inviteOnly}))
             })
         });
     }
@@ -31,35 +31,74 @@ export class RoomList extends Component {
         this.refresh()
     }
 
-    render({ state }, { xyz = [] }) {
-    return <div class="room-list-background">
-            {this.state.inviteModal && <InviteModal state={state} roomId={this.state.currentRoom} updateSettingsState={this.setState.bind(this)}/>}
-            <div class="room-list">
-                <div class="room-list-title">
-                    Rooms
+    canJoin(room) {
+        if(room.inviteOnly){
+            let perm = this.props.roomPerms.get(room.name);
+            if(!perm || perm.banned) return false;
+            return perm.invited;
+        }
+        if(room.accountOnly){
+            return this.props.loggedIn
+        }
+        return true;
+    }
+
+    render({profile,loggedIn,roomPerms}) {
+        console.log(this.state)
+    return <div class="roomManagement">
+            <div class="room-list-background">
+                {this.state.inviteModal && <InviteModal roomId={this.state.currentRoom} updateSettingsState={this.setState.bind(this)}/>}
+                <div class="room-list">
+                    <div class="room-list-title">
+                        Rooms
+                    </div>
+                    <table class="room-list-table">
+                        <colgroup>
+                            {profile.admin && 
+                                <Fragment>
+                                    <col style={{width: '10%'}}/>
+                                    <col style={{width: '10%'}}/>
+                                    <col style={{width: '45%'}}/>
+                                    <col style={{width: '15%'}}/>
+                                    <col style={{width: '20%'}}/>
+                                </Fragment>
+                            }
+                            {!profile.admin && 
+                                <Fragment>
+                                    <col style={{width: '65%'}}/>
+                                    <col style={{width: '15%'}}/>
+                                    <col style={{width: '20%'}}/>
+                                </Fragment>
+                            }
+                        </colgroup>
+                        <tbody>
+                        {this.state.roomlist.map(room =>
+                            <tr>
+                                {profile.admin && 
+                                    <Fragment>
+                                        <td><button type="button" class="btn btn-primary" onclick={e => this.deleteRoom(room.id)}>
+                                            Delete
+                                            </button></td>
+                                        <td><button type="button" class="btn btn-primary" onclick={e => this.setState({inviteModal: true, currentRoom: room.id})}>
+                                            Invite
+                                            </button></td>
+                                    </Fragment>
+                                }
+                                <td><span class="room-list-entry-name">{room.name}</span>
+                                    {room.inviteOnly && <span class="room-badge">Invite Only</span>}
+                                    {room.verifiedOnly && <span class="room-badge">Verified Only</span>}
+                                    {room.accountOnly  && <span class="room-badge">Account Only</span>}</td>
+                                <td><span class="room-list-entry-usercount">{room.userCount} users</span></td>
+                                <td class ="room-list-join-column" ><button type="button" class="btn btn-primary btn-join" onclick={e =>  window.location.pathname = `/room/${room.id}` }
+                                disabled={!this.canJoin(room)}>
+                                        {this.canJoin(room)? 'Join' : 'Closed'}
+                                        </button></td>
+                            </tr>
+                        )}
+                        </tbody>
+                    </table>
                 </div>
-                <table class="room-list-table">
-                    <colgroup>
-                       <col style={{width: '40%'}}/>
-                       <col style={{width: '40%'}}/>
-                       <col style={{width: '20%'}}/>
-                    </colgroup>
-                    <tbody>
-                    {this.state.roomlist.map(room =>
-                        <tr>
-                            <td><span class="room-list-entry-name"><a href={`/room/${room.id}`}>{room.name}</a></span></td>
-                            <td><span class="room-list-entry-usercount">{room.userCount} users</span></td>
-                            <td><button type="button" class="btn btn-primary" onclick={e => this.deleteRoom(room.id)}>
-                                Delete
-                            </button></td>
-                            <td><button type="button" class="btn btn-primary" onclick={e => this.setState({inviteModal: true, currentRoom: room.id})}>
-                                Invite
-                            </button></td>
-                        </tr>
-                    )}
-                    </tbody>
-                </table>
             </div>
-        </div>;
+        </div>
     }
 }

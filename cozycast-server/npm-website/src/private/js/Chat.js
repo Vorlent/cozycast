@@ -26,6 +26,7 @@ export class Chat extends Component {
                 chatMessages={this.props.state.chatMessages} session={this.props.state.session} 
                 newMessage={this.props.state.newMessage} setChatState={this.setState.bind(this)}
                 forceChatScroll={this.props.state.forceChatScroll} updateRoomState={this.props.updateRoomState}
+                profile={this.props.profile}
                 />
             <ChatInput sendMessage={this.props.sendMessage} historyMode={this.state.historyMode} editContent={this.state.editContent} editTarget={this.state.editTarget} viewPort={this.props.state.viewPort} setChatState={this.setState.bind(this)}/>
         </div>

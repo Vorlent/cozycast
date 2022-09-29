@@ -128,28 +128,11 @@
     </changeSet>
 
     <changeSet id="10" author="vorlent">
-        <createTable tableName="role">
-            <column name="version" type="int">
-                <constraints nullable="false"/>
-            </column>
-            <column name="authority" type="varchar(128)">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-        </createTable>
-
-        <createTable tableName="user_role">
-            <column name="id" type="varchar(64)" autoIncrement="false">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="version" type="int">
-                <constraints nullable="false"/>
-            </column>
-            <column name="user_id" type="varchar(64)"/>
-            <column name="role_id" type="varchar(128)"/>
-        </createTable>
-
         <addColumn tableName="users">
             <column name="avatar_url" type="varchar(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nickname" type="varchar(64)">
                 <constraints nullable="false"/>
             </column>
             <column name="name_color" type="varchar(16)">
@@ -165,5 +148,54 @@
                 <constraints nullable="true"/>
             </column>
         </addColumn>
+        <addColumn tableName="chat_message">
+            <column name="anonymous" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name_color" type="varchar(16)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
     </changeSet>
+
+    <changeSet id="11" author="vorlent">
+        <addColumn tableName="room_invite">
+            <column name="remote_permission" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="image_permission" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <createTable tableName="room_permission">
+            <column name="id" type="varchar(64)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="room" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="remote_permission" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="image_permission" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="banned" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="banned_until" type="timestamp with time zone">
+                <constraints nullable="true"/>
+            </column>
+            <column name="invited" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
 </databaseChangeLog>

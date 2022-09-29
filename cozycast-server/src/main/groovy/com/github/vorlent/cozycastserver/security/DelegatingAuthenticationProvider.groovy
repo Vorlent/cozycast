@@ -1,7 +1,6 @@
 package com.github.vorlent.cozycastserver.security
 
 
-import com.github.vorlent.cozycastserver.AuthoritiesFetcher
 import com.github.vorlent.cozycastserver.PasswordEncoder
 import com.github.vorlent.cozycastserver.UserFetcher
 import com.github.vorlent.cozycastserver.UserState
@@ -35,16 +34,13 @@ class DelegatingAuthenticationProvider implements AuthenticationProvider {
 
     private final UserFetcher userFetcher
     private final PasswordEncoder passwordEncoder
-    private final AuthoritiesFetcher authoritiesFetcher
     private final Scheduler scheduler
 
     DelegatingAuthenticationProvider(UserFetcher userFetcher,
                                      PasswordEncoder passwordEncoder,
-                                     AuthoritiesFetcher authoritiesFetcher,
                                      @Named(TaskExecutors.IO) ExecutorService executorService) { 
         this.userFetcher = userFetcher
         this.passwordEncoder = passwordEncoder
-        this.authoritiesFetcher = authoritiesFetcher
         this.scheduler = Schedulers.fromExecutorService(executorService)
     }
 
@@ -57,7 +53,8 @@ class DelegatingAuthenticationProvider implements AuthenticationProvider {
             if (authenticationFailed) {
                 emitter.error(new AuthenticationException(authenticationFailed))
             } else {
-                emitter.next(createSuccessfulAuthenticationResponse(user))
+                List<String> authorities = user.isAdmin() ? ["ROLE_ADMIN"] : [];
+                emitter.next(AuthenticationResponse.success(user.username, authorities))
                 emitter.complete()
             }
         }, FluxSink.OverflowStrategy.ERROR)
@@ -92,10 +89,5 @@ class DelegatingAuthenticationProvider implements AuthenticationProvider {
     private UserState fetchUserState(AuthenticationRequest authRequest) {
         final String username = authRequest.identity
         userFetcher.findByUsername(username)
-    }
-
-    private AuthenticationResponse createSuccessfulAuthenticationResponse(UserState user) {
-        List<String> authorities = authoritiesFetcher.findAuthoritiesByUsername(user.username)
-        AuthenticationResponse.success(user.username, authorities)
     }
 }

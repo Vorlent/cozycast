@@ -2,7 +2,6 @@ package com.github.vorlent.cozycastserver
 
 import com.github.vorlent.cozycastserver.service.UserGormService
 import com.github.vorlent.cozycastserver.domain.User
-import com.github.vorlent.cozycastserver.AuthoritiesFetcher
 
 import io.micronaut.security.authentication.Authentication
 import io.micronaut.security.errors.OauthErrorResponseException
@@ -12,6 +11,10 @@ import jakarta.inject.Singleton
 import org.reactivestreams.Publisher
 import reactor.core.publisher.Flux
 import reactor.core.publisher.FluxSink
+
+import java.time.format.DateTimeFormatter
+import java.time.ZonedDateTime
+import java.time.ZoneId
 
 import static io.micronaut.security.errors.IssuingAnAccessTokenErrorCode.INVALID_GRANT
 
@@ -23,16 +26,14 @@ class CustomRefreshTokenPersistence implements RefreshTokenPersistence {
 
 
     private final UserGormService userGormService
-    private final AuthoritiesFetcher authoritiesFetcher
 
-    CustomRefreshTokenPersistence(UserGormService userGormService,AuthoritiesFetcher authoritiesFetcher){
+    CustomRefreshTokenPersistence(UserGormService userGormService){
         this.userGormService = userGormService;
-        this.authoritiesFetcher = authoritiesFetcher;
     }
 
     @Override
     public void persistToken(final RefreshTokenGeneratedEvent event) {
-        userGormService.updateUsername(event.authentication.name, event.refreshToken);
+        userGormService.updateRefreshTokenAndTokenCreated(event.authentication.name, event.refreshToken, ZonedDateTime.now(ZoneId.of("UTC")));
     }
 
     @Override
@@ -43,7 +44,8 @@ class CustomRefreshTokenPersistence implements RefreshTokenPersistence {
                 if(user.tokenRevoked){
                     emitter.error(new OauthErrorResponseException(INVALID_GRANT, "refresh token revoked", null)) 
                 } else {
-                emitter.next(Authentication.build(user.username,authoritiesFetcher.findAuthoritiesByUsername(user.username)));
+                List<String> authorities = user.isAdmin() ? ["ROLE_ADMIN"] : [];
+                emitter.next(Authentication.build(user.username, authorities))
                 emitter.complete();
                 }
             } else {

@@ -51,6 +51,7 @@ dependencies {
 application {
     mainClass.set("com.github.vorlent.cozycastserver.Application")
 }
+
 java {
     sourceCompatibility = JavaVersion.toVersion("11")
     targetCompatibility = JavaVersion.toVersion("11")

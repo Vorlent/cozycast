@@ -9,6 +9,8 @@ import io.micronaut.http.multipart.CompletedFileUpload
 import io.micronaut.http.server.types.files.SystemFile
 import io.micronaut.http.HttpResponse
 import io.micronaut.security.annotation.Secured
+import io.micronaut.security.authentication.Authentication
+import io.micronaut.security.rules.SecurityRule
 
 import java.lang.String
 import java.io.InputStream
@@ -26,6 +28,7 @@ import java.nio.file.Files
 import java.net.URLConnection
 
 import groovy.util.logging.Slf4j
+import com.github.vorlent.cozycastserver.domain.User
 
 
 class AvatarUploadResponse {
@@ -38,6 +41,7 @@ class AvatarUploadResponse {
 class AvatarController {
 
     String avatarDirectory = "/var/cozycast/avatar"
+    String deleteAvatarPrefix = "/var/cozycast"
 
     private String generateFilename() {
         try {
@@ -66,8 +70,9 @@ class AvatarController {
         }
     }
 
+    @Secured(SecurityRule.IS_AUTHENTICATED)
     @Post(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA)
-    def upload(CompletedFileUpload avatar) {
+    def upload(Authentication authentication, CompletedFileUpload avatar) {
         try {
             String filename = generateFilename();
             log.info "Uploaded file: $filename"
@@ -76,7 +81,26 @@ class AvatarController {
             if(fileExt != null) {
                 Path path = new File(avatarDirectory, filename + fileExt).toPath();
                 Files.write(path, content);
-                return new AvatarUploadResponse(url: "/avatar/image/${filename}${fileExt}")
+                String url = "/avatar/image/${filename}${fileExt}"
+                //save pfp url to user account
+                User user;
+                User.withTransaction {
+                    user = User.get(authentication.getName())
+                    //delete old pfp from database if not default
+                    if(user.avatarUrl != "/png/default_avatar.png"){
+                        try {
+                            String[] userAvatar = user.avatarUrl.split('/');
+                            boolean fileSuccessfullyDeleted = new File(avatarDirectory, userAvatar[userAvatar.size() - 1]).delete()
+                            log.info "Deleted file ${user.avatarUrl} ${fileSuccessfullyDeleted} "
+                        } catch(IOException e) {
+                            log.error "Deleting file ${user.avatarUrl} failed."
+                        }
+                    }
+                    //assing new pfp
+                    user.avatarUrl = url;
+                    user.save();
+                }
+                return new AvatarUploadResponse(url: url)
             } else {
                 return HttpResponse.badRequest()
             }

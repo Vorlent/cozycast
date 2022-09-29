@@ -65,16 +65,18 @@ export class ProfileModal extends Component {
                 action : 'changeprofilepicture',
                 url : newAvatarUrl
         });
-    }   
+        }   
         this.props.updateRoomState({
             muteChatNotification: this.state.muteChatNotification,
             showUsernames: this.state.showUsernames,
-            legacyDesign: this.state.legacyDesign,
             showIfMuted: this.state.showIfMuted,
             userlistOnLeft: this.state.userlistOnLeft,
             transparentChat: this.state.transparentChat,
             avatarUrl: newAvatarUrl,
             username: newUsername
+        })
+        this.props.setAppState({
+            legacyDesign: this.state.legacyDesign
         })
 
         localStorage.setItem("username", this.state.username);
@@ -93,7 +95,6 @@ export class ProfileModal extends Component {
     }
     
     onSubmit = e => {
-      console.log("Submitted ", this.state);
       e.preventDefault();
       this.saveProfile();
     }

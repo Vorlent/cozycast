@@ -3,6 +3,7 @@ import moment from 'moment'
 import kurentoUtils from 'kurento-utils'
 import * as linkify from 'linkifyjs'
 import Favico from './libs/favico-0.3.10.min.js'
+import { route } from 'preact-router'
 
 import { RoomSidebar } from './RoomSidebar.js'
 import { ProfileModal } from './ProfileModal.js'
@@ -12,6 +13,7 @@ import { Controls } from './Controls.js'
 import { SidebarState, WorkerStatus } from './index.js'
 import { UserHoverName } from './UserHoverName.js'
 import { typing, filterTyping, clearTyping } from './ChatInput.js'
+import { TokenStatus, getToken } from './Authentication'
 
 
 var favicon = new Favico({
@@ -57,6 +59,9 @@ export class Room extends Component {
         this.state = {
             roomId: roomId,
             roomToken: localStorage.getItem("room-" + roomId + "-token"),
+            loggedIn: false,
+            admin: false,
+            profile: this.props.profile,
             userlist: [],
             roomlist: [],
             chatMessages: [],
@@ -138,7 +143,22 @@ export class Room extends Component {
             }
         }
         //if no websocket present create a new one
-        if(!this.websocket) this.connect(this.props.roomId)
+        if(!this.websocket) {
+            getToken().then(e =>{
+                let bearerToken = e;
+                switch (e){
+                    case TokenStatus.EXPIRED:
+                        bearerToken = null;
+                        break;
+                    case TokenStatus.NO_TOKEN:
+                        bearerToken = null;
+                        break;
+                    default:
+                        break;
+                }
+                this.connect(this.props.roomId,bearerToken)
+            })
+        }
         
         window.onbeforeunload = () => {
             if(this.websocket) {
@@ -316,13 +336,16 @@ export class Room extends Component {
             var queuedMessages = this.parseMessage(parsedMessage);
             var date = moment(parsedMessage.timestamp);
             var timestamp = date.format('h:mm A');
-            if(list.length > 0 && list[list.length-1].session == parsedMessage.session) {
-                var lastMessage = list[list.length-1];
-                lastMessage.data.push({messages: queuedMessages, id: parsedMessage.id, timestamp: timestamp, edited: parsedMessage.edited})
+            var lastMessage = null;
+            if(list.length > 0) lastMessage = list[list.length-1];
+            if(list.length > 0 && lastMessage.session == parsedMessage.session && lastMessage.anonymous == parsedMessage.anonymous) {
+                lastMessage.data.push({messages: queuedMessages, id: parsedMessage.id, timestamp: timestamp,msg: msg, edited: parsedMessage.edited})
             } else {
                 list.push({
                     username: parsedMessage.username,
+                    nameColor: parsedMessage.nameColor,
                     session: parsedMessage.session,
+                    anonymous: parsedMessage.anonymous,
                     data: [{messages: queuedMessages, id: parsedMessage.id, timestamp: timestamp, msg: msg, edited: parsedMessage.edited}]
                 })
             }
@@ -340,7 +363,9 @@ export class Room extends Component {
 
         this.setState((state) => {
             var list;
-            if(this.state.chatMessages.length > 0 && state.chatMessages[state.chatMessages.length-1].session == parsedMessage.session) {
+            var lastMessage;
+            if(this.state.chatMessages.length > 0) lastMessage = state.chatMessages[state.chatMessages.length-1];
+            if(this.state.chatMessages.length > 0 && lastMessage.session == parsedMessage.session && lastMessage.anonymous == parsedMessage.anonymous) {
                 var lastMessageID = state.chatMessages[state.chatMessages.length-1].data[0].id;
                 list = state.chatMessages.map((message) => {
                     if(message.data[0].id === lastMessageID){
@@ -356,6 +381,8 @@ export class Room extends Component {
                 list = [...state.chatMessages, {
                     username: parsedMessage.username,
                     session: parsedMessage.session,
+                    nameColor: parsedMessage.nameColor,
+                    anonymous: parsedMessage.anonymous,
                     data: [{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A'),msg: msg, edited: parsedMessage.edited}]
                 }]
             };
@@ -397,7 +424,8 @@ export class Room extends Component {
                 remote: false,
                 lastTimeSeen: moment(parsedMessage.lastTimeSeen).format('h:mm A'),
                 active: parsedMessage.active,
-                muted: parsedMessage.muted
+                muted: parsedMessage.muted,
+                nameColor: parsedMessage.nameColor
             }]
         }})
     }
@@ -410,7 +438,8 @@ export class Room extends Component {
                 remote: user.remote,
                 lastTimeSeen: moment(user.lastTimeSeen).format('h:mm A'),
                 active: user.active,
-                muted: user.muted
+                muted: user.muted,
+                nameColor: user.nameColor
             }});
         this.setState((state) => { return {userlist: users}})
     }
@@ -516,9 +545,18 @@ export class Room extends Component {
         }
         return false
     }
+
+    unauthorized = (parsedMessage) => {
+        switch(parsedMessage.message){
+            default:
+                //not using router since websocket needs to be closed
+                window.location.pathname = '/';
+                break;
+        }
+    }
     
     keepAlive;
-    connect = (room) => {
+    connect = (room,bearerToken) => {
         if(this.isBanned()) {
             return;
         }
@@ -533,8 +571,20 @@ export class Room extends Component {
             switch (parsedMessage.action) {
                 case 'keepalive':
                     break;
+                case 'authenticated':
+                    this.setState(state => {return {admin: parsedMessage.admin}})
+                    this.keepAlive = setInterval(() => {
+                        this.sendMessage({
+                            action : 'keepalive',
+                        });
+                    }, 30000);
+                    this.webrtc_start()
+                    break
                 case 'ban':
                     this.ban(parsedMessage)
+                    break;
+                case 'unauthorized':
+                    this.unauthorized(parsedMessage)
                     break;
                 case 'session_id':
                     this.setState(state => {return {
@@ -639,38 +689,29 @@ export class Room extends Component {
             this.webrtc_stop()
             clearInterval(this.keepAlive)
             this.keepAlive = null;
-            setTimeout(() => this.connect(room), 1500)
+            setTimeout(() => this.connect(room,bearerToken), 1500)
         }
       
         this.websocket.onopen = (event) => {
             setTimeout(() => {
-                this.start();
+                this.start(bearerToken);
                 document.addEventListener("visibilitychange", () => {
                     this.calcActiveStatus(document.visibilityState != "visible");
                   });
             }, 300);
         };
 
-        this.setState({
+        this.setState(state => {return {
             roomId: room
-        })
-      
-        this.keepAlive = setInterval(() => {
-            this.sendMessage({
-                action : 'keepalive',
-            });
-        }, 30000);
+        }})
     }
     
-    start = () => {
+    start = (bearerToken) => {
         this.sendMessage({
             action : 'join',
-            username: this.state.username,
-            url: this.state.avatarUrl,
-            token: this.state.roomToken,
+            token: bearerToken,
             muted: (this.state.showIfMuted ? this.state.muted : false)
         });
-        this.webrtc_start()
     }
     
     webrtc_start = () => {
@@ -731,7 +772,7 @@ export class Room extends Component {
             }
         });
         var settings = message.videoSettings
-        this.setState({
+        this.setState(state => {return {
             viewPort: { width: settings.desktopWidth,
                 height: settings.desktopHeight
             },
@@ -743,7 +784,7 @@ export class Room extends Component {
                 videoBitrate: settings.videoBitrate,
                 audioBitrate: settings.audioBitrate
             }
-        }
+        }}
         )
     }
     
@@ -752,7 +793,7 @@ export class Room extends Component {
     }
 
     render({ roomId }, state) {
-    return <div id="pagecontent" class={state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}>
+    return <Fragment>
             {this.isBanned() && <div>Banned until {state.banned}</div>}
             {!this.isBanned() && <Fragment>
                 {!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && <div><Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={true} fullscreen={state.fullscreen} hasRemote={state.remote} updateRoomState={this.updateRoomState}/></div>}
@@ -763,10 +804,10 @@ export class Room extends Component {
                         {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} updateRoomState={this.updateRoomState}/>}
                     </div>
                 </div>
-                {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState}/>}
-                {state.profileModal && <ProfileModal state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState}/>}
+                {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile}/>}
+                {state.profileModal && <ProfileModal state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} setAppState={this.props.setAppState}/>}
                 {state.hoverText && <UserHoverName state={state}/>}
                 </Fragment>}
-        </div>
+        </Fragment>
     }
 }

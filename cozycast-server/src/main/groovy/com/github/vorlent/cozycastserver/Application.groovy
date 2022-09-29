@@ -20,7 +20,7 @@ class Application implements ApplicationEventListener<ServerStartupEvent> {
 
     @Override
     void onApplicationEvent(ServerStartupEvent event) { 
-        registerService.register('test@user.example', 'username1', 'password1', ['ROLE_USER']) 
+        registerService.register('test@user.example', 'username', 'password', true) 
     }
 
     static void main(String[] args) {

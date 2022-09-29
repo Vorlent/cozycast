@@ -19,10 +19,11 @@ import java.time.ZoneId
 class User implements GormEntity<User>, UserState{
     String email
     String username
+    String nickname
     String password 
 
     String refreshToken
-    ZonedDateTime tokenCreated
+    ZonedDateTime tokenCreated = null
     Boolean tokenRevoked = false
 
     String avatarUrl = "/png/default_avatar.png"
@@ -33,22 +34,18 @@ class User implements GormEntity<User>, UserState{
     boolean passwordExpired = false
     boolean admin = false
 
+
     static constraints = {
         email nullable: true, blank: false
         username nullable: false, blank: false, unique: true
         password nullable: false, blank: false, password: true
         refreshToken nullable: true, blank: false
-        tokenCreated nullable: true, blank: true
+        tokenCreated nullable: true
     }
-
-    //boolean isTokenExpired() {
-    //    def now = ZonedDateTime.now(ZoneId.of("UTC"))
-    //    return (refreshToken && expiration > now)
-    //}
 
     static mapping = {
         table 'users'
         id name: 'username', generator: 'assigned'
         password column: '`password`'
-    }
+        }
 }

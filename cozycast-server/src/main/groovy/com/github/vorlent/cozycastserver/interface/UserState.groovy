@@ -4,11 +4,15 @@ interface UserState {
 
     String getUsername()
 
+    String getNickname()
+
     String getPassword()
 
     String getAvatarUrl()
 
     String getNameColor()
+
+    boolean isAdmin()
 
     boolean isEnabled()
 

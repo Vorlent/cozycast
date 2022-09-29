@@ -140,10 +140,12 @@ export class Controls extends Component {
         this.props.state.fullscreen !== nextProps.state.fullscreen ||
         this.props.state.muted !== nextProps.state.muted ||
         this.props.state.volume !== nextProps.state.volume ||
-        this.props.state.roomSidebar  !== nextProps.state.roomSidebar;
+        this.props.state.roomSidebar  !== nextProps.state.roomSidebar ||
+        this.props.state.admin  !== nextProps.state.admin;
     }
 
     render({state, roomId}){
+        console.log(state)
         let middle = <div class={`subControls ${state.fullscreen ? "fullscreenRemote" : ""}`}>
                 <Button enabled={false} onclick={this.dropRemoteAndCenter} 
                     title="Drop and center Remote" style={`buttonSmall optional ${state.remote ? "" :"remoteHidden"}`}>
@@ -177,10 +179,11 @@ export class Controls extends Component {
                         <img class="video-control-icon" src={state.userlistOnLeft||state.fullscreen? state.userlistHidden ? '/svg/chevron-right.svg' : '/svg/chevron-left.svg' : state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}/>
                     </Button>
                     <Button enabled={state.profileModal} onclick={() => this.props.updateRoomState({profileModal: true})} style="buttonBig">Profile</Button>
+                    <Button enabled={false} onclick={() => window.location.pathname = '/'} style="buttonBig">Rooms</Button>
                 </div>
                 {middle}
                 <div class="subControls">
-                    {state.roomToken && <Button enabled={state.roomSidebar == SidebarState.SETTINGS}
+                    {state.admin && <Button enabled={state.roomSidebar == SidebarState.SETTINGS}
                             onclick={e => this.toggleRoomSettings(this.props.state.roomId)} style="buttonSmall">
                             <img class="video-control-icon" src="/svg/settings.svg"/>
                         </Button>

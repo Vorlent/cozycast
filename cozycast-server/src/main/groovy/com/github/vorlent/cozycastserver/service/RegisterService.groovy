@@ -1,6 +1,5 @@
 package com.github.vorlent.cozycastserver.service
 
-import com.github.vorlent.cozycastserver.domain.Role
 import com.github.vorlent.cozycastserver.domain.User
 import com.github.vorlent.cozycastserver.PasswordEncoder
 import grails.gorm.transactions.Transactional
@@ -14,36 +13,24 @@ import javax.validation.constraints.NotBlank
 @Singleton
 class RegisterService {
 
-    private final RoleGormService roleGormService
     private final UserGormService userGormService
-    private final UserRoleGormService userRoleGormService
     private final PasswordEncoder passwordEncoder
 
-    RegisterService(RoleGormService roleGormService,
-                    UserGormService userGormService,
-                    PasswordEncoder passwordEncoder,
-                    UserRoleGormService userRoleGormService) {
-        this.roleGormService = roleGormService
+    RegisterService( UserGormService userGormService,
+                    PasswordEncoder passwordEncoder) {
         this.userGormService = userGormService
-        this.userRoleGormService = userRoleGormService
         this.passwordEncoder = passwordEncoder
     }
 
     @Transactional
-    void register(@Email String email, @NotBlank String username,
-                  @NotBlank String rawPassword, List<String> authorities) {
+    boolean register(@Email String email, @NotBlank String username,
+                  @NotBlank String rawPassword, boolean admin) {
 
        User user = userGormService.findByUsername(username)
        if (!user) {
            final String encodedPassword = passwordEncoder.encode(rawPassword)
-           user = userGormService.save(email, username, encodedPassword)
-       }
-
-       if (user && authorities) {
-           for (String authority : authorities) {
-               Role role = roleGormService.find(authority) ?: roleGormService.save(authority)
-               userRoleGormService.find(user, role) ?: userRoleGormService.save(user, role)
-           }
-       }
+           user = userGormService.save(email, username, username, encodedPassword, admin)
+           return true;
+       } else return false;
     }
 }

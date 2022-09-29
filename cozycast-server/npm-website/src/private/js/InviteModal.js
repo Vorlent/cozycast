@@ -1,5 +1,6 @@
 import { Component, h } from 'preact'
 import { queryParams } from './index.js'
+import { authFetch} from './Authentication.js'
 
 export class InviteModal extends Component {
     constructor(props){
@@ -35,13 +36,11 @@ export class InviteModal extends Component {
     }
 
     generateInvite = () => {
-        var token = localStorage.getItem("adminToken");
-        fetch('/api/invite/new' + queryParams({
+        authFetch('/api/invite/new' + queryParams({
                 room: this.state.room,
                 maxUses: this.state.maxUses,
                 expiration: this.state.expiration
-            }),
-            { headers: { 'Authorization': "Bearer " + token } })
+            }))
         .then((e) => {if(e.status == 401){return Promise.reject("Unauthorized");}; e.json().then((e) => {
                 console.log(e)
                 this.setState({
