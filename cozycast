@@ -92,6 +92,7 @@ case $1 in
         sudo -E docker-compose -p cozycast -f docker-compose.yml -f docker-compose.dev.yml up -d
         coturn_add_kurento_user
         liquibase_update
+        (sudo -E docker exec -i cozycast_cozycast-server_1 sh dev.sh) &
         exit;
         ;;
     db)
