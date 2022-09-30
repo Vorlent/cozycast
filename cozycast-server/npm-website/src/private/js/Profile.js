@@ -17,7 +17,7 @@ export class Profile extends Component {
     onSubmit = e => {
         e.preventDefault();
         console.log("submitted")
-        authFetch('/profile', {
+        authFetch('/api/profile', {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
@@ -51,11 +51,11 @@ export class Profile extends Component {
     }
 
     render({profile}) {
-        return <div class="modal-background">
-                <form class="profile modal" onSubmit={this.onSubmit}>
+        return <div class="admin-background">
+                <form class="profile-page-modal" onSubmit={this.onSubmit}>
                     <div class="title">
                         <div>
-                            Profile
+                            Username: {profile.username}
                         </div>
                     </div>
                     <div class="image avatar big" style={{'background-image': `url(${profile.avatarUrl})`}}>
@@ -63,9 +63,6 @@ export class Profile extends Component {
                             <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg, image/webp" onchange={this.avatarSelected}/>
                             <div class="center">Upload</div>
                         </div>
-                    </div>
-                    <div>
-                        Username: {profile.username}
                     </div>
                     <br/><br/>
                     <div>

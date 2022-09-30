@@ -141,21 +141,23 @@ export class Controls extends Component {
         this.props.state.muted !== nextProps.state.muted ||
         this.props.state.volume !== nextProps.state.volume ||
         this.props.state.roomSidebar  !== nextProps.state.roomSidebar ||
-        this.props.state.admin  !== nextProps.state.admin;
+        this.props.state.admin  !== nextProps.state.admin ||
+        this.props.permissions !== nextProps.permissions;
     }
 
-    render({state, roomId}){
+    render({state, permissions}){
         console.log(state)
         let middle = <div class={`subControls ${state.fullscreen ? "fullscreenRemote" : ""}`}>
                 <Button enabled={false} onclick={this.dropRemoteAndCenter} 
                     title="Drop and center Remote" style={`buttonSmall optional ${state.remote ? "" :"remoteHidden"}`}>
                     <img class="video-control-icon" src="/svg/crosshair.svg"/>
                 </Button>
-                <Button enabled={state.remote} onclick={this.remote} style="buttonSmall" title="remote">
+                {permissions.remotePermission && <Button enabled={state.remote} onclick={this.remote} style="buttonSmall" title="remote">
                     <div class="video-control-icon">
                     <RemoteIcon enabled={state.remoteUsed && false}/>
                     </div>
                 </Button>
+                }
                 <Button enabled={state.videoPaused} onclick={this.pauseVideo}
                     title={state.videoPaused ? 'Pause' : 'Play'} style="buttonSmall">
                     <img class="video-control-icon" src={state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}/>
@@ -178,7 +180,10 @@ export class Controls extends Component {
                         title={state.userlistHidden ? 'Show Users' : 'Hide Users'} style="buttonSmall optional">
                         <img class="video-control-icon" src={state.userlistOnLeft||state.fullscreen? state.userlistHidden ? '/svg/chevron-right.svg' : '/svg/chevron-left.svg' : state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}/>
                     </Button>
-                    <Button enabled={state.profileModal} onclick={() => this.props.updateRoomState({profileModal: true})} style="buttonBig">Profile</Button>
+                    <Button enabled={state.profileModal}
+                            onclick={() => this.props.updateRoomState({profileModal: true})} style="buttonSmall">
+                            <img class="video-control-icon" src="/svg/settings.svg"/>
+                        </Button>
                     <Button enabled={false} onclick={() => window.location.pathname = '/'} style="buttonBig">Rooms</Button>
                 </div>
                 {middle}

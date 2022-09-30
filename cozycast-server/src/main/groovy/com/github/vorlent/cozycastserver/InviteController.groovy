@@ -2,6 +2,7 @@ package com.github.vorlent.cozycastserver
 
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
+import io.micronaut.http.annotation.Delete
 import io.micronaut.http.annotation.QueryValue
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Null
@@ -18,14 +19,23 @@ import com.github.vorlent.cozycastserver.domain.RoomInvite
 import com.github.vorlent.cozycastserver.domain.User
 import com.github.vorlent.cozycastserver.domain.RoomPermission
 
-@Secured("isAnonymous()")
+@Secured(SecurityRule.IS_AUTHENTICATED)
 @Slf4j
 @Controller("/api/invite")
 class InviteController {
 
     public static final Integer TOKEN_EXPIRATION = 24*60*60*1000;
 
-    @Secured(SecurityRule.IS_AUTHENTICATED)
+
+    @Secured("ROLE_ADMIN")
+    @Delete("/{code}")
+    Object deleteInvite(String code) {
+        RoomInvite.withTransaction {
+            RoomInvite.get(code).delete()
+            return HttpResponse.status(HttpStatus.OK)
+            }
+    }
+
     @Get("/use/{code}")
     Object invite(String code, Authentication authentication) {
         RoomInvite.withTransaction {
@@ -64,15 +74,6 @@ class InviteController {
         }
     }
 
-    @Get("/perms")
-    ArrayList perms() {
-        ArrayList perms = null
-        RoomPermission.withTransaction {
-            perms = RoomPermission.list()
-        }
-        return perms;
-    }
-
     @Secured("ROLE_ADMIN")
     @Get("/new")
     Object create(@NotBlank @QueryValue("room") String room,
@@ -99,8 +100,9 @@ class InviteController {
         }
     }
 
+    @Secured("ROLE_ADMIN")
     @Get("/all")
-    ArrayList invtes() {
+    ArrayList getInvites() {
         ArrayList invites = null
         RoomInvite.withTransaction {
             invites = RoomInvite.list()

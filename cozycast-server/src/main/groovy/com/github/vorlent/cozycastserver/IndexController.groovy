@@ -32,7 +32,7 @@ public class IndexController {
         return HttpResponse.ok(indexFile).header("Cache-Control", "no-cache, max-age=604800");
     }
 
-    @Get(uris = ["/","/room/{/path:.*}","/management","/invite/{/path:.*}","/login","/register","/accounts"])
+    @Get(uris = ["/","/room/{/path:.*}","/management","/invite/{/path:.*}","/login","/register","/accounts",'/invites',"/permission","/profile"])
     @Produces(MediaType.TEXT_HTML)
     public HttpResponse<?> index(HttpRequest<?> request, @Nullable String path) {
         StreamedFile indexFile = new StreamedFile(res.getResource("classpath:static/index.html").get());

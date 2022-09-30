@@ -12,10 +12,10 @@ class Room {
     String title
     Boolean accountOnly = false
     Boolean verifiedOnly = false
-    Boolean inviteOnly = true
+    Boolean inviteOnly = false
     Boolean centerRemote = false
-    Boolean default_remote_permission = false
-    Boolean default_image_permission = false
+    Boolean default_remote_permission = true
+    Boolean default_image_permission = true
     VideoSettings videoSettings = new VideoSettings(
         desktopWidth: 1280,
         desktopHeight: 720,

@@ -31,7 +31,7 @@ micronaut:
             jwt:
                 generator:
                     access-token:
-                        expiration: 60000
+                        expiration: 3600
                     refresh-token:
                         secret: ${COZYCAST_JWT_SECRET}
                 enabled: true

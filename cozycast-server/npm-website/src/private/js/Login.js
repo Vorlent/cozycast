@@ -15,15 +15,15 @@ export class Login extends Component {
     login = () => {
         authLogin(this.state.username,this.state.password).then((e) => {
             if(e) {
-                this.setState({loggedIn: true});
+                this.setState({loggedIn: true,
+                    username: "",
+                    password: ""});
                 this.props.login();
                 route("/", true);
+            }else {
+                alert("Username or password is wrong")
             }
         });
-        this.setState({
-            username: "",
-            password: ""
-        })
     }
 
     onSubmit = e => {

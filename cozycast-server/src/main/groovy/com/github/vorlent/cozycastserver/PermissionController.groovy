@@ -2,7 +2,9 @@ package com.github.vorlent.cozycastserver
 
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
+import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.QueryValue
+import io.micronaut.http.annotation.Body
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Null
 import io.micronaut.http.HttpStatus
@@ -13,11 +15,13 @@ import io.micronaut.security.rules.SecurityRule
 import groovy.util.logging.Slf4j
 import java.time.ZonedDateTime
 import java.time.ZoneId
+import javax.validation.Valid
 
 import com.github.vorlent.cozycastserver.service.MessageSource
 import com.github.vorlent.cozycastserver.service.RoomPermissionGormService
 import com.github.vorlent.cozycastserver.domain.User
 import com.github.vorlent.cozycastserver.domain.RoomPermission
+import com.github.vorlent.cozycastserver.account.PermissionUpdate
 
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @Slf4j
@@ -32,6 +36,7 @@ class PermissionController {
         this.roomPermissionGormService = roomPermissionGormService;
     }
 
+    @Secured(["ROLE_ADMIN"])
     @Get("/all")
     ArrayList perms() {
         ArrayList perms = null
@@ -39,6 +44,35 @@ class PermissionController {
             perms = RoomPermission.list()
         }
         return perms;
+    }
+
+    @Secured(["ROLE_ADMIN"])
+    @Post("/")
+    Object editPerms(@Body @Valid PermissionUpdate permission) {
+        User.withTransaction{
+            User user = User.get(permission.userId)
+            if(user == null) return HttpResponse.status(HttpStatus.BAD_REQUEST)
+            RoomPermission.withTransaction {
+                RoomPermission perms = RoomPermission.findByUserAndRoom(user,permission.room)
+                if(perms == null){
+                    perms = new RoomPermission(
+                        user: user,
+                        room: permission.room,
+                        invited: permission.invited,
+                        banned: permission.banned,
+                        remote_permission: permission.remote_permission,
+                        image_permission: permission.image_permission
+                    )
+                } else{
+                        perms.invited = permission.invited
+                        perms.banned = permission.banned
+                        perms.remote_permission = permission.remote_permission
+                        perms.image_permission = permission.image_permission
+                }
+                perms.save();
+                return HttpResponse.status(HttpStatus.OK)
+            }
+        }
     }
 
     @Get("/")

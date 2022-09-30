@@ -252,6 +252,16 @@ class UpdateWorkerSettingsEvent {
     Boolean restart
 }
 
+class CurrentRoomSettingsEvent {
+    String action = "room_settings"
+    Boolean accountOnly 
+    Boolean verifiedOnly 
+    Boolean inviteOnly 
+    Boolean centerRemote 
+    Boolean default_remote_permission
+    Boolean default_image_permission
+}
+
 @Slf4j
 @ServerWebSocket("/player/{room}")
 class PlayerWebsocketServer {
@@ -372,6 +382,7 @@ class PlayerWebsocketServer {
     private void chatmessage(Room room, WebSocketSession session, Map jsonMessage) {
         log.info jsonMessage.toString()
         final UserSession user = room.users.get(session.getId())
+        if(!user.image_permission && (jsonMessage.type == 'image' || jsonMessage.type == 'video')) return;
         ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))
         String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
         ChatMessage.withTransaction {
@@ -590,6 +601,14 @@ class PlayerWebsocketServer {
     private void joinActions(Room room, WebSocketSession session, Map jsonMessage) {
         UserSession user = room.users.get(session.getId())
 
+        sendMessage(session, new CurrentRoomSettingsEvent(
+            accountOnly : room.accountOnly,
+            verifiedOnly : room.verifiedOnly,
+            inviteOnly : room.inviteOnly,
+            centerRemote : room.centerRemote,
+            default_remote_permission: room.default_remote_permission,
+            default_image_permission: room.default_image_permission
+        ))
         sendMessage(session, new SessonIdEvent(
             session: session.getId()
         ))
@@ -742,6 +761,12 @@ class PlayerWebsocketServer {
     private void saveRoomSettings(Room room, WebSocketSession session, Map jsonMessage) {
         UserSession user = room.users.get(session.getId())
         if(user.admin) {
+            if(jsonMessage.default_remote_permission){
+                room.default_remote_permission = jsonMessage.default_remote_permission == "true"
+            }
+            if(jsonMessage.default_image_permission){
+                room.default_image_permission = jsonMessage.default_image_permission == "true"
+            }
             if(jsonMessage.accessType) {
                 if(jsonMessage.accessType == "public") {
                     room.inviteOnly = false

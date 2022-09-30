@@ -62,6 +62,10 @@ export class Room extends Component {
             loggedIn: false,
             admin: false,
             profile: this.props.profile,
+            permissions: {
+                remotePermission: false,
+                imagePermission: false
+            },
             userlist: [],
             roomlist: [],
             chatMessages: [],
@@ -88,7 +92,10 @@ export class Room extends Component {
                 videoBitrate: 1000,
                 audioBitrate: 96,
                 accessType: "public",
-                centerRemote: false
+                centerRemote: false,
+                default_image_permission: true,
+                default_remote_permission: true
+
             },
             session: null,
             windowTitle: "CozyCast: Low latency screen capture via WebRTC",
@@ -530,6 +537,22 @@ export class Room extends Component {
             this.websocket.close();
         }
     }
+
+    roomSettings = (parsedMessage) => {
+        this.setState(state => {
+            let a = 'public';
+            if(parsedMessage.accountOnly) a = 'authenticated';
+            if(parsedMessage.inviteOnly) a = 'invite';
+            return{
+            roomSettings: {
+                ...this.roomSettings,
+                accessType: a,
+                centerRemote: parsedMessage.centerRemote,
+                default_remote_permission: parsedMessage.default_remote_permission,
+                default_image_permission: parsedMessage.default_image_permission
+            }
+        }})
+    }
     
     isBanned = () => {
         if(this.state.banned == null) {
@@ -572,7 +595,13 @@ export class Room extends Component {
                 case 'keepalive':
                     break;
                 case 'authenticated':
-                    this.setState(state => {return {admin: parsedMessage.admin}})
+                    this.setState(state => {return {
+                        admin: parsedMessage.admin,
+                        permissions: {
+                            remotePermission: parsedMessage.remotePermission,
+                            imagePermission: parsedMessage.imagePermission
+                        }
+                    }})
                     this.keepAlive = setInterval(() => {
                         this.sendMessage({
                             action : 'keepalive',
@@ -582,6 +611,9 @@ export class Room extends Component {
                     break
                 case 'ban':
                     this.ban(parsedMessage)
+                    break;
+                case 'room_settings':
+                    this.roomSettings(parsedMessage)
                     break;
                 case 'unauthorized':
                     this.unauthorized(parsedMessage)
@@ -800,11 +832,11 @@ export class Room extends Component {
                 <div id="videoWrapper" class="videoWrapper">
                     <VideoControls state={state} sendMessage={this.sendMessage} pauseVideo={this.pauseVideo} updateRoomState={this.updateRoomState} />
                     <div id="pagetoolbar" class={state.fullscreen ? "toolbarFullscreen" : ""}>
-                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} startVideo={this.webrtc_start.bind(this)} stopVideo={this.webrtc_stop.bind(this)}/>
+                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} startVideo={this.webrtc_start.bind(this)} stopVideo={this.webrtc_stop.bind(this)} permissions={state.permissions}/>
                         {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} updateRoomState={this.updateRoomState}/>}
                     </div>
                 </div>
-                {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile}/>}
+                {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions}/>}
                 {state.profileModal && <ProfileModal state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} setAppState={this.props.setAppState}/>}
                 {state.hoverText && <UserHoverName state={state}/>}
                 </Fragment>}

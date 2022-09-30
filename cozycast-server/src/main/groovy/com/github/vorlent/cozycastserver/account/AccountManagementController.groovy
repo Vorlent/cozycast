@@ -7,10 +7,13 @@ import com.github.vorlent.cozycastserver.domain.User
 import com.github.vorlent.cozycastserver.domain.RoomPermission
 
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.Body
+import io.micronaut.http.annotation.Delete
+import io.micronaut.http.annotation.Put
 import io.micronaut.security.authentication.Authentication
 import io.micronaut.security.rules.SecurityRule
 import io.micronaut.validation.Validated
@@ -25,7 +28,7 @@ import javax.validation.ConstraintViolationException
 import io.micronaut.http.annotation.Error
 
 @Slf4j
-@Controller("/profile")
+@Controller("/api/profile")
 @Secured(SecurityRule.IS_AUTHENTICATED)
 class AccountManagementController {
 
@@ -45,6 +48,27 @@ class AccountManagementController {
             user = User.list()
         }
         return user;
+    }
+
+    @Post("/{username}")
+    @Secured(["ROLE_ADMIN"])
+    HttpStatus change(@Body @Valid AccountUpdateAdmin account, String username) {
+        if(username == 'admin') return HttpStatus.BAD_REQUEST
+        User.withTransaction {
+            User user = User.get(username);
+            user.admin = account.admin;
+            user.save();
+        }
+        return HttpStatus.OK;
+    }
+
+    @Delete("/{username}")
+    @Secured(["ROLE_ADMIN"])
+    HttpStatus delete(Authentication authentication,String username) {
+        User.withTransaction {
+            User.get(username).delete();
+        }
+        return HttpStatus.OK;
     }
 
     @Post("/")

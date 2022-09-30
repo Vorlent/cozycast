@@ -1,4 +1,4 @@
-import { Component, h } from 'preact'
+import { Component, Fragment, h } from 'preact'
 
 export class ProfileModal extends Component {
     constructor(props) {
@@ -118,6 +118,7 @@ export class ProfileModal extends Component {
     render({ state }, { xyz = [] }) {
         return <div class="modal-background">
                 <form class="profile modal" onSubmit={this.onSubmit}>
+                    {false &&<Fragment>
                     <div class="title">
                         <div>
                             Profile
@@ -136,6 +137,7 @@ export class ProfileModal extends Component {
                     <input class="modal-username" type="text"
                         onInput={e => this.onInput(e.target.value)}
                         name="username" maxlength="12" value={this.state.username}/>
+                        </Fragment>}
                     <div class="userOptions">
                         <div class="usersubOptions">
                             <div><input class="modal-username" type="checkbox" id="muteChatNotification" onClick={e => this.toggle(e,'muteChatNotification')}

@@ -11,6 +11,8 @@ import { authFetch, TokenStatus, logOut, getToken} from './Authentication.js'
 import { Header } from './Header.js';
 import { Accounts } from './Accounts.js';
 import { Profile } from './Profile.js';
+import { InviteManager } from './InviteManager.js';
+import { PermissionManager } from './PermissionManager.js';
 
 export var SidebarState = {
     CHAT: "CHAT",
@@ -51,7 +53,7 @@ class App extends Component {
     }
 
     login = () => {
-        authFetch("/profile").then(e => {
+        authFetch("/api/profile").then(e => {
             switch(e){
                 case TokenStatus.NO_TOKEN:
                 case TokenStatus.EXPIRED:
@@ -125,8 +127,10 @@ class App extends Component {
                     <Invite path="/invite/:code"/>
                     <Login path="/login/" loggedIn={this.state.loggedIn} logout={this.logout.bind(this)} login={this.login.bind(this)}/>
                     <Register path="/register"/>
-                    <Accounts path="/accounts"/>
+                    <Accounts path="/accounts" profile={this.state.profile}/>
                     <Profile path="/profile" profile={this.state.profile} setAppState={this.setState.bind(this)}/>
+                    <InviteManager path="/invites" profile={this.state.profile}/>
+                    <PermissionManager path="/permission"/>
                 </Router>
             </div> 
         ;

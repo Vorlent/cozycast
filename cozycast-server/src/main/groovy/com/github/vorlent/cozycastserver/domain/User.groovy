@@ -34,6 +34,15 @@ class User implements GormEntity<User>, UserState{
     boolean passwordExpired = false
     boolean admin = false
 
+    def beforeDelete() {
+        if(admin) return false;
+        RoomPermission.withTransaction{
+            RoomPermission.where{
+                user == this
+            }.deleteAll()
+        }
+        return true;
+    }
 
     static constraints = {
         email nullable: true, blank: false

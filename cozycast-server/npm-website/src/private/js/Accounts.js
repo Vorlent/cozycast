@@ -11,7 +11,11 @@ export class Accounts extends Component {
     }
 
     componentDidMount(){
-        authFetch("/profile/all").then(e => {
+        this.refresh();
+    }
+
+    refresh(){
+        authFetch("/api/profile/all").then(e => {
             switch(e){
                 case TokenStatus.NO_TOKEN:
                     console.log("not logged in")
@@ -29,7 +33,23 @@ export class Accounts extends Component {
         )
     }
 
-    render(_ , state) {
+    deleteUser(username){
+        authFetch(`/api/profile/${username}`,{method: "DELETE"}).then(e => this.refresh())
+    }
+
+    updateUser(username,admin){
+        authFetch(`/api/profile/${username}`,{
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                admin: !admin
+            })
+        }).then(e => this.refresh())
+    }
+
+    render({profile} , state) {
         return <div class="accountListBackground"><table class="accountList">
             <tr>
                 <td></td>
@@ -47,11 +67,15 @@ export class Accounts extends Component {
                 <td class="accountName">{account.username}</td>
                 <td class="accountName">{account.nickname}</td>
                 <td class="accountName">{account.nameColor}</td>
-                { account.admin ? <td>admin</td>: <td>Not admit</td>}
-                <td>
-                    <button type="button">Make Admin</button>
-                    <button type="button">Delete</button>
+                { account.admin ? <td>admin</td>: <td>Not admin</td>}
+                {
+                    profile.username != account.username && 
+                <td class="accountButtons">
+                    <button type="button" class="btn btn-danger" onclick={() => this.updateUser(account.username,account.admin)}>{account.admin ? 'Remove Admin' : 'Make Admin'}</button>
+                    <button type="button" class="btn btn-danger" onclick={() => this.deleteUser(account.username)}>{account.admin ? 'Cant delete Admin' : 'Delete'}</button>
                 </td>
+                }
+                {profile.username == account.username && <td></td>}
             </tr>)}
         </table>
         </div>
