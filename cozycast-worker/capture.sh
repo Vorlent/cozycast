@@ -8,7 +8,7 @@ if [ -f "/home/cozycast/ffmpeg.pid" ]; then
     rm /home/cozycast/ffmpeg.pid
 fi
 
-ffmpeg $OPTIONS &
+sudo -u cozycast ffmpeg $OPTIONS &
 
 FFMPEG_PID=$!
 echo "$FFMPEG_PID" >> /home/cozycast/ffmpeg.pid

@@ -106,6 +106,7 @@ local pressed_keys = {}
 
 function wait_for_pulseaudio()
     while true do
+        print("wait_for_pulseaudio ")
         local pgrep = io.popen('pgrep "pulseaudio" -c', 'r')
         local stdout = pgrep:read("*a")
         local count = tonumber(stdout)
@@ -206,12 +207,14 @@ function worker.get_active_window_title()
 end
 
 function worker.mouse_move(mouseX, mouseY)
+    mouseX = math.floor(mouseX)
+    mouseY = math.floor(mouseY)
     if mouseX and mouseY
         and mouseX ~= 0
         and mouseY ~= 0
         and mouseX >= 0
         and mouseY >= 0 then
-        libxdo.xdo_move_mouse(xdo, mouseX, mouseY, 0)
+            libxdo.xdo_move_mouse(xdo, mouseX, mouseY, 0)
     end
 end
 

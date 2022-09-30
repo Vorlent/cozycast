@@ -9,6 +9,13 @@ else
     gpasswd -a ${UNAME} audio
 fi
 
+# run dbus for pulseaudio
+mkdir -p /var/run/dbus
+dbus-uuidgen > /var/lib/dbus/machine-id
+dbus-daemon --config-file=/usr/share/dbus-1/system.conf --print-address
+
+sudo -u cozycast pulseaudio --start
+
 export DISPLAY=":$RANDOM"
 sudo chown cozycast:cozycast /home/cozycast
 
@@ -19,7 +26,7 @@ function restart {
         kill -9 $(cat /worker.pid)
         rm /worker.pid
     fi
-    (lua worker.lua) &
+    (lua5.3 worker.lua) &
     echo $! >> /worker.pid
 }
 
