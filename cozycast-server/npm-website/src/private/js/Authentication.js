@@ -7,9 +7,9 @@ export const TokenStatus = {
 let refresh_token = localStorage.getItem("refreshToken");
 let access_token = JSON.parse(localStorage.getItem("accessToken"));
 
-export async function authFetch(path, body = {}){
+export async function authFetch(path, body = {})  {
     let resp = await updateAccessToken();
-    if(resp != TokenStatus.VALID){
+    if (resp != TokenStatus.VALID) {
         return resp;
     }
 
@@ -19,15 +19,15 @@ export async function authFetch(path, body = {}){
     return response;
 }
 
-export async function getToken(){
+export async function getToken() {
     let resp = await updateAccessToken();
-    if(resp != TokenStatus.VALID){
+    if (resp != TokenStatus.VALID) {
         return resp;
     }
     return access_token.token
 }
 
-export async function authLogin(username, password){
+export async function authLogin(username, password) {
     let response = await fetch('/login', {
         method: "POST",
         headers: {
@@ -42,18 +42,18 @@ export async function authLogin(username, password){
     return await authParse(response);
 }
 
-export function logOut(){
+export function logOut() {
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("accessToken");
     access_token = null;
     refresh_token = null;
 }
 
-async function updateAccessToken(){
-    if(access_token != null && (access_token.expires + 60 > Math.ceil(new Date().getTime()/1000))){
+async function updateAccessToken() {
+    if (access_token != null && (access_token.expires + 60 > Math.ceil(new Date().getTime()/1000))) {
         return TokenStatus.VALID;
-    } else if(refresh_token != null){
-        if(await authRefresh()){
+    } else if (refresh_token != null) {
+        if (await authRefresh()) {
             return TokenStatus.VALID;
         } else {
             logOut();
@@ -64,7 +64,7 @@ async function updateAccessToken(){
     }
 }
 
-async function authRefresh(){
+async function authRefresh() {
     let response = await fetch('/oauth/access_token', {
         method: "POST",
         headers: {
@@ -79,13 +79,13 @@ async function authRefresh(){
     return await authParse(response);
 }
 
-async function authParse(response){
-    if( response.status != 200)
+async function authParse(response) {
+    if (response.status != 200)
         return false;
 
     let a = await response.json();
 
-    if(a && a.access_token) {
+    if (a && a.access_token) {
         localStorage.setItem("refreshToken", a.refresh_token);
         access_token = {token: a.access_token, expires: a.expires_in + Math.ceil(new Date().getTime()/1000)};
         localStorage.setItem("accessToken", JSON.stringify(access_token));

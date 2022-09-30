@@ -20,7 +20,7 @@ export class Login extends Component {
                     password: ""});
                 this.props.login();
                 route("/", true);
-            }else {
+            } else {
                 alert("Username or password is wrong")
             }
         });
@@ -40,7 +40,7 @@ export class Login extends Component {
         this.setState({password: value});
     }
 
-    render( {loggedIn,logout} , state) {
+    render({ loggedIn, logout } , state) {
     return <div class="admin-background">
             <div class="admin">
                 <div class="admin-modal">

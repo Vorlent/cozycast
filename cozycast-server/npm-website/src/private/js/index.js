@@ -117,7 +117,7 @@ class App extends Component {
             <Match path="/">{({ matches, path, url }) => {
                 if(url.startsWith('/room')) {
                     return;}
-                return <Header loggedIn={this.state.loggedIn} profile={this.state.profile}></Header>
+                return <Header loggedIn={this.state.loggedIn} profile={this.state.profile} logout={this.logout.bind(this)}></Header>
             }
             }
             </Match>
