@@ -1,25 +1,10 @@
 #!/bin/bash
-#!/bin/bash
-source ../.env
 
-mkdir -p cache/avatar cache/.gradle cache/build
+TRIGGER_FILE=/root/cozycast/cozycast-server/src/main/resources/TRIGGER_FILE
 
-echo "./gradlew run"
+for x in $(find npm-website/src/ -type d); do
+    echo inotifyd - $(realpath $x):cewDMmynd "|" xargs -I % sh -c "sh dev-trigger.sh"
+    (inotifyd - $(realpath $x):cewDMmynd  |  xargs -I % sh -c "echo 'A' >> '$TRIGGER_FILE'") &
 
-sudo docker run \
-    --rm \
-    -it \
-    -v $(realpath .):/root/cozycast/cozycast-server \
-    -v $(realpath cache/.gradle):/root/.gradle/repository \
-    -v $(realpath cache/build):/root/cozycast/cozycast-server/build \
-    -v $(realpath cache/avatar):/var/cozycast/avatar/ \
-    --env TURN_SECRET=$TURN_SECRET \
-    --env TURN_IP=$TURN_IP \
-    --env KURENTO_IP=$KURENTO_IP \
-    --env SOURCE_URL=$(git remote get-url origin) \
-    --network host \
-    --name cozycast-server cozycast-server /root/cozycast/cozycast-server/gradlew run --continuous
-
-# Ports required:
-# TCP 8443 Webserver
-# TCP 8080 Webserver
+done
+sleep infinity
