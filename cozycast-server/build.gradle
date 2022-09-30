@@ -66,3 +66,8 @@ micronaut {
         annotations("com.github.vorlent.cozycastserver.*")
     }
 }
+
+shadowJar {
+    mergeServiceFiles()
+    zip64 = true
+}
