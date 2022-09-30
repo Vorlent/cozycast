@@ -10,6 +10,7 @@ import io.micronaut.http.annotation.Produces
 import io.micronaut.http.server.types.files.StreamedFile
 import io.micronaut.http.MediaType
 import io.micronaut.http.HttpRequest
+import io.micronaut.core.annotation.Nullable
 import javax.inject.Inject
 
 @Controller("/")
@@ -31,9 +32,9 @@ public class IndexController {
         return HttpResponse.ok(indexFile).header("Cache-Control", "no-cache, max-age=604800");
     }
 
-    @Get("/{path:((room|management|invite|admin).*| )}")
+    @Get(uris = ["/","/room/{/path:.*}","/management","/invite/{/path:.*}","/login","/register","/accounts",'/invites',"/permission","/profile"])
     @Produces(MediaType.TEXT_HTML)
-    public HttpResponse<?> index(HttpRequest<?> request, String path) {
+    public HttpResponse<?> index(HttpRequest<?> request, @Nullable String path) {
         StreamedFile indexFile = new StreamedFile(res.getResource("classpath:static/index.html").get());
         return HttpResponse.ok(indexFile).header("Cache-Control", "no-cache, max-age=604800");
     }

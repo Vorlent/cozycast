@@ -1,4 +1,4 @@
-import { Component, h } from 'preact'
+import { Component, Fragment, h } from 'preact'
 
 export class ProfileModal extends Component {
     constructor(props) {
@@ -65,16 +65,18 @@ export class ProfileModal extends Component {
                 action : 'changeprofilepicture',
                 url : newAvatarUrl
         });
-    }   
+        }   
         this.props.updateRoomState({
             muteChatNotification: this.state.muteChatNotification,
             showUsernames: this.state.showUsernames,
-            legacyDesign: this.state.legacyDesign,
             showIfMuted: this.state.showIfMuted,
             userlistOnLeft: this.state.userlistOnLeft,
             transparentChat: this.state.transparentChat,
             avatarUrl: newAvatarUrl,
             username: newUsername
+        })
+        this.props.setAppState({
+            legacyDesign: this.state.legacyDesign
         })
 
         localStorage.setItem("username", this.state.username);
@@ -93,7 +95,6 @@ export class ProfileModal extends Component {
     }
     
     onSubmit = e => {
-      console.log("Submitted ", this.state);
       e.preventDefault();
       this.saveProfile();
     }
@@ -117,6 +118,7 @@ export class ProfileModal extends Component {
     render({ state }, { xyz = [] }) {
         return <div class="modal-background">
                 <form class="profile modal" onSubmit={this.onSubmit}>
+                    {false &&<Fragment>
                     <div class="title">
                         <div>
                             Profile
@@ -135,6 +137,7 @@ export class ProfileModal extends Component {
                     <input class="modal-username" type="text"
                         onInput={e => this.onInput(e.target.value)}
                         name="username" maxlength="12" value={this.state.username}/>
+                        </Fragment>}
                     <div class="userOptions">
                         <div class="usersubOptions">
                             <div><input class="modal-username" type="checkbox" id="muteChatNotification" onClick={e => this.toggle(e,'muteChatNotification')}

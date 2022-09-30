@@ -1,18 +1,18 @@
 import { Component } from 'preact'
 import { route } from 'preact-router'
+import { authFetch , TokenStatus} from './Authentication.js'
 
 export class Invite extends Component {
 
     componentWillMount() {
-        fetch('/api/invite/use/' + this.props.code)
+        authFetch('/api/invite/use/' + this.props.code)
         .then((e) => {
-            if(e.status != 200) {
+            if(e == TokenStatus.EXPIRED || e == TokenStatus.NO_TOKEN) {
                 route("/", true);
+                alert("Please log in to use invites/Invite expired");
             } else {
-                e.json().then((e) => {
-                    localStorage.setItem("room-" + e.room + "-token", e.token);
-                    route("/room/" + e.room, true);
-                })
+                route("/", true);
+                alert("Successfully used invite");
             }
         });
     }

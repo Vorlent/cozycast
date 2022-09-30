@@ -28,7 +28,10 @@ class RoomController {
         roomRegistry.all().collect { it ->
             [
                 id: it.name,
-                userCount: it.users.size()
+                userCount: it.users.size(),
+                accountOnly: it.accountOnly,
+                verifiedOnly: it.verifiedOnly,
+                inviteOnly: it.inviteOnly
             ]
         }
     }

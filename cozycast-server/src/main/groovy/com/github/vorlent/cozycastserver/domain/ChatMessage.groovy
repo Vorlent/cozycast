@@ -14,7 +14,9 @@ class ChatMessage {
     String message
     String type
     String image
+    String nameColor
     boolean edited
+    boolean anonymous
     ZonedDateTime timestamp
 
     void afterDelete() {
@@ -31,7 +33,7 @@ class ChatMessage {
     }
 
     static mapping = {
-        id generator: 'uuid'
+        id generator: 'uuid2'
     }
 
     static constraints = {

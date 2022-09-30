@@ -15,6 +15,8 @@ class RoomInvite {
     String room
     Integer uses = 0
     Integer maxUses
+    boolean remote_permission = true
+    boolean image_permission = true
     ZonedDateTime expiration
 
     static String generateCode() {

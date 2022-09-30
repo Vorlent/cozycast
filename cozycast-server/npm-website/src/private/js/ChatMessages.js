@@ -65,17 +65,17 @@ export class ChatMessages extends Component {
         this.props.setChatState({type: type, href: href, imageModal: true})
     }
 
-    render({chatMessages,session}) {
+    render({chatMessages,session,profile}) {
         return  <div id="messages" onscroll={this.chatScroll}>
                     {chatMessages.map(message => 
                         <div class="message" key={message.data[0].id + message.data.length} id={message.data[0].id}>
-                            <div class="username">{message.username}<span class="timestamp">{"  " + message.data[0].timestamp}</span> 
+                            <div class="username" style={{color: message.nameColor}}>{message.username}<span class="timestamp">{"  " + message.data[0].timestamp}</span> 
                                 {false && <div class="idSquare" style={{'background-color': this.stringToColor(message.session)}}> {session == message.session ? "You" : message.session.substr(0,3).toLowerCase()} </div>}
                             </div>
                             {message.data.map(data => 
                                 <div class="subMessage">
-                                    {session == message.session && !data.deleted && <button class="deleteMessageButton" onclick={() => this.deleteMessage(data.id)}>X</button>}
-                                    {session == message.session && data.msg != "" && <button class="deleteMessageButton edit" onclick={() => this.editMessage(data.id,data.msg)}><img class="editIcon" src="/svg/edit.svg"/></button>}
+                                    {(profile.admin || (message.anonymous ? session == message.session : profile.username == message.session)) && !data.deleted && <button class="deleteMessageButton" onclick={() => this.deleteMessage(data.id)}>X</button>}
+                                    {(message.anonymous ? session == message.session : profile.username == message.session) && data.msg != "" && <button class="deleteMessageButton edit" onclick={() => this.editMessage(data.id,data.msg)}><img class="editIcon" src="/svg/edit.svg"/></button>}
                                     <div class="hoverInfo top">{data.timestamp}</div>
                                     { data.messages.map( msg => {
                                         switch(msg.type){

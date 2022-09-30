@@ -5,6 +5,10 @@ micronaut:
         port: 80
         multipart:
           maxFileSize: 5MB
+        netty:
+            responses:
+                file:
+                    cache-seconds: 604800
     router:
         static-resources:
             default:
@@ -22,8 +26,14 @@ micronaut:
                 enabled: true
             oauth:
                 enabled: true
+        authentication: bearer
         token:
             jwt:
+                generator:
+                    access-token:
+                        expiration: 3600
+                    refresh-token:
+                        secret: ${COZYCAST_JWT_SECRET}
                 enabled: true
                 signatures:
                     secret:
@@ -36,10 +46,6 @@ micronaut:
                 http-method: GET
                 access:
                     - isAnonymous()
-netty:
-    responses:
-        file:
-            cache-seconds: 604800
 grails:
     gorm:
         failOnError: true

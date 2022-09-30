@@ -20,6 +20,8 @@ export class RoomSettings extends Component {
             framerate: this.props.state.roomSettings.framerate,
             videoBitrate: this.props.state.roomSettings.videoBitrate,
             audioBitrate: this.props.state.roomSettings.audioBitrate,
+            default_image_permission: this.props.state.roomSettings.default_image_permission,
+            default_remote_permission: this.props.state.roomSettings.default_remote_permission,
             banModal: false,
             inviteModal: false
         }
@@ -44,6 +46,22 @@ export class RoomSettings extends Component {
         }
     }
 
+    componentDidMount() {
+        this.setState({
+            accessType: this.props.state.roomSettings.accessType,
+            centerRemote: this.props.state.roomSettings.centerRemote,
+            desktopResolution: this.props.state.roomSettings.desktopResolution,
+            streamResolution: this.props.state.roomSettings.streamResolution,
+            framerate: this.props.state.roomSettings.framerate,
+            videoBitrate: this.props.state.roomSettings.videoBitrate,
+            audioBitrate: this.props.state.roomSettings.audioBitrate,
+            default_image_permission: this.props.state.roomSettings.default_image_permission,
+            default_remote_permission: this.props.state.roomSettings.default_remote_permission,
+            banModal: false,
+            inviteModal: false
+        }
+        )
+    }
 
     sendRoomSettings = () => {
         this.props.sendMessage({
@@ -55,7 +73,9 @@ export class RoomSettings extends Component {
             streamResolution: this.state.streamResolution,
             framerate: this.state.framerate,
             videoBitrate: this.state.videoBitrate,
-            audioBitrate: this.state.audioBitrate
+            audioBitrate: this.state.audioBitrate,
+            default_image_permission: "" + this.state.default_image_permission,
+            default_remote_permission: "" + this.state.default_remote_permission
         });
     }
     
@@ -128,7 +148,7 @@ export class RoomSettings extends Component {
         })
     }
 
-    render({ roomId }, { state }) {
+    render({ roomId }, state ) {
         return <div id="settings">
                 {this.state.inviteModal && <InviteModal state={this.props.state} roomId={this.props.state.roomId} updateSettingsState={this.updateSettingsState} sendMessage={this.props.sendMessage}/>}
                 {this.state.banModal && <BanModal state={this.props.state} updateSettingsState={this.updateSettingsState} sendMessage={this.props.sendMessage}/>}
@@ -141,6 +161,18 @@ export class RoomSettings extends Component {
                   <option value="authenticated">Users</option>
                   <option value="invite">Invited Users only</option>
                 </select>
+
+                <label>
+                    <input type="checkbox" checked={state.default_image_permission}
+                    onclick={() => this.setState(state => {return {default_image_permission: !state.default_image_permission}})}/>
+                    default image permission
+                </label>
+
+                <label>
+                    <input type="checkbox" checked={state.default_remote_permission}
+                    onclick={() => this.setState(state => {return {default_remote_permission: !state.default_remote_permission}})}/>
+                    default remote permission
+                </label>
 
                 <Button onclick={e => this.openInviteModal(this.props.state.roomId)}>
                     Create Invite

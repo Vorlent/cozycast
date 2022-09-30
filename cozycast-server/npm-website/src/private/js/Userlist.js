@@ -19,8 +19,9 @@ export class Userlist extends Component {
             <div id="userlist" class={`userlist ${showUsernames ? "big" : "small"} ${isLeft ? "left" : "bottom"} ${fullscreen ? "fullscreenUserlist" : ""} ${hasRemote ? " hasRemote": ""}`} >
                 {userlist.map(user => 
                     <div class="user" key={user.session}>
-                        <div class={`avatarContainer ${!showUsernames || isLeft ? "bar" : ""}`} onMouseover={e => showHover(e,user.username,isLeft ? "right" : "top",showUsernames,user.active,updateRoomState)} onMouseout={e => hideHover(updateRoomState)}>
-                            <div class={`image avatar ${user.active? "": "isAway"}`} style={{'background-image': `url(${user.url})`}}/>
+                        <div class={`avatarContainer ${!showUsernames || isLeft ? "bar" : ""}`} 
+                        onMouseover={e => showHover(e,user.username,isLeft ? "right" : "top",showUsernames,user.active,updateRoomState)} onMouseout={e => hideHover(updateRoomState)}>
+                            <div class={`image avatar ${user.active? "": "isAway"}`} style={{'background-image': `url(${user.url})`,'background-color': user.nameColor + "99" }}/>
                             {user.remote && <div class="orangeCircle"></div>}
                             <img class={`mutedDot ${user.muted? "": "noDisplay"}`} src="/svg/headphone-slash.svg"></img>
                             <img class={`remoteIcon ${user.remote? "": "noDisplay"}`} src="/svg/remote.svg"></img>

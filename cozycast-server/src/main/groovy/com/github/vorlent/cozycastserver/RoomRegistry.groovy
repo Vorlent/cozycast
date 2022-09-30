@@ -16,6 +16,11 @@ class RoomRegistry {
         return room
     }
 
+    Room getRoomNoCreate(String name) {
+        Room room = rooms.get(name)
+        return room
+    }
+
     void delete(String name) {
         Room room = rooms.remove(name)
         room?.close()

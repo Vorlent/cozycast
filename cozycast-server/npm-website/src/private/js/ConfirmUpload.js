@@ -1,5 +1,5 @@
 import { Component, h } from 'preact'
-
+import { authFetch } from './Authentication';
 
 export class ConfirmUpload extends Component {
     send =() => {
@@ -12,7 +12,7 @@ export class ConfirmUpload extends Component {
         if(e.target.files.length > 0) {
             let formData = new FormData();
             formData.append("image", e.target.files[0]);
-            fetch('/image/upload', {method: "POST", body: formData}).then((e) =>
+            authFetch('/image/upload', {method: "POST", body: formData}).then((e) =>
                 {if(e.status == 413){return Promise.reject("File is too large");};
                     e.json().then((e) => {
                         this.props.sendMessage({
@@ -42,7 +42,7 @@ export class ConfirmUpload extends Component {
     
         let formData = new FormData();
         formData.append("image", blob);
-        fetch('/image/upload', {method: "POST", body: formData}).then((e) =>
+        authFetch('/image/upload', {method: "POST", body: formData}).then((e) =>
             {if(e.status == 413){return Promise.reject("File is too large");};
                 e.json().then((e) => {
                     this.props.sendMessage({

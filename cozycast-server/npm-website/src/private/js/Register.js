@@ -1,17 +1,25 @@
 import { h, Component, Fragment } from 'preact'
+import { authLogin, logOut } from './Authentication';
+import { Header } from './Header.js';
+import { route } from 'preact-router'
 
-export class Admin extends Component {
+export class Register extends Component {
     constructor(props){
         super(props);
         this.state = {
             username: "",
             password: "",
-            loggedIn: false
+            registered: false
         }
     }
 
-    login = () => {
-        fetch('/login', {
+    onSubmit = e => {
+        e.preventDefault();
+        this.register();
+    }
+
+    register = () => {
+        fetch("/register",{
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
@@ -19,26 +27,15 @@ export class Admin extends Component {
             body: JSON.stringify({
                 username: this.state.username,
                 password: this.state.password
-            })
-        }).then((e) => e.json()).then((e) => {
-            if(e && e.access_token) {
-                localStorage.setItem("adminToken", e.access_token);
-                this.setState({loggedIn: true});
-            }
+            })}).then((e) => {
+            if(e.status == 200) {
+                this.setState({registered: true});
+            } else e.json().then( e => alert(e.errors.join("\n")))
         });
         this.setState({
             username: "",
             password: ""
         })
-    }
-
-    logout = () => {
-            localStorage.removeItem("adminToken");
-            this.setState({loggedIn: false});
-    }
-
-    componentWillMount() {
-        this.setState({loggedIn: localStorage.getItem("adminToken") != null})
     }
 
     updateAdminUsername = (value) => {
@@ -53,35 +50,37 @@ export class Admin extends Component {
     return <div class="admin-background">
             <div class="admin">
                 <div class="admin-modal">
-                {!state.loggedIn && 
-                <Fragment>
+                {!state.registered && 
+                <form onSubmit={this.onSubmit} id="registerForm">
                     <div class="admin-title">
-                        Login
+                        Register
                     </div>
-                    <div>
+                    <label for="usernameInput">
                         Username
-                    </div>
+                    </label>
                     <div>
-                        <input class="modal-username" type="text"
+                        <input class="modal-username" type="text" id="usernameInput"
                             onInput={e => this.updateAdminUsername(e.target.value)}
                             name="username" maxlength="12" value={state.username}/>
                     </div>
-                    <div>
+                    <label for="passwordInput">
                         Password
+                    </label>
+                    <div>
+                        <input class="modal-username" type="password" id="passwordInput"
+                            onInput={e => this.updateAdminPassword(e.target.value)}
+                            name="password" maxlength="64" value={state.password}/>
                     </div>
                     <div>
-                        <input class="modal-username" type="password"
-                            onInput={e => this.updateAdminPassword(e.target.value)}
-                            name="username" maxlength="64" value={state.password}/>
+                    <button class="btn btn-primary" type="summit">Register</button>
                     </div>
-                    <button class="btn btn-primary" onclick={this.login}>Login</button>
-                </Fragment>
+                </form>
                 }
-                {state.loggedIn && <Fragment>
+                {state.registered && <Fragment>
                     <div class="admin-title">
-                        Logged in
+                        Successfully register
                     </div>
-                    <button class="btn btn-primary" onclick={this.logout}>Logout</button>
+                    <button class="btn btn-primary" onclick={e => route("/login", true)}>Continue to login</button>
                 </Fragment>}
                 </div>
             </div>

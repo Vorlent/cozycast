@@ -64,7 +64,7 @@ export class ChatInput extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState){
-        return this.state !== nextState || nextProps.editTarget !== this.state.editTarget;
+        return this.state !== nextState || nextProps.editTarget !== this.state.editTarget || this.props.permissions != nextProps.permissions;
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -98,6 +98,7 @@ export class ChatInput extends Component {
     }
     
     openConfirmWindowPaste= (e) => {
+        if(!this.props.permissions.imagePermission) return;
         if(e.clipboardData) {
             var items = e.clipboardData.items
             for (var i = 0; i < items.length; i++) {
@@ -213,10 +214,12 @@ export class ChatInput extends Component {
                         <textarea id="chat-textbox" ref={this.refChatboxText} value={this.state.chatBox} class="chatbox-textarea" oninput={this.chatInput} onkeypress={this.chatEnter} onpaste={this.openConfirmWindowPaste}>
                         </textarea>
                     </div>
+                    {this.props.permissions.imagePermission && this.props.profile.username &&
                     <div class="image-uploader-button-wrapper">
                         <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange={this.openConfirmWindow} ref={this.refImageUploadFile}/>
                         {this.state.chatBox.length == 0 && <Fragment><img class="image-uploader-button" src="/svg/screenshot.svg" onclick={this.screenshot}/><img class="image-uploader-button" src="/svg/image_upload.svg" onclick={this.openPictureUpload}/></Fragment>}
                     </div>
+                    }
                 </div>
                 <div id="typing">
                     {this.state.typingUsers.length > 0 && <Fragment>

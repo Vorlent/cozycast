@@ -262,7 +262,7 @@ html, body, #pagecontent, #videosizer {
 }
 
 .userlist.bottom.big {
-    height: 5em;
+    height: 5.5em;
 }
 
 .userlist.bottom.small {
@@ -746,10 +746,10 @@ input[type=range]::-webkit-slider-thumb {
 .play-button img:hover {
     height: 140px;
     box-shadow:
-        inset 20px 0 60px #346,
-        inset -20px 0 60px #346,
-        -10px 0 60px #346,
-        10px 0 60px #346;
+        inset 20px 0 60px var(--cozyScrollbar,#346),
+        inset -20px 0 60px var(--cozyScrollbar,#346),
+        -10px 0 60px var(--cozyScrollbar,#346),
+        10px 0 60px var(--cozyScrollbar,#346);
     border-radius: 50%;
     transition: height 0.3s;
 }
@@ -1057,10 +1057,146 @@ input[type=range]::-webkit-slider-thumb {
 }
 /*  Room.js End */
 
+.header {
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 56px;
+	padding: 0;
+    background: var(--cozyButton, #17c);
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+	z-index: 50;
+}
+
+.header h1 {
+	float: left;
+	margin: 0;
+	padding: 0 15px;
+	font-size: 24px;
+	line-height: 56px;
+	font-weight: 400;
+	color: #FFF;
+}
+
+.header nav {
+	float: right;
+	font-size: 100%;
+}
+
+.header nav a {
+	display: inline-block;
+	height: 56px;
+	line-height: 56px;
+	padding: 0 15px;
+	min-width: 50px;
+	text-align: center;
+	background: rgba(255,255,255,0);
+	text-decoration: none;
+	color: #FFF;
+	will-change: background-color;
+}
+
+.header nav a:hover,
+.header nav a:active {
+	background: var(--cozyButtonAccent, #048);
+}
+
+.header nav a.active {
+	background: var(--cozyButtonAccent, #048);
+}
+
+.avatarImageHeader {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.floatRight {
+    float: right;
+}
+
+.avatarContainerHeader.inNav:hover{
+	background: var(--cozyButtonAccent, #048);
+}
+
+.avatarContainerHeader{
+    width: 56px;
+    height: 56px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+/* Accounts.js Start*/
+
+.accountListBackground {
+    color: white;
+    background: var(--cozyColorMenu);
+    width: 100%;
+    height: 100%;
+}
+
+.accountList{
+    margin: 70px 20px;
+    width: calc(100% - 40px);
+}
+
+.accountElement{
+    background: var(--cozyColorAccent);;
+    height: 65px;
+    border: solid 2px black;
+    border-radius: 10px;
+}
+
+.accountButtons{
+    display: flex;
+    justify-content: space-around;
+}
+
+.accountName{
+    width: 15%;
+    font-size: 1.3em;
+    margin-left: 0.5em;
+}
+
+.inviteColumn{
+    width: 14%;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+/* Accounts.js End*/
+
+
 /* RoomList.js Start*/
 
+.roomManagement{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.avatarModal {
+    background-color: var(--cozyColorMenu);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+}
+
+.headerRooms{
+    background-color: var(--cozyColorAccent, #235);
+    display: flex;
+    color: white;
+    justify-content: center;
+    position: absolute;
+    width: 100%;
+}
+
 .room-list-background {
-    background-color: #123;
+    background-color: var(--cozyColorMenu,#123);
     color: white;
     height: 100%;
     width: 100%;
@@ -1072,7 +1208,7 @@ input[type=range]::-webkit-slider-thumb {
 .room-list {
     border: 1px solid black;
     border-radius: 1em;
-    background: #123 var(--cozycast-noise);
+    background: var(--cozyColorMenu,#123) var(--cozycast-noise);
     width: 30%;
     margin: 15% auto;
     padding: 10px;
@@ -1090,8 +1226,35 @@ input[type=range]::-webkit-slider-thumb {
     width: 90%
 }
 
-.room-list-entry-name a {
+.room-list-join-column{
+    align-items: center;
+    justify-content: center;
+    display: flex;
+}
+
+.room-list-entry-name{
     color: white;
+    margin-left: 0.2em;
+    margin-right: 0.5em;
+    font-weight: bold;
+}
+
+.room-badge{
+    background: var(--cozyOrange);
+    color: black;
+    border-radius: 0.3em;
+    padding-left: 0.3em;
+    padding-right: 0.3em;
+    font-size: 0.8em;
+    margin-right: 0.3em;
+}
+
+.btn-join:disabled{
+    background-color: gray;
+}
+
+.btn-join{
+    width: 70%;
 }
 
 .room-list-entry-usercount {
@@ -1135,8 +1298,19 @@ input[type=range]::-webkit-slider-thumb {
 
 /* Admin.js Start*/
 
+.profile-page-modal{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-page-modal .title {
+    display: flex;
+    font-size: 2em;
+}
+
 .admin-background {
-    background-color: #123;
+    background-color: var(--cozyColorMenu,#123);
     color: white;
     height: 100%;
     width: 100%;
@@ -1148,7 +1322,7 @@ input[type=range]::-webkit-slider-thumb {
 .admin-modal {
     border: 1px solid black;
     border-radius: 1em;
-    background: #123 var(--noise);
+    background: var(--cozyColorMenu,#123) var(--noise);
     margin: 0 auto;
     padding: 10px;
     display: flex;
@@ -1182,7 +1356,7 @@ input[type=range]::-webkit-slider-thumb {
 #schedule {
 	grid-area: video;
 	position: relative;
-    background-color: #123;
+    background-color: var(--cozyColorMenu,#123);
     color: #fff;
     display: flex;
 }
