@@ -506,8 +506,8 @@ class PlayerWebsocketServer {
             def admin = false;
             boolean remote_permission = room.default_remote_permission;
             boolean image_permission = room.default_image_permission;
-            jwtTokenValidator.validateToken(token,null).subscribe( 
-                auth -> {
+            jwtTokenValidator.validateToken(token,null).subscribe({
+                auth -> 
                     def name = auth.getName();
                     if(name != null) {
                         UserState user = userFetcher.findByUsername(name);
