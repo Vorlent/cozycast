@@ -10,6 +10,7 @@ export class Header extends Component {
             <h1>CozyCast</h1>
             {loggedIn && <div class="avatarContainerHeader floatRight inNav" onclick={ () => route('/profile',true)} ><img src={profile.avatarUrl} class="avatarImageHeader"></img></div>}
             <nav>
+                <Link activeClassName="active" href="/">Rooms</Link>
                 {!loggedIn &&
                     <Link activeClassName="active" href="/login">Login</Link>
                 }
