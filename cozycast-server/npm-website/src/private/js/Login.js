@@ -4,7 +4,7 @@ import { Header } from './Header.js';
 import { route } from 'preact-router'
 
 export class Login extends Component {
-    constructor(props){
+    constructor(props) {
         super(props);
         this.state = {
             username: "",
@@ -13,11 +13,13 @@ export class Login extends Component {
     }
 
     login = () => {
-        authLogin(this.state.username,this.state.password).then((e) => {
-            if(e) {
-                this.setState({loggedIn: true,
+        authLogin(this.state.username, this.state.password).then((e) => {
+            if (e) {
+                this.setState({
+                    loggedIn: true,
                     username: "",
-                    password: ""});
+                    password: ""
+                });
                 this.props.login();
                 route("/", true);
             } else {
@@ -30,52 +32,56 @@ export class Login extends Component {
         e.preventDefault();
         this.login();
     }
-  
+
 
     updateAdminUsername = (value) => {
-        this.setState({username: value});
+        this.setState({ username: value });
     }
 
     updateAdminPassword = (value) => {
-        this.setState({password: value});
+        this.setState({ password: value });
     }
 
-    render({ loggedIn, logout } , state) {
-    return <div class="admin-background">
+    render({ loggedIn, logout }, state) {
+        return <div class="admin-background">
             <div class="admin">
                 <div class="admin-modal">
-                {!loggedIn && 
-                    <form onSubmit={this.onSubmit}>
+                    {!loggedIn &&
+                        <form class="formStandard" onSubmit={this.onSubmit}>
+                            <div class="admin-title">
+                                Login
+                            </div>
+                            <div>
+                                <label for="usernameInput">
+                                    Username
+                                </label>
+                                <div>
+                                    <input class="modal-username standardInputField" type="text" id="usernameInput"
+                                        onInput={e => this.updateAdminUsername(e.target.value)}
+                                        name="username" maxlength="12" value={state.username} />
+                                </div>
+                            </div>
+                            <div>
+                                <label for="passwordInput">
+                                    Password
+                                </label>
+                                <div>
+                                    <input class="modal-username standardInputField" type="password" id="passwordInput"
+                                        onInput={e => this.updateAdminPassword(e.target.value)}
+                                        name="username" maxlength="64" value={state.password} />
+                                </div>
+                            </div>
+                            <div>
+                                <button class="btn btn-primary btnStandard" type="summit">Login</button>
+                            </div>
+                        </form>
+                    }
+                    {loggedIn && <Fragment>
                         <div class="admin-title">
-                            Login
+                            Logged in
                         </div>
-                        <label for="usernameInput">
-                            Username
-                        </label>
-                        <div>
-                            <input class="modal-username" type="text" id="usernameInput"
-                                onInput={e => this.updateAdminUsername(e.target.value)}
-                                name="username" maxlength="12" value={state.username}/>
-                        </div>
-                        <label for="passwordInput">
-                            Password
-                        </label>
-                        <div>
-                            <input class="modal-username" type="password" id="passwordInput"
-                                onInput={e => this.updateAdminPassword(e.target.value)}
-                                name="username" maxlength="64" value={state.password}/>
-                        </div>
-                        <div>
-                        <button class="btn btn-primary" type="summit">Login</button>
-                        </div>
-                    </form>
-                }
-                {loggedIn && <Fragment>
-                    <div class="admin-title">
-                        Logged in
-                    </div>
-                    <button class="btn btn-primary" onclick={logout}>Logout</button>
-                </Fragment>}
+                        <button class="btn btn-primary btnStandard" onclick={logout}>Logout</button>
+                    </Fragment>}
                 </div>
             </div>
         </div>;

@@ -73,10 +73,12 @@ export class Profile extends Component {
                             <div class="profileTextData">{profile.nickname}</div>
                         </div>
                     </div>
-                    <div class="image avatar big" style={{ 'background-image': `url(${profile.avatarUrl})` }}>
-                        <div class="uploader-overlay" onclick={() => document.getElementById('avatar-uploader').click()}>
-                            <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg, image/webp" onchange={this.avatarSelected} />
-                            <div class="center">Upload</div>
+                    <div class="profileAvatarContainer">
+                        <div class="image avatar big" style={{ 'background-image': `url(${profile.avatarUrl})` }}>
+                            <div class="uploader-overlay" onclick={() => document.getElementById('avatar-uploader').click()}>
+                                <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg, image/webp" onchange={this.avatarSelected} />
+                                <div class="center">Upload</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -94,7 +96,7 @@ export class Profile extends Component {
                         <HexColorPicker color={this.state.validColor} onChange={this.onInputColor} />
                     </div>
                     <div>
-                        <div style={{ background: "#171b22"}} class="chatMessagePreviewContainer">
+                        <div style={{ background: "#171b22" }} class="chatMessagePreviewContainer">
                             <div style={{ width: "15em", height: "max-content" }}>
                                 <div class="message">
                                     <div class="username" style={{ color: this.state.validColor }}>{this.state.nickname}<span class="timestamp">{"   8:00 AM"}</span>
@@ -105,7 +107,7 @@ export class Profile extends Component {
                                 </div>
                             </div>
                         </div>
-                        <div style={{ background: "#123 -var(--cozycast-noise)"}} class="chatMessagePreviewContainer">
+                        <div style={{ background: "#123 var(--cozycast-noise)" }} class="chatMessagePreviewContainer">
                             <div style={{ width: "15em", height: "max-content" }}>
                                 <div class="message">
                                     <div class="username" style={{ color: this.state.validColor }}>{this.state.nickname}<span class="timestamp">{"   8:00 AM"}</span>

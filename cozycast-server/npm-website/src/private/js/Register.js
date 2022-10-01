@@ -4,11 +4,12 @@ import { Header } from './Header.js';
 import { route } from 'preact-router'
 
 export class Register extends Component {
-    constructor(props){
+    constructor(props) {
         super(props);
         this.state = {
             username: "",
             password: "",
+            confirmPassword: "",
             registered: false
         }
     }
@@ -19,7 +20,11 @@ export class Register extends Component {
     }
 
     register = () => {
-        fetch("/register",{
+        if(this.state.password != this.state.confirmPassword){
+            alert("Passwords do not match");
+            return;
+        }
+        fetch("/register", {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
@@ -27,61 +32,81 @@ export class Register extends Component {
             body: JSON.stringify({
                 username: this.state.username,
                 password: this.state.password
-            })}).then((e) => {
-            if(e.status == 200) {
-                this.setState({registered: true});
-            } else e.json().then( e => alert(e.errors.join("\n")))
+            })
+        }).then((e) => {
+            if (e.status == 200) {
+                this.setState({ 
+                    registered: true,
+                    username: "",
+                    password: "",
+                    confirmPassword: ""
+                });
+            } else e.json().then(e => alert(e.errors.join("\n")))
         });
-        this.setState({
-            username: "",
-            password: ""
-        })
     }
 
-    updateAdminUsername = (value) => {
-        this.setState({username: value});
+    updateUsername = (value) => {
+        this.setState({ username: value });
     }
 
-    updateAdminPassword = (value) => {
-        this.setState({password: value});
+    updatePassword = (value) => {
+        this.setState({ password: value });
     }
 
-    render( _ , state) {
-    return <div class="admin-background">
+    updateConfirmPassword = (value) => {
+        this.setState({ confirmPassword: value });
+    }
+
+    render(_, state) {
+        return <div class="admin-background">
             <div class="admin">
                 <div class="admin-modal">
-                {!state.registered && 
-                <form onSubmit={this.onSubmit} id="registerForm">
-                    <div class="admin-title">
-                        Register
-                    </div>
-                    <label for="usernameInput">
-                        Username
-                    </label>
-                    <div>
-                        <input class="modal-username" type="text" id="usernameInput"
-                            onInput={e => this.updateAdminUsername(e.target.value)}
-                            name="username" maxlength="12" value={state.username}/>
-                    </div>
-                    <label for="passwordInput">
-                        Password
-                    </label>
-                    <div>
-                        <input class="modal-username" type="password" id="passwordInput"
-                            onInput={e => this.updateAdminPassword(e.target.value)}
-                            name="password" maxlength="64" value={state.password}/>
-                    </div>
-                    <div>
-                    <button class="btn btn-primary" type="summit">Register</button>
-                    </div>
-                </form>
-                }
-                {state.registered && <Fragment>
-                    <div class="admin-title">
-                        Successfully register
-                    </div>
-                    <button class="btn btn-primary" onclick={e => route("/login", true)}>Continue to login</button>
-                </Fragment>}
+                    {!state.registered &&
+                        <form class="formStandard" onSubmit={this.onSubmit} id="registerForm" autocomplete="off" >
+                            <div class="admin-title">
+                                Register
+                            </div>
+                            <div>
+                                <label for="usernameInputRegister">
+                                    Username
+                                </label>
+                                <div>
+                                    <input class="modal-username standardInputField" type="text" id="usernameInputRegister"
+                                        onInput={e => this.updateUsername(e.target.value)}
+                                        name="usernameRegister" maxlength="12" value={state.username} autocomplete="off" />
+                                </div>
+                            </div>
+                            <div>
+                                <label for="passwordInputRegister">
+                                    Password
+                                </label>
+                                <div>
+                                    <input class="modal-username standardInputField" type="password" id="passwordInputRegister"
+                                        onInput={e => this.updatePassword(e.target.value)}
+                                        name="passwordRegister" maxlength="64" value={state.password} autocomplete="off" />
+                                </div>
+                            </div>
+                            <div>
+                                <label for="passwordInputConfirm">
+                                    Confirm Password
+                                </label>
+                                <div>
+                                    <input class="modal-username standardInputField" type="password" id="passwordInputConfirm"
+                                        onInput={e => this.updateConfirmPassword(e.target.value)}
+                                        name="confirmPassword" maxlength="64" value={state.confirmPassword} autocomplete="off" />
+                                </div>
+                            </div>
+                            <div>
+                                <button class="btn btn-primary btnStandard" type="summit">Register</button>
+                            </div>
+                        </form>
+                    }
+                    {state.registered && <Fragment>
+                        <div class="admin-title">
+                            Successfully registerd
+                        </div>
+                        <button class="btn btn-primary btnStandard" onclick={e => route("/login", true)}>Continue to login</button>
+                    </Fragment>}
                 </div>
             </div>
         </div>;

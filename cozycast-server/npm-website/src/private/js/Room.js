@@ -14,6 +14,7 @@ import { SidebarState, WorkerStatus } from './index.js'
 import { UserHoverName } from './UserHoverName.js'
 import { typing, filterTyping, clearTyping } from './ChatInput.js'
 import { TokenStatus, getToken } from './Authentication'
+import { InfoScreen } from './InfoScreen.js';
 
 
 var favicon = new Favico({
@@ -432,7 +433,8 @@ export class Room extends Component {
                 lastTimeSeen: moment(parsedMessage.lastTimeSeen).format('h:mm A'),
                 active: parsedMessage.active,
                 muted: parsedMessage.muted,
-                nameColor: parsedMessage.nameColor
+                nameColor: parsedMessage.nameColor,
+                anonymous: parsedMessage.anonymous
             }]
         }})
     }
@@ -446,7 +448,8 @@ export class Room extends Component {
                 lastTimeSeen: moment(user.lastTimeSeen).format('h:mm A'),
                 active: user.active,
                 muted: user.muted,
-                nameColor: user.nameColor
+                nameColor: user.nameColor,
+                anonymous: user.anonymous
             }});
         this.setState((state) => { return {userlist: users}})
     }
@@ -826,7 +829,7 @@ export class Room extends Component {
 
     render({ roomId }, state) {
     return <Fragment>
-            {this.isBanned() && <div>Banned until {state.banned}</div>}
+            {this.isBanned() && <InfoScreen message={'You are banned'} submessage={`until ${state.banned}`}/>}
             {!this.isBanned() && <Fragment>
                 {!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && <div><Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={true} fullscreen={state.fullscreen} hasRemote={state.remote} updateRoomState={this.updateRoomState}/></div>}
                 <div id="videoWrapper" class="videoWrapper">

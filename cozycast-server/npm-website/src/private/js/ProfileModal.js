@@ -139,7 +139,7 @@ export class ProfileModal extends Component {
                         onInput={e => this.onInput(e.target.value)}
                         name="username" maxlength="12" value={this.state.username} />
                 </Fragment>}
-                {profile.username && <Button onclick={() => window.location.pathname = '/profile'}>Edit Profile Picture</Button>}
+                {profile.username && <Button onclick={() => window.location.pathname = '/profile'}>Edit Profile Picture and Nickname</Button>}
                 {!profile.username && <div>Please log in to edit your Nickname and Profile Picture</div>}
                 <div class="userOptions">
                     <div class="usersubOptions">
@@ -165,7 +165,7 @@ export class ProfileModal extends Component {
                         </div>
                     </div>
                 </div>
-                <button class="btn btn-primary" type="summit" >Save</button>
+                <button class="btn btn-primary btnStandard" type="summit" >Save</button>
             </form>
         </div>
     }

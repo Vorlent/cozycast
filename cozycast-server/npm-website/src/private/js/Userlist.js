@@ -17,18 +17,21 @@ export class Userlist extends Component {
     render({userlist, showUsernames, isLeft, updateRoomState, fullscreen, hasRemote}) {
         return <Fragment>
             <div id="userlist" class={`userlist ${showUsernames ? "big" : "small"} ${isLeft ? "left" : "bottom"} ${fullscreen ? "fullscreenUserlist" : ""} ${hasRemote ? " hasRemote": ""}`} >
-                {userlist.map(user => 
-                    <div class="user" key={user.session}>
+                {userlist.map(user => {
+                let background = {'background-image': `url(${user.url})`};
+                if(user.anonymous) background['background-color'] = user.nameColor + "99"
+                {return <div class="user" key={user.session}>
                         <div class={`avatarContainer ${!showUsernames || isLeft ? "bar" : ""}`} 
                         onMouseover={e => showHover(e,user.username,isLeft ? "right" : "top",showUsernames,user.active,updateRoomState)} onMouseout={e => hideHover(updateRoomState)}>
-                            <div class={`image avatar ${user.active? "": "isAway"}`} style={{'background-image': `url(${user.url})`,'background-color': user.nameColor + "99" }}/>
+                            <div class={`image avatar ${user.active? "": "isAway"}`} style={background}/>
                             {user.remote && <div class="orangeCircle"></div>}
                             <img class={`mutedDot ${user.muted? "": "noDisplay"}`} src="/svg/headphone-slash.svg"></img>
                             <img class={`remoteIcon ${user.remote? "": "noDisplay"}`} src="/svg/remote.svg"></img>
                         </div>
                         {showUsernames && !isLeft && <div class={`${user.active? "": "isAway"} userprofileName`}>{user.username}</div>}
                     </div>
-                )}
+                    }
+                })}
             </div>
             <a id="copyright" href="/license" target="_blank" class={isLeft ? "left" : "bottom"}>Copyright (C) 2022 Vorlent</a>
         </Fragment>

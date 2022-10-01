@@ -1184,10 +1184,16 @@ input[type=range]::-webkit-slider-thumb {
     font-weight: bold;
 }
 
+.profileAvatarContainer{
+    width: 40%;
+    display: flex;
+    justify-content: center;
+}
+
 .profileDataContainer{
     display: flex;
     width: 100%;
-    justify-content: space-around;
+    justify-content: center;
     margin-bottom: 1em;
 }
 
@@ -1222,7 +1228,13 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .btnStandard{
-    padding: 0.3em 0.7em;
+    padding: 0.45em 0.9em;;
+}
+
+.formStandard{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .chatMessagePreviewContainer{
@@ -1408,6 +1420,23 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .admin-entry-usercount {
+}
+
+.infoScreenCenter{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.infoScreenMessage{
+    font-size: 3em;
+    font-weight: bold;
+    margin-bottom: 0.25em;
+}
+
+.infoScreenSubMessage{
+    font-size: 1em;
 }
 
 /* Admin.js End */
