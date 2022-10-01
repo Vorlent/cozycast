@@ -837,7 +837,7 @@ export class Room extends Component {
                     </div>
                 </div>
                 {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions}/>}
-                {state.profileModal && <ProfileModal state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} setAppState={this.props.setAppState}/>}
+                {state.profileModal && <ProfileModal state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} setAppState={this.props.setAppState} profile={this.props.profile}/>}
                 {state.hoverText && <UserHoverName state={state}/>}
                 </Fragment>}
         </Fragment>

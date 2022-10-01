@@ -1167,6 +1167,71 @@ input[type=range]::-webkit-slider-thumb {
     vertical-align: middle;
 }
 
+.standardInputField{
+    background: var(--cozyColorAccent) var(--cozycast-noise);
+    margin-bottom: 1em;
+    color: white;
+    border: none;
+    padding: 0.6em;
+    font-size: 1.1em;
+    width: 100%;
+}
+
+.profileTitle{
+    width: 3em;
+    font-size: 3em;
+    margin-bottom: 1em;
+    font-weight: bold;
+}
+
+.profileDataContainer{
+    display: flex;
+    width: 100%;
+    justify-content: space-around;
+    margin-bottom: 1em;
+}
+
+.profileTextInfoContainer{
+    display: flex;
+    width: 50%;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.profileTextInfoContainer .profileTextContainer:not(:last-child){
+    margin-bottom: 1.5em;
+}
+
+.profileTextInfo{
+    font-size: 0.8em;
+}
+
+.profileTextData{
+    font-size: 1.5em;
+    font-weight: solid;
+}
+
+.profileNicknameContainer{
+    width: 95%;
+}
+
+.profileHexColorContainer{
+    margin: 1.5em;
+    margin-top: 0.5em;
+    margin-left: 0.5em; 
+}
+
+.btnStandard{
+    padding: 0.3em 0.7em;
+}
+
+.chatMessagePreviewContainer{
+    padding: 0.5em;
+    border-radius: 0.3em;
+    margin: 0.5em;
+    border: 1px solid var(--cozyColorAccent);
+}
+
 /* Accounts.js End*/
 
 

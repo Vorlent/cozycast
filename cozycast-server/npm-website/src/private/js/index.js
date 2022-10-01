@@ -89,6 +89,31 @@ class App extends Component {
         })
     }
 
+    updateProfile = () => {
+        authFetch("/api/profile").then(e => {
+            switch(e){
+                case TokenStatus.NO_TOKEN:
+                case TokenStatus.EXPIRED:
+                    this.setState({loginCompleted: true})
+                    break;
+                default:
+                    e.json().then(e => {
+                        this.setState(
+                            {  
+                            profile: {
+                                username: e.username, 
+                                avatarUrl: e.avatarUrl, 
+                                admin: e.admin,
+                                nickname: e.nickname,
+                                nameColor: e.nameColor
+                            }, 
+                                loggedIn: true}
+                            )
+                    })
+            }
+        })
+    }
+
     componentDidMount(){
         this.login()
     }
@@ -128,7 +153,7 @@ class App extends Component {
                     <Login path="/login/" loggedIn={this.state.loggedIn} logout={this.logout.bind(this)} login={this.login.bind(this)}/>
                     <Register path="/register"/>
                     <Accounts path="/accounts" profile={this.state.profile}/>
-                    <Profile path="/profile" profile={this.state.profile} setAppState={this.setState.bind(this)}/>
+                    <Profile path="/profile" profile={this.state.profile} setAppState={this.setState.bind(this)} updateProfile={this.updateProfile.bind(this)}/>
                     <InviteManager path="/invites" profile={this.state.profile}/>
                     <PermissionManager path="/permission"/>
                 </Router>
