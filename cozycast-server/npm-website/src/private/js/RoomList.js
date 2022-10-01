@@ -76,10 +76,10 @@ export class RoomList extends Component {
                             <tr>
                                 {profile.admin && 
                                     <Fragment>
-                                        <td><button type="button" class="btn btn-primary" onclick={e => this.deleteRoom(room.id)}>
+                                        <td><button type="button" class="btn btn-primary btnStandard" onclick={e => this.deleteRoom(room.id)}>
                                             Delete
                                             </button></td>
-                                        <td><button type="button" class="btn btn-primary" onclick={e => this.setState({inviteModal: true, currentRoom: room.id})}>
+                                        <td><button type="button" class="btn btn-primary btnStandard" onclick={e => this.setState({inviteModal: true, currentRoom: room.id})}>
                                             Invite
                                             </button></td>
                                     </Fragment>
@@ -89,7 +89,7 @@ export class RoomList extends Component {
                                     {room.verifiedOnly && <span class="room-badge">Verified Only</span>}
                                     {room.accountOnly  && <span class="room-badge">Account Only</span>}</td>
                                 <td><span class="room-list-entry-usercount">{room.userCount} users</span></td>
-                                <td class ="room-list-join-column" ><button type="button" class="btn btn-danger btn-join" onclick={e =>  window.location.pathname = `/room/${room.id}` }
+                                <td class ="room-list-join-column" ><button type="button" class="btn btn-danger btn-join btnStandard" onclick={e =>  window.location.pathname = `/room/${room.id}` }
                                 disabled={!this.canJoin(room)}>
                                         {this.canJoin(room)? 'Join' : 'Closed'}
                                         </button></td>

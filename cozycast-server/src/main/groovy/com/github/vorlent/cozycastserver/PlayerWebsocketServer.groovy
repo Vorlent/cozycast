@@ -202,6 +202,7 @@ class JoinEvent {
     Boolean active
     Boolean muted
     String lastTimeSeen
+    Boolean anonymous
 }
 
 
@@ -646,7 +647,8 @@ class PlayerWebsocketServer {
                     active:  value.getActive(),
                     nameColor: value.getNameColor(),
                     lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(value.getLastTimeSeen()),
-                    muted: value.getMuted()
+                    muted: value.getMuted(),
+                    anonymous: value.isAnonymous()
                 ) 
                 }
         ))
@@ -661,7 +663,8 @@ class PlayerWebsocketServer {
                     active:  user.active,
                     nameColor: user.nameColor,
                     lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen),
-                    muted: user.muted
+                    muted: user.muted,
+                    anonymous: user.anonymous
                 ))
             }
         }

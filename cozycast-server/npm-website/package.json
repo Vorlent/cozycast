@@ -1,18 +1,19 @@
 {
     "scripts": {
-        "build": "rm -rf build && esbuild ./src/private/js/index.js --bundle --minify --loader:.js=jsx --jsx-factory=h --jsx-fragment=Fragment --outfile=build/js/cozy.js && copyfiles -u 2 ./src/public/audio/* ./src/public/* ./src/public/css/* ./src/public/js/libs/* ./src/public/png/* ./src/public/svg/* build && copyfiles -u 3 node_modules/cropperjs/dist/cropper.css build/css",
-        "dev": "esbuild ./src/private/js/index.js --bundle --loader:.js=jsx --jsx-factory=h --jsx-fragment=Fragment --outfile=build/js/cozy.js && copyfiles -u 2 ./src/public/audio/* ./src/public/* ./src/public/css/* ./src/public/js/libs/* ./src/public/png/* ./src/public/svg/* build",
+        "build": "rm -rf build && ./src/config/build.js && copyfiles -u 2 ./src/public/audio/* ./src/public/* ./src/public/css/* ./src/public/js/libs/* ./src/public/png/* ./src/public/svg/* build && copyfiles -u 3 node_modules/cropperjs/dist/cropper.css build/css",
         "clean": "rm -rf build"
     },
     "dependencies": {
         "copyfiles": "^2.4.1",
         "cropperjs": "^1.5.12",
         "esbuild": "^0.15.4",
+        "esbuild-plugin-alias": "^0.2.1",
         "events": "^3.3.0",
         "kurento-utils": "^6.16.0",
         "linkifyjs": "^3.0.5",
         "moment": "^2.29.4",
         "preact": "^10.10.3",
-        "preact-router": "^4.1.0"
+        "preact-router": "^4.1.0",
+        "react-colorful": "^5.6.1"
     }
 }

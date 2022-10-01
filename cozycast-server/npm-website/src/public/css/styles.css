@@ -1167,6 +1167,83 @@ input[type=range]::-webkit-slider-thumb {
     vertical-align: middle;
 }
 
+.standardInputField{
+    background: var(--cozyColorAccent) var(--cozycast-noise);
+    margin-bottom: 1em;
+    color: white;
+    border: none;
+    padding: 0.6em;
+    font-size: 1.1em;
+    width: 100%;
+}
+
+.profileTitle{
+    width: 3em;
+    font-size: 3em;
+    margin-bottom: 1em;
+    font-weight: bold;
+}
+
+.profileAvatarContainer{
+    width: 40%;
+    display: flex;
+    justify-content: center;
+}
+
+.profileDataContainer{
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 1em;
+}
+
+.profileTextInfoContainer{
+    display: flex;
+    width: 50%;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.profileTextInfoContainer .profileTextContainer:not(:last-child){
+    margin-bottom: 1.5em;
+}
+
+.profileTextInfo{
+    font-size: 0.8em;
+}
+
+.profileTextData{
+    font-size: 1.5em;
+    font-weight: solid;
+}
+
+.profileNicknameContainer{
+    width: 95%;
+}
+
+.profileHexColorContainer{
+    margin: 1.5em;
+    margin-top: 0.5em;
+    margin-left: 0.5em; 
+}
+
+.btnStandard{
+    padding: 0.45em 0.9em;;
+}
+
+.formStandard{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.chatMessagePreviewContainer{
+    padding: 0.5em;
+    border-radius: 0.3em;
+    margin: 0.5em;
+    border: 1px solid var(--cozyColorAccent);
+}
+
 /* Accounts.js End*/
 
 
@@ -1343,6 +1420,23 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .admin-entry-usercount {
+}
+
+.infoScreenCenter{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.infoScreenMessage{
+    font-size: 3em;
+    font-weight: bold;
+    margin-bottom: 0.25em;
+}
+
+.infoScreenSubMessage{
+    font-size: 1em;
 }
 
 /* Admin.js End */
