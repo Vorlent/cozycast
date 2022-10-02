@@ -15,9 +15,10 @@ class UserSession {
     Boolean active
     Boolean muted
     Boolean anonymous
+    Boolean invited
     Boolean admin = false
-    Boolean remote_permission
-    Boolean image_permission
+    Boolean remote_permission = false
+    Boolean image_permission = false
     ZonedDateTime lastTimeSeen
 
     public void release() {

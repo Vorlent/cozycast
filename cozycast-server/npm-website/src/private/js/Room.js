@@ -62,6 +62,10 @@ export class Room extends Component {
             loggedIn: false,
             admin: false,
             profile: this.props.profile,
+            personalPermissions:{
+                remotePermission: false,
+                imagePermission: false
+            },
             permissions: {
                 remotePermission: false,
                 imagePermission: false
@@ -125,10 +129,13 @@ export class Room extends Component {
     websocket = null;
     webRtcPeer = null;
 
+    mounted = true;
+
     //lets children change room state
     updateRoomState = this.setState;
 
     componentDidMount() {
+        this.mounted = true;
         document.onvisibilitychange = () => {
             if(!document.hidden){
                 this.setState({
@@ -177,6 +184,7 @@ export class Room extends Component {
     }
 
     componentWillUnmount() {
+        this.mounted = false;
         this.websocket.close();
     }
 
@@ -540,6 +548,10 @@ export class Room extends Component {
                 centerRemote: parsedMessage.centerRemote,
                 default_remote_permission: parsedMessage.default_remote_permission,
                 default_image_permission: parsedMessage.default_image_permission
+            },
+            permissions: {
+                remotePermission: state.personalPermissions.remotePermission || parsedMessage.default_remote_permission,
+                imagePermission: state.personalPermissions.imagePermission || parsedMessage.default_image_permission
             }
         }})
     }
@@ -586,9 +598,13 @@ export class Room extends Component {
                 case 'authenticated':
                     this.setState(state => {return {
                         admin: parsedMessage.admin,
-                        permissions: {
+                        personalPermissions: {
                             remotePermission: parsedMessage.remotePermission,
                             imagePermission: parsedMessage.imagePermission
+                        },
+                        permissions: {
+                            remotePermission: parsedMessage.remotePermission || state.roomSettings.default_remote_permission,
+                            imagePermission: parsedMessage.imagePermission || state.roomSettings.default_image_permission
                         }
                     }})
                     this.keepAlive = setInterval(() => {
@@ -710,8 +726,7 @@ export class Room extends Component {
                 chatMessages: [],
                 remote: false
             }})
-            //TODO: fix reconnecting, current version messes with navigation 
-            //setTimeout(() => this.connect(room,bearerToken), 1500)
+            if(this.mounted) setTimeout(() => this.connect(room,bearerToken), 1500)
         }
       
         this.websocket.onopen = (event) => {

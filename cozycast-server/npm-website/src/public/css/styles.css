@@ -1037,6 +1037,28 @@ input[type=range]::-webkit-slider-thumb {
 .room-settings-icon {
     height: 20px;
 }
+
+.roomSettingCategory {
+    height: max-content;
+    display: flex;
+    flex-direction: column;
+}
+
+.roomSettingsContainer{
+    justify-content: space-around;
+}
+
+.roomSettingsHeaders{
+    font-size: 1.7em;
+    margin-bottom: 0.5em;
+    font-weight: bold;
+    text-align: center;
+}
+
+.maxHeightButton {
+    padding: 0.5em;
+  }
+
 /*  Chat.js End */
 
 /*  Room.js Start */
