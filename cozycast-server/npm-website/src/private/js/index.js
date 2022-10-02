@@ -121,10 +121,6 @@ class App extends Component {
         this.login()
     }
 
-    componentDidUpdate() {
-        console.log(this.state);
-    }
-
     checkIfLoggedOut = () => {
         getToken().then(e => {
             switch (e) {

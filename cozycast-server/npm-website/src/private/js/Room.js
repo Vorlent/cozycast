@@ -59,7 +59,6 @@ export class Room extends Component {
         let roomId = props.roomId;
         this.state = {
             roomId: roomId,
-            roomToken: localStorage.getItem("room-" + roomId + "-token"),
             loggedIn: false,
             admin: false,
             profile: this.props.profile,
@@ -74,8 +73,6 @@ export class Room extends Component {
             forceChatScroll: false,
             remote: false,
             remoteUsed: false,
-            username: localStorage.hasOwnProperty("username") ? localStorage.getItem("username"): "Anonymous",
-            avatarUrl: localStorage.hasOwnProperty("avatarUrl") ? localStorage.getItem("avatarUrl") : '/png/default_avatar.png',
             volume: volume,
             videoPaused: true,
             videoLoading: false,
@@ -119,16 +116,6 @@ export class Room extends Component {
             userlistOnLeft: localStorage.hasOwnProperty('userlistOnLeft') ?  localStorage.getItem("userlistOnLeft") == 'true' : false,
             transparentChat: localStorage.hasOwnProperty('transparentChat') ?  localStorage.getItem("transparentChat") == 'true' : true
         };
-        //check if valid profile picture was used and replace if not
-        if(this.state != '/png/default_avatar.png'){
-            fetch(this.state.avatarUrl).then((e) => {
-                if(e.status != 200) {
-                    this.setState({
-                        avatarUrl: '/png/default_avatar.png'
-                    })
-                }
-            })
-        }
         //bind function so they can be passed down as props
         this.pauseVideo = this.pauseVideo.bind(this)
         this.sendMessage = this.sendMessage.bind(this)
@@ -406,7 +393,7 @@ export class Room extends Component {
         }
 
         var lowerCaseMsg = msg.toLowerCase()
-        var pattern = "@" + this.state.username.toLowerCase()
+        var pattern = "@" + this.props.profile.nickname.toLowerCase()
         var mentionPos = lowerCaseMsg.indexOf(pattern)
         var lookahead = lowerCaseMsg.substring(mentionPos, (pattern + " ").length).trim()
         var mention = lookahead == pattern
@@ -575,8 +562,7 @@ export class Room extends Component {
     unauthorized = (parsedMessage) => {
         switch(parsedMessage.message){
             default:
-                //not using router since websocket needs to be closed
-                window.location.pathname = '/';
+                route('/',true);
                 break;
         }
     }
@@ -715,16 +701,17 @@ export class Room extends Component {
             }
         }
         this.websocket.onclose = (event) => {
+            clearTyping();
+            this.webrtc_stop()
+            clearInterval(this.keepAlive)
+            this.keepAlive = null;
             this.setState(state => {return {
                 userlist: [],
                 chatMessages: [],
                 remote: false
             }})
-            clearTyping();
-            this.webrtc_stop()
-            clearInterval(this.keepAlive)
-            this.keepAlive = null;
-            setTimeout(() => this.connect(room,bearerToken), 1500)
+            //TODO: fix reconnecting, current version messes with navigation 
+            //setTimeout(() => this.connect(room,bearerToken), 1500)
         }
       
         this.websocket.onopen = (event) => {

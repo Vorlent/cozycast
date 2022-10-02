@@ -1,13 +1,12 @@
 import { Component, Fragment, h } from 'preact'
 import { Button } from './Button';
+import { route } from 'preact-router'
 
 export class ProfileModal extends Component {
     constructor(props) {
         super(props);
         //since profileModal is the only component changing these states it's okay to intitalize it like this
         this.state = {
-            username: props.state.username,
-            avatarUrl: props.state.avatarUrl,
             muteChatNotification: props.state.muteChatNotification,
             showUsernames: props.state.showUsernames,
             legacyDesign: props.state.legacyDesign,
@@ -22,8 +21,6 @@ export class ProfileModal extends Component {
         // This is suboptimal and can be avoided by having the props passed down as the correct value the first time around
         if (props.state.profileModal !== undefined && !state.editMode) {
             return {
-                username: props.state.username,
-                avatarUrl: props.state.avatarUrl,
                 muteChatNotification: props.state.muteChatNotification,
                 showUsernames: props.state.showUsernames,
                 legacyDesign: props.state.legacyDesign,
@@ -51,37 +48,17 @@ export class ProfileModal extends Component {
                 action: 'userMuted',
                 muted: this.state.showMuted && (this.props.state.muted || this.props.state.videoPaused)
             });
-        let newUsername = this.props.state.username;
-        if (newUsername != this.state.username.substring(0, 12)) {
-            newUsername = this.state.username.substring(0, 12);
-            this.props.sendMessage({
-                action: 'changeusername',
-                username: newUsername
-            });
-        }
-        let newAvatarUrl = this.props.state.avatarUrl;
-        if (newAvatarUrl != this.state.avatarUrl) {
-            newAvatarUrl = this.state.avatarUrl;
-            this.props.sendMessage({
-                action: 'changeprofilepicture',
-                url: newAvatarUrl
-            });
-        }
         this.props.updateRoomState({
             muteChatNotification: this.state.muteChatNotification,
             showUsernames: this.state.showUsernames,
             showIfMuted: this.state.showIfMuted,
             userlistOnLeft: this.state.userlistOnLeft,
-            transparentChat: this.state.transparentChat,
-            avatarUrl: newAvatarUrl,
-            username: newUsername
+            transparentChat: this.state.transparentChat
         })
         this.props.setAppState({
             legacyDesign: this.state.legacyDesign
         })
 
-        localStorage.setItem("username", this.state.username);
-        localStorage.setItem("avatarUrl", this.state.avatarUrl);
         localStorage.setItem("muteChatNotification", this.state.muteChatNotification);
         localStorage.setItem("showUsernames", this.state.showUsernames);
         localStorage.setItem("legacyDesign", this.state.legacyDesign);
@@ -89,10 +66,6 @@ export class ProfileModal extends Component {
         localStorage.setItem("userlistOnLeft", this.state.userlistOnLeft);
         localStorage.setItem("transparentChat", this.state.transparentChat);
         this.closeProfile()
-    }
-
-    onInput = e => {
-        this.setState({ username: e })
     }
 
     onSubmit = e => {
@@ -106,40 +79,10 @@ export class ProfileModal extends Component {
         this.setState({ [name]: !checked })
     }
 
-    avatarSelected = (e) => {
-        let formData = new FormData();
-        formData.append("avatar", e.target.files[0]);
-        fetch('/avatar/upload', { method: "POST", body: formData }).then((e) => e.json()).then((e) => {
-            if (e.url) {
-                this.setState({ avatarUrl: e.url });
-            }
-        });
-    }
-
     render({ state,profile }) {
         return <div class="modal-background">
             <form class="profile modal" onSubmit={this.onSubmit}>
-                {false && <Fragment>
-                    <div class="title">
-                        <div>
-                            Profile
-                        </div>
-                        <button type="button" class="modal-close" onclick={this.closeProfile}>X</button>
-                    </div>
-                    <div class="image avatar big" style={{ 'background-image': `url(${this.state.avatarUrl})` }}>
-                        <div class="uploader-overlay" onclick={() => document.getElementById('avatar-uploader').click()}>
-                            <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg, image/webp" onchange={this.avatarSelected} />
-                            <div class="center">Upload</div>
-                        </div>
-                    </div>
-                    <div>
-                        Username
-                    </div>
-                    <input class="modal-username" type="text"
-                        onInput={e => this.onInput(e.target.value)}
-                        name="username" maxlength="12" value={this.state.username} />
-                </Fragment>}
-                {profile.username && <Button onclick={() => window.location.pathname = '/profile'}>Edit Profile Picture and Nickname</Button>}
+                {profile.username && <Button onclick={() => route('/profile',true)}>Edit Profile Picture and Nickname</Button>}
                 {!profile.username && <div>Please log in to edit your Nickname and Profile Picture</div>}
                 <div class="userOptions">
                     <div class="usersubOptions">

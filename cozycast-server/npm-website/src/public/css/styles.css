@@ -1228,7 +1228,8 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .btnStandard{
-    padding: 0.45em 0.9em;;
+    padding: 0.45em 0.9em;
+    min-width: 3.5em;
 }
 
 .formStandard{
