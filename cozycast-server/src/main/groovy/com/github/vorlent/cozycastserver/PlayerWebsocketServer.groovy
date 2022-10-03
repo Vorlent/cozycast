@@ -383,7 +383,7 @@ class PlayerWebsocketServer {
     private void chatmessage(Room room, WebSocketSession session, Map jsonMessage) {
         log.info jsonMessage.toString()
         final UserSession user = room.users.get(session.getId())
-        if(!user.image_permission && (jsonMessage.type == 'image' || jsonMessage.type == 'video')) return;
+        if(!(user.image_permission || room.default_image_permission) && (jsonMessage.type == 'image' || jsonMessage.type == 'video')) return;
         ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))
         String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
         ChatMessage.withTransaction {
@@ -505,8 +505,9 @@ class PlayerWebsocketServer {
         if(token != null) {
             def completed = false;
             def admin = false;
-            boolean remote_permission = room.default_remote_permission;
-            boolean image_permission = room.default_image_permission;
+            boolean remote_permission = false;
+            boolean image_permission = false;
+            boolean invited = false;
             jwtTokenValidator.validateToken(token,null).subscribe({
                 auth -> 
                     def name = auth.getName();
@@ -524,10 +525,11 @@ class PlayerWebsocketServer {
                                     sendMessage(session, new UnauthorizedEvent(message: "Invites only"))
                                     return;
                                 }
-                                remote_permission = remote_permission || perm.remote_permission;
-                                image_permission = image_permission || perm.image_permission;
+                                remote_permission = perm.remote_permission;
+                                image_permission = perm.image_permission;
+                                invited = perm.invited;
                             }
-                            if( room.inviteOnly && perm == null) {
+                            if( room.inviteOnly && !invited) {
                                 sendMessage(session, new UnauthorizedEvent(message: "Invites only"))
                                 return;
                             } else {
@@ -540,7 +542,8 @@ class PlayerWebsocketServer {
                                     lastTimeSeen: ZonedDateTime.now(ZoneId.of("UTC")),
                                     active: true,
                                     muted: jsonMessage.muted,
-                                    admin: user.isAdmin(), 
+                                    admin: user.isAdmin(),
+                                    invited: invited,
                                     remote_permission: remote_permission,
                                     image_permission: image_permission,
                                     anonymous: false
@@ -575,11 +578,9 @@ class PlayerWebsocketServer {
                     lastTimeSeen: ZonedDateTime.now(ZoneId.of("UTC")),
                     active: true,
                     muted: jsonMessage.muted,
-                    remote_permission: room.default_remote_permission,
-                    image_permission: room.default_image_permission,
                     anonymous: true
                 ))
-                sendMessage(session, new AuthenticationEvent(admin: false, remotePermission: room.default_remote_permission, imagePermission: room.default_image_permission));
+                sendMessage(session, new AuthenticationEvent(admin: false, remotePermission: false, imagePermission: false));
                 joinActions(room,session,jsonMessage);
             }
         }
@@ -730,7 +731,7 @@ class PlayerWebsocketServer {
 
     private void pickupremote(Room room, WebSocketSession session) {
         UserSession user = room.users.get(session.getId())
-        if(!user.remote_permission) return
+        if(!(user.remote_permission || room.default_remote_permission)) return
         room.remote = session.getId()
         room.users.each { key, value ->
             sendMessage(value.webSocketSession, new PickupRemoteEvent(
@@ -764,29 +765,6 @@ class PlayerWebsocketServer {
     private void saveRoomSettings(Room room, WebSocketSession session, Map jsonMessage) {
         UserSession user = room.users.get(session.getId())
         if(user.admin) {
-            if(jsonMessage.default_remote_permission){
-                room.default_remote_permission = jsonMessage.default_remote_permission == "true"
-            }
-            if(jsonMessage.default_image_permission){
-                room.default_image_permission = jsonMessage.default_image_permission == "true"
-            }
-            if(jsonMessage.accessType) {
-                if(jsonMessage.accessType == "public") {
-                    room.inviteOnly = false
-                    room.verifiedOnly = false
-                    room.accountOnly = false
-                }
-                if(jsonMessage.accessType == "authenticated") {
-                    room.inviteOnly = false
-                    room.verifiedOnly = false
-                    room.accountOnly = true
-                }
-                if(jsonMessage.accessType == "invite") {
-                    room.inviteOnly = false
-                    room.verifiedOnly = false
-                    room.inviteOnly = true
-                }
-            }
             def resolutions = [
                 "1080": [ height: 1080, width: 1920 ],
                 "720": [ height: 720, width: 1280 ],
@@ -843,12 +821,70 @@ class PlayerWebsocketServer {
                     room.videoSettings.audioBitrate = bitrates[jsonMessage.audioBitrate.toString()]
                 }
             }
+            sendMessage(room.worker?.websocket, new UpdateWorkerSettingsEvent(settings: room.videoSettings, restart: true))
+        } else {
+            sendMessage(session, new CozycastError(message: "Not authorized"))
+        }
+    }
+
+    private void saveRoomAccess(Room room, WebSocketSession session, Map jsonMessage) {
+        log.info jsonMessage.toString()
+        UserSession user = room.users.get(session.getId())
+        if(user.admin) {
+            if(jsonMessage.default_remote_permission){
+                room.default_remote_permission = jsonMessage.default_remote_permission == "true"
+            }
+            if(jsonMessage.default_image_permission){
+                room.default_image_permission = jsonMessage.default_image_permission == "true"
+            }
+            if(jsonMessage.accessType) {
+                if(jsonMessage.accessType == "public") {
+                    room.inviteOnly = false
+                    room.verifiedOnly = false
+                    room.accountOnly = false
+                }
+                if(jsonMessage.accessType == "authenticated") {
+                    room.inviteOnly = false
+                    room.verifiedOnly = false
+                    room.accountOnly = true
+                }
+                if(jsonMessage.accessType == "invite") {
+                    room.inviteOnly = false
+                    room.verifiedOnly = false
+                    room.inviteOnly = true
+                }
+            }
             if(jsonMessage.centerRemote) {
                 room.centerRemote = true
             } else {
                 room.centerRemote = false
             }
-            sendMessage(room.worker?.websocket, new UpdateWorkerSettingsEvent(settings: room.videoSettings, restart: true))
+            def roomSettings =  new CurrentRoomSettingsEvent(
+                accountOnly : room.accountOnly,
+                verifiedOnly : room.verifiedOnly,
+                inviteOnly : room.inviteOnly,
+                centerRemote : room.centerRemote,
+                default_remote_permission: room.default_remote_permission,
+                default_image_permission: room.default_image_permission
+            )
+            room.users.each { key, roomUser ->
+            if(roomUser != null) {
+                if((room.accountOnly && roomUser.anonymous) || (room.inviteOnly && !roomUser.invited)){
+                    roomUser.release()
+                    if(roomUser.webSocketSession) {
+                        try {
+                            sendMessage(roomUser.webSocketSession, new UnauthorizedEvent(message: "Kicked"));
+                            roomUser.webSocketSession.close(CloseReason.NORMAL)
+                        } catch(IOException e) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+                else{
+                    sendMessage(roomUser.webSocketSession, roomSettings)
+                }
+            }
+        }
         } else {
             sendMessage(session, new CozycastError(message: "Not authorized"))
         }
@@ -1002,6 +1038,9 @@ class PlayerWebsocketServer {
                         break;
                     case "room_settings_save":
                         saveRoomSettings(currentRoom, session, jsonMessage)
+                        break;
+                    case "room_access_save":
+                        saveRoomAccess(currentRoom, session, jsonMessage)
                         break;
                     case "ban":
                         ban(currentRoom, session, jsonMessage)

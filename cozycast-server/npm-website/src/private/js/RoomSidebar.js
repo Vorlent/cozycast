@@ -16,7 +16,7 @@ export class RoomSidebar extends Component {
                 {state.roomSidebar == SidebarState.CHAT &&
                    <Chat state={state} sendMessage={this.props.sendMessage} updateRoomState={this.props.updateRoomState} profile={this.props.profile} permissions={this.props.permissions}/>}
                 {state.roomSidebar == SidebarState.USERS && <UserlistSidebar state={state}/>}
-                {state.roomSidebar == SidebarState.SETTINGS && state.roomToken
+                {state.roomSidebar == SidebarState.SETTINGS && this.props.profile.admin
                     && <RoomSettings state={state} sendMessage={this.props.sendMessage} updateRoomState={this.props.updateRoomState}/>}
             </div>
         ;

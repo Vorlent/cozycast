@@ -59,10 +59,13 @@ export class Room extends Component {
         let roomId = props.roomId;
         this.state = {
             roomId: roomId,
-            roomToken: localStorage.getItem("room-" + roomId + "-token"),
             loggedIn: false,
             admin: false,
             profile: this.props.profile,
+            personalPermissions:{
+                remotePermission: false,
+                imagePermission: false
+            },
             permissions: {
                 remotePermission: false,
                 imagePermission: false
@@ -74,8 +77,6 @@ export class Room extends Component {
             forceChatScroll: false,
             remote: false,
             remoteUsed: false,
-            username: localStorage.hasOwnProperty("username") ? localStorage.getItem("username"): "Anonymous",
-            avatarUrl: localStorage.hasOwnProperty("avatarUrl") ? localStorage.getItem("avatarUrl") : '/png/default_avatar.png',
             volume: volume,
             videoPaused: true,
             videoLoading: false,
@@ -119,16 +120,6 @@ export class Room extends Component {
             userlistOnLeft: localStorage.hasOwnProperty('userlistOnLeft') ?  localStorage.getItem("userlistOnLeft") == 'true' : false,
             transparentChat: localStorage.hasOwnProperty('transparentChat') ?  localStorage.getItem("transparentChat") == 'true' : true
         };
-        //check if valid profile picture was used and replace if not
-        if(this.state != '/png/default_avatar.png'){
-            fetch(this.state.avatarUrl).then((e) => {
-                if(e.status != 200) {
-                    this.setState({
-                        avatarUrl: '/png/default_avatar.png'
-                    })
-                }
-            })
-        }
         //bind function so they can be passed down as props
         this.pauseVideo = this.pauseVideo.bind(this)
         this.sendMessage = this.sendMessage.bind(this)
@@ -138,10 +129,13 @@ export class Room extends Component {
     websocket = null;
     webRtcPeer = null;
 
+    mounted = true;
+
     //lets children change room state
     updateRoomState = this.setState;
 
     componentDidMount() {
+        this.mounted = true;
         document.onvisibilitychange = () => {
             if(!document.hidden){
                 this.setState({
@@ -190,6 +184,7 @@ export class Room extends Component {
     }
 
     componentWillUnmount() {
+        this.mounted = false;
         this.websocket.close();
     }
 
@@ -406,7 +401,7 @@ export class Room extends Component {
         }
 
         var lowerCaseMsg = msg.toLowerCase()
-        var pattern = "@" + this.state.username.toLowerCase()
+        var pattern = "@" + this.props.profile.nickname.toLowerCase()
         var mentionPos = lowerCaseMsg.indexOf(pattern)
         var lookahead = lowerCaseMsg.substring(mentionPos, (pattern + " ").length).trim()
         var mention = lookahead == pattern
@@ -553,6 +548,10 @@ export class Room extends Component {
                 centerRemote: parsedMessage.centerRemote,
                 default_remote_permission: parsedMessage.default_remote_permission,
                 default_image_permission: parsedMessage.default_image_permission
+            },
+            permissions: {
+                remotePermission: state.personalPermissions.remotePermission || parsedMessage.default_remote_permission,
+                imagePermission: state.personalPermissions.imagePermission || parsedMessage.default_image_permission
             }
         }})
     }
@@ -575,8 +574,7 @@ export class Room extends Component {
     unauthorized = (parsedMessage) => {
         switch(parsedMessage.message){
             default:
-                //not using router since websocket needs to be closed
-                window.location.pathname = '/';
+                route('/',true);
                 break;
         }
     }
@@ -600,9 +598,13 @@ export class Room extends Component {
                 case 'authenticated':
                     this.setState(state => {return {
                         admin: parsedMessage.admin,
-                        permissions: {
+                        personalPermissions: {
                             remotePermission: parsedMessage.remotePermission,
                             imagePermission: parsedMessage.imagePermission
+                        },
+                        permissions: {
+                            remotePermission: parsedMessage.remotePermission || state.roomSettings.default_remote_permission,
+                            imagePermission: parsedMessage.imagePermission || state.roomSettings.default_image_permission
                         }
                     }})
                     this.keepAlive = setInterval(() => {
@@ -715,16 +717,16 @@ export class Room extends Component {
             }
         }
         this.websocket.onclose = (event) => {
+            clearTyping();
+            this.webrtc_stop()
+            clearInterval(this.keepAlive)
+            this.keepAlive = null;
             this.setState(state => {return {
                 userlist: [],
                 chatMessages: [],
                 remote: false
             }})
-            clearTyping();
-            this.webrtc_stop()
-            clearInterval(this.keepAlive)
-            this.keepAlive = null;
-            setTimeout(() => this.connect(room,bearerToken), 1500)
+            if(this.mounted) setTimeout(() => this.connect(room,bearerToken), 1500)
         }
       
         this.websocket.onopen = (event) => {

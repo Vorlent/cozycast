@@ -2,7 +2,7 @@ import { Component,Fragment,h } from 'preact'
 import { Button } from './Button.js'
 import { SidebarState } from './index.js'
 import { removeCursor } from './Room.js'
-
+import { route } from 'preact-router'
 
 import { RemoteIcon } from '../svg/RemoteIcon.js'
 
@@ -146,7 +146,6 @@ export class Controls extends Component {
     }
 
     render({state, permissions}){
-        console.log(state)
         let middle = <div class={`subControls ${state.fullscreen ? "fullscreenRemote" : ""}`}>
                 <Button enabled={false} onclick={this.dropRemoteAndCenter} 
                     title="Drop and center Remote" style={`buttonSmall optional ${state.remote ? "" :"remoteHidden"}`}>
@@ -184,7 +183,7 @@ export class Controls extends Component {
                             onclick={() => this.props.updateRoomState({profileModal: true})} style="buttonSmall">
                             <img class="video-control-icon" src="/svg/settings.svg"/>
                         </Button>
-                    <Button enabled={false} onclick={() => window.location.pathname = '/'} style="buttonBig">Rooms</Button>
+                    <Button enabled={false} onclick={() => route('/',true)} style="buttonBig">Rooms</Button>
                 </div>
                 {middle}
                 <div class="subControls">
