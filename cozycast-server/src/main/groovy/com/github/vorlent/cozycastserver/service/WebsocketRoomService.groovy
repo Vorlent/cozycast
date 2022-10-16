@@ -450,7 +450,7 @@ class WebsocketRoomService {
         if(currentRoom == null) return false;
         UserSession user = currentRoom.users.get(username)
         if(user == null) return false;
-        if(!(user.image_permission || room.default_image_permission) && (jsonMessage.type == 'image' || jsonMessage.type == 'video')) return false;
+        if(!(user.image_permission || currentRoom.default_image_permission) && (jsonMessage.type == 'image' || jsonMessage.type == 'video')) return false;
         return true;
     }
 
