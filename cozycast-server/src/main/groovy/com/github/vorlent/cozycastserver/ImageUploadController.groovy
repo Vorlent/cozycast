@@ -9,6 +9,8 @@ import io.micronaut.http.multipart.CompletedFileUpload
 import io.micronaut.http.server.types.files.SystemFile
 import io.micronaut.http.HttpResponse
 import io.micronaut.security.annotation.Secured
+import io.micronaut.security.authentication.Authentication
+import io.micronaut.security.rules.SecurityRule
 
 import java.lang.String
 import java.io.InputStream
@@ -30,6 +32,7 @@ import org.apache.tika.metadata.Metadata
 import org.apache.tika.metadata.TikaCoreProperties
 import groovy.util.logging.Slf4j
 
+import com.github.vorlent.cozycastserver.service.WebsocketRoomService
 
 class ImageUploadResponse {
     String url
@@ -40,6 +43,12 @@ class ImageUploadResponse {
 @Slf4j
 @Controller("/image")
 class ImageController {
+
+    private final WebsocketRoomService websocketRoomService
+
+    ImageController(WebsocketRoomService websocketRoomService) {
+        this.websocketRoomService = websocketRoomService
+    }
 
     String imageDirectory = "/var/cozycast/image"
 
@@ -80,17 +89,23 @@ class ImageController {
         }
     }
 
+    @Secured(SecurityRule.IS_AUTHENTICATED)
     @Post(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA)
-    def upload(CompletedFileUpload image) {
+    def upload(CompletedFileUpload image, String room, Authentication authentication) {
+        log.info "room upload: $room"
         try {
+            if(!websocketRoomService.checkImageRights(room,authentication.getName())){
+                return HttpResponse.unauthorized();
+            }
             String filename = generateFilename();
-            byte[] content = image.getBytes()
+            byte[] content = image.getBytes();
             String fileExt = fileExtension(new ByteArrayInputStream(content), image.filename);
             log.info "Uploading file: $filename.$fileExt"
             if(fileExt != null) {
                 Path path = new File(imageDirectory, filename + fileExt).toPath();
                 Files.write(path, content);
-                return new ImageUploadResponse(url: "/image/asset/${filename}${fileExt}", type: fileExt.endsWith(".webm") ? "video" : "image")
+                websocketRoomService.chatMedia(room,authentication.getName(),"/image/asset/" + filename + fileExt,fileExt.endsWith(".webm") ? "video" : "image")
+                return HttpResponse.ok()
             } else {
                 return HttpResponse.badRequest()
             }

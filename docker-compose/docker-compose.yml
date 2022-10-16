@@ -44,6 +44,7 @@ services:
             - cozycast
         shm_size: 2g
         environment:
+            COZYCAST_WORKER_KEY: $COZYCAST_WORKER_KEY
             COZYCAST_IP: $COZYCAST_IP
             DUCKDNS_DOMAIN: $DUCKDNS_DOMAIN
             COZYCAST_ROOM: default
@@ -65,6 +66,7 @@ services:
             TURN_IP: $TURN_IP
             KURENTO_IP: $KURENTO_IP
             SOURCE_URL: $SOURCE_URL
+            COZYCAST_WORKER_KEY: $COZYCAST_WORKER_KEY
             COZYCAST_DB_HOST: $COZYCAST_DB_HOST
             COZYCAST_DB_PASS: $COZYCAST_DB_PASS
             COZYCAST_JWT_SECRET: $COZYCAST_JWT_SECRET

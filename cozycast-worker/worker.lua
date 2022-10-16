@@ -354,9 +354,10 @@ function start_server()
     end
     print("env "..os.getenv("COZYCAST_ROOM"))
     local room = os.getenv("COZYCAST_ROOM") or "default"
-    local url = "ws://"..server.."/worker/"..room
+    local room_key = os.getenv("COZYCAST_WORKER_KEY") or "no_key"
+    local url = "ws://"..server.."/worker/"..room.."/"..room_key
     if os.getenv("FORCE_HTTPS") == "true" then
-        url = "wss://"..server.."/worker/"..room
+        url = "wss://"..server.."/worker/"..room.."/"..room_key
     end
     print("Connecting to "..url.. " Room: "..room)
     local ws = websocket.new_from_uri(url)

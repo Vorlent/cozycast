@@ -37,6 +37,8 @@ function setup_env {
         echo $COZYCAST_INIT_ADMIN_PASSWORD > data/COZYCAST_INIT_ADMIN_PASSWORD
     fi
 
+    export COZYCAST_WORKER_KEY=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
+
     export COMPOSE_COMPATIBILITY=true
 }
 setup_env

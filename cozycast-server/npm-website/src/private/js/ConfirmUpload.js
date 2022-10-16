@@ -11,17 +11,11 @@ export class ConfirmUpload extends Component {
         let e = this.props.sendFile;
         if(e.target.files.length > 0) {
             let formData = new FormData();
+            formData.append("room", "default");
             formData.append("image", e.target.files[0]);
             authFetch('/image/upload', {method: "POST", body: formData}).then((e) =>
-                {if(e.status == 413){return Promise.reject("File is too large");};
-                    e.json().then((e) => {
-                        this.props.sendMessage({
-                            action: 'chatmessage',
-                            image: e.url,
-                            type: e.type,
-                            message: ""
-                        });
-                    })}).catch(error => {alert("Failed to upload image")});
+                {if(e.status != 200){return Promise.reject("File is too large");};
+                    }).catch(error => {alert("Failed to upload image")});
             e.target.value = "";
             this.closeConfirmWindow();
         }
@@ -41,17 +35,11 @@ export class ConfirmUpload extends Component {
         this.lastUpload = now
     
         let formData = new FormData();
+        formData.append("room", "default");
         formData.append("image", blob);
         authFetch('/image/upload', {method: "POST", body: formData}).then((e) =>
-            {if(e.status == 413){return Promise.reject("File is too large");};
-                e.json().then((e) => {
-                    this.props.sendMessage({
-                        action: 'chatmessage',
-                        image: e.url,
-                        type: e.type,
-                        message: ""
-                    });
-                })}).catch(error => {alert("Failed to upload image")});
+            {if(e.status != 200){return Promise.reject("File is too large");};
+               }).catch(error => {alert("Failed to upload image")});
         this.closeConfirmWindow();
     }
         

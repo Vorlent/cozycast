@@ -34,24 +34,36 @@ class WindowTitleEvent {
     String title
 }
 
+class UpdateWorkerSettingsEvent {
+    String action = "worker_update_settings"
+    VideoSettings settings
+    Boolean restart
+}
+
 @Slf4j
-@ServerWebSocket("/worker/{room}")
+@ServerWebSocket("/worker/{room}/{room_key}")
 class WorkerWebsocketServer {
 
     private WebSocketBroadcaster broadcaster
     private KurentoClient kurento
     private RoomRegistry roomRegistry
+    private String accessKey = System.getenv("COZYCAST_WORKER_KEY")
 
     WorkerWebsocketServer(WebSocketBroadcaster broadcaster, KurentoClient kurento,
         RoomRegistry roomRegistry) {
         this.broadcaster = broadcaster
         this.kurento = kurento
         this.roomRegistry = roomRegistry
+        log.info "test $accessKey"
     }
 
     @OnOpen
-    void onOpen(String room, WebSocketSession session) {
-        log.info "New Worker ${session} for room ${room}"
+    void onOpen(String room, String room_key, WebSocketSession session) {
+        if(room_key != accessKey) {
+            log.info "tried to access $room with invalid key $room_key"
+            session.close()
+            return;
+            }
         WorkerSession worker = new WorkerSession()
         worker.websocket = session
 
@@ -88,9 +100,11 @@ class WorkerWebsocketServer {
         if(room.title != jsonMessage.title) {
             room.title = jsonMessage.title
             room.users.each { key, value ->
-                value.webSocketSession.sendSync(new WindowTitleEvent(
+            value.connections.each {sessionId, connection ->
+                connection.webSocketSession.sendSync(new WindowTitleEvent(
                     title: "CozyCast: " + (room.title ?: "Low latency screen capture via WebRTC")
                 ))
+            }
             }
         }
     }
@@ -114,9 +128,13 @@ class WorkerWebsocketServer {
 
     @OnClose
     void onClose(String room, WebSocketSession session) {
-        log.info "Closed websocket session to worker of ${room}"
-        WorkerSession worker = roomRegistry.getRoom(room).worker
-        worker?.close()
-        roomRegistry.getRoom(room).worker = null
+        Room roomObj = roomRegistry.getRoomNoCreate(room);
+        if(roomObj) {
+            WorkerSession worker = roomObj.worker
+            if(!(worker?.websocket?.getId() == session.getId())) return;
+            log.info "Closed websocket session to worker of ${room}"
+            worker?.close()
+            roomObj.worker = null
+        }
     }
 }

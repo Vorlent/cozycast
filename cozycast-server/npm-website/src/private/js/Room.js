@@ -434,6 +434,26 @@ export class Room extends Component {
         }})
     }
 
+    updateUser = (parsedMessage) => {
+        this.setState(state => { return {
+            userlist: state.userlist.map(function(element) {
+                if(element.session == parsedMessage.session) {
+                    const updatedElement = {
+                        ...element,
+                        active: parsedMessage.active,
+                        lastTimeSeen:  moment(parsedMessage.lastTimeSeen).format('h:mm A'),
+                        username: parsedMessage.username,
+                        url: parsedMessage.url,
+                        nameColor: parsedMessage.nameColor,
+                        muted: parsedMessage.muted
+                    }
+                    return updatedElement;
+                }
+                return element;
+            })
+        }})
+    }
+
     loadUsers = (parseMessage) => {
         let users = parseMessage.users.map(user => {return {
                 username: user.username,
@@ -659,6 +679,9 @@ export class Room extends Component {
                     break;
                 case 'changeusername':
                     this.changeusername(parsedMessage);
+                    break;
+                case 'update_user':
+                    this.updateUser(parsedMessage);
                     break;
                 case 'changeprofilepicture':
                     this.changeprofilepicture(parsedMessage);
