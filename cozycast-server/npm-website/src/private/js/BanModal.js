@@ -58,7 +58,7 @@ export class BanModal extends Component {
 
                           <option value={null} >Select a User</option>
                           {state.userlist.map(user => 
-                              <option value={user.session}>{user.username}</option>
+                              <option value={user.session}>{user.username + `(${user.session})`}</option>
                           )}
                         </select>
                     </div>

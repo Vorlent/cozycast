@@ -16,7 +16,7 @@ export async function authFetch(path, body = {})  {
     let authBody = body;
     authBody["headers"] = {...body["headers"],Authorization: "Bearer " + access_token.token}
     let response = await fetch(path,authBody);
-    if(response.status != 200) {
+    if(response.status == 401) {
         let respRetry = await updateAccessToken(true);
         if (respRetry != TokenStatus.VALID) {
             return respRetry;

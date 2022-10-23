@@ -15,38 +15,39 @@ import { UserHoverName } from './UserHoverName.js'
 import { typing, filterTyping, clearTyping } from './ChatInput.js'
 import { TokenStatus, getToken } from './Authentication'
 import { InfoScreen } from './InfoScreen.js';
+import { DefaultButton } from './DefaultButton.js'
 
 
 var favicon = new Favico({
-    animation:'none'
+    animation: 'none'
 });
 
 let idleTimer = null;
 let idleState = false;
 export function removeCursor(e) {
-  let sidebar = document.getElementById("sidebar");
-  let time = 2400;
-  clearTimeout(idleTimer);
-  if (idleState == true) {
-    document.getElementById("pagetoolbar").classList.remove("hideToolbar");
-    document.getElementById("videoBig").classList.remove("hideCursor");
-    if(sidebar) {
-        sidebar.classList.add("showChat");
-        sidebar.classList.remove("hideChat");
-    }
-  }
-  idleState = false;
-  idleTimer = setTimeout(function() {
-    if(document.fullscreenElement == null) return;
-    document.getElementById("pagetoolbar").classList.add("hideToolbar");
-    document.getElementById("videoBig").classList.add("hideCursor");
     let sidebar = document.getElementById("sidebar");
-    if(sidebar) {
-        sidebar.classList.add("hideChat");
-        sidebar.classList.remove("showChat");
+    let time = 2400;
+    clearTimeout(idleTimer);
+    if (idleState == true) {
+        document.getElementById("pagetoolbar").classList.remove("hideToolbar");
+        document.getElementById("videoBig").classList.remove("hideCursor");
+        if (sidebar) {
+            sidebar.classList.add("showChat");
+            sidebar.classList.remove("hideChat");
+        }
     }
-    idleState = true;
-  }, time);
+    idleState = false;
+    idleTimer = setTimeout(function () {
+        if (document.fullscreenElement == null) return;
+        document.getElementById("pagetoolbar").classList.add("hideToolbar");
+        document.getElementById("videoBig").classList.add("hideCursor");
+        let sidebar = document.getElementById("sidebar");
+        if (sidebar) {
+            sidebar.classList.add("hideChat");
+            sidebar.classList.remove("showChat");
+        }
+        idleState = true;
+    }, time);
 }
 
 export class Room extends Component {
@@ -54,15 +55,16 @@ export class Room extends Component {
         super(props);
         //state setup
         let volume = parseInt(localStorage.getItem("volume"));
-            if(!isNaN(volume)) volume = Math.max(Math.min(volume,100),0);
-            else volume = 100;
+        if (!isNaN(volume)) volume = Math.max(Math.min(volume, 100), 0);
+        else volume = 100;
         let roomId = props.roomId;
+        if (this.props.profile.username) localStorage.removeItem("banned-" + roomId)
         this.state = {
             roomId: roomId,
             loggedIn: false,
             admin: false,
             profile: this.props.profile,
-            personalPermissions:{
+            personalPermissions: {
                 remotePermission: false,
                 imagePermission: false
             },
@@ -104,7 +106,7 @@ export class Room extends Component {
             historyMode: false,
             fullscreen: false,
             kicked: false,
-            banned: localStorage.getItem("banned"),
+            banned: this.props.profile.username ? null : localStorage.getItem("banned-" + roomId),
             newMessageCount: 0,
             scheduleSidebar: false,
             scheduleMenu: "ROOM_AVAILABILITY",
@@ -112,13 +114,13 @@ export class Room extends Component {
                 days: []
             },
             userlistHidden: false,
-            muteChatNotification: localStorage.hasOwnProperty('muteChatNotification') ?  localStorage.getItem("muteChatNotification") == 'true' : true,
-            showUsernames: localStorage.hasOwnProperty('showUsernames') ?  localStorage.getItem("showUsernames") == 'true' : true,
-            legacyDesign: localStorage.hasOwnProperty('legacyDesign') ?  localStorage.getItem("legacyDesign") == 'true' : false,
-            muted: localStorage.hasOwnProperty('muted') ?  localStorage.getItem("muted") == 'true' : false,
-            showIfMuted: localStorage.hasOwnProperty('showIfMuted') ?  localStorage.getItem("showIfMuted") == 'true' : false,
-            userlistOnLeft: localStorage.hasOwnProperty('userlistOnLeft') ?  localStorage.getItem("userlistOnLeft") == 'true' : false,
-            transparentChat: localStorage.hasOwnProperty('transparentChat') ?  localStorage.getItem("transparentChat") == 'true' : true
+            muteChatNotification: localStorage.hasOwnProperty('muteChatNotification') ? localStorage.getItem("muteChatNotification") == 'true' : true,
+            showUsernames: localStorage.hasOwnProperty('showUsernames') ? localStorage.getItem("showUsernames") == 'true' : true,
+            legacyDesign: localStorage.hasOwnProperty('legacyDesign') ? localStorage.getItem("legacyDesign") == 'true' : false,
+            muted: localStorage.hasOwnProperty('muted') ? localStorage.getItem("muted") == 'true' : false,
+            showIfMuted: localStorage.hasOwnProperty('showIfMuted') ? localStorage.getItem("showIfMuted") == 'true' : false,
+            userlistOnLeft: localStorage.hasOwnProperty('userlistOnLeft') ? localStorage.getItem("userlistOnLeft") == 'true' : false,
+            transparentChat: localStorage.hasOwnProperty('transparentChat') ? localStorage.getItem("transparentChat") == 'true' : true
         };
         //bind function so they can be passed down as props
         this.pauseVideo = this.pauseVideo.bind(this)
@@ -137,7 +139,7 @@ export class Room extends Component {
     componentDidMount() {
         this.mounted = true;
         document.onvisibilitychange = () => {
-            if(!document.hidden){
+            if (!document.hidden) {
                 this.setState({
                     newMessageCount: 0
                 })
@@ -145,10 +147,10 @@ export class Room extends Component {
             }
         }
         //if no websocket present create a new one
-        if(!this.websocket) {
-            getToken().then(e =>{
+        if (!this.websocket) {
+            getToken().then(e => {
                 let bearerToken = e;
-                switch (e){
+                switch (e) {
                     case TokenStatus.EXPIRED:
                         bearerToken = null;
                         break;
@@ -158,24 +160,25 @@ export class Room extends Component {
                     default:
                         break;
                 }
-                this.connect(this.props.roomId,bearerToken)
+                this.connect(this.props.roomId, bearerToken)
             })
         }
-        
+
         window.onbeforeunload = () => {
-            if(this.websocket) {
+            if (this.websocket) {
                 this.websocket.close();
             }
         }
 
         document.addEventListener('fullscreenchange', (event) => {
-            setTimeout(()=>{
+            setTimeout(() => {
                 let messages = document.getElementById("messages");
-                if(messages) {
+                if (messages) {
                     messages.scrollTop = messages.scrollHeight;
-                }},1)
-            if(document.fullscreenElement == null){
-                  document.getElementById("videoBig").removeEventListener('mousemove',removeCursor);
+                }
+            }, 1)
+            if (document.fullscreenElement == null) {
+                document.getElementById("videoBig").removeEventListener('mousemove', removeCursor);
             };
             this.setState({
                 fullscreen: document.fullscreenElement !== null
@@ -194,7 +197,7 @@ export class Room extends Component {
 
     pauseVideo = (e) => {
         let updatedPaused = !this.state.videoPaused;
-        if(updatedPaused) {
+        if (updatedPaused) {
             var videoElement = document.getElementById('video');
             videoElement.pause();
             this.webrtc_stop();
@@ -203,76 +206,79 @@ export class Room extends Component {
             videoElement.play();
             this.webrtc_start();
         }
-        if(this.state.showIfMuted) {
+        if (this.state.showIfMuted) {
             this.sendMessage({
-                action : 'userMuted',
+                action: 'userMuted',
                 muted: this.state.muted || updatedPaused
             });
         }
-        this.setState({videoPaused: updatedPaused})
+        this.setState({ videoPaused: updatedPaused })
     }
-    
+
     inactiveTimer = null;
     active = true;
     calcActiveStatus = (tabbedOut) => {
-      let time = 5 * 60 * 1000;
-      if(!tabbedOut){
-        clearTimeout(this.inactiveTimer);
-        this.inactiveTimer = null;
-        if(!this.active){
-            this.active = true;
-            this.sendActivityStatus();
+        let time = 5 * 60 * 1000;
+        if (!tabbedOut) {
+            clearTimeout(this.inactiveTimer);
+            this.inactiveTimer = null;
+            if (!this.active) {
+                this.active = true;
+                this.sendActivityStatus();
+            }
         }
-      }
-      else {
-        if(this.inactiveTimer != null) return;
-        this.inactiveTimer = setTimeout(() => {
-          this.active = false;
-          this.sendActivityStatus();
-        }, time);
-      }
+        else {
+            if (this.inactiveTimer != null) return;
+            this.inactiveTimer = setTimeout(() => {
+                this.active = false;
+                this.sendActivityStatus();
+            }, time);
+        }
     }
-    
+
     sendActivityStatus = () => {
         this.sendMessage({
-            action : 'userActivity',
+            action: 'userActivity',
             tabbedOut: !this.active,
         });
     }
-    
+
     //deletes messages based on id and leaves a deleted in its place, the deleted symbol is client side only
     deletemessage = (parsedMessage) => {
-        this.setState(state => {return {
-            chatMessages:
-                state.chatMessages.map(function(message) {
-                    message.data = message.data.map(data => {
-                            if(data.id == parsedMessage.id){
+        this.setState(state => {
+            return {
+                chatMessages:
+                    state.chatMessages.map(function (message) {
+                        message.data = message.data.map(data => {
+                            if (data.id == parsedMessage.id) {
                                 return {
                                     ...data,
                                     messages: [{
-                                            href: "",
-                                            message: "",
-                                            type: "deleted"
-                                        }],
+                                        href: "",
+                                        message: "",
+                                        type: "deleted"
+                                    }],
                                     msg: "",
                                     deleted: true
                                 }
                             }
                             return data;
-                            });
-                return message;
-                }),
-            newMessage: false
-        }})
+                        });
+                        return message;
+                    }),
+                newMessage: false
+            }
+        })
     }
 
     editmessage = (parsedMessage) => {
         var msg = parsedMessage.message || "";
-        this.setState((state) => {return {
-            chatMessages:
-                state.chatMessages.map((message) => {
-                    message.data = message.data.map(data => {
-                            if(data.id == parsedMessage.id){
+        this.setState((state) => {
+            return {
+                chatMessages:
+                    state.chatMessages.map((message) => {
+                        message.data = message.data.map(data => {
+                            if (data.id == parsedMessage.id) {
                                 return {
                                     ...data,
                                     messages: this.parseMessage(parsedMessage),
@@ -281,21 +287,23 @@ export class Room extends Component {
                                 }
                             }
                             return data;
-                            });
-                return message;
-                }),
-            newMessage: true
-        }})
+                        });
+                        return message;
+                    }),
+                newMessage: true
+            }
+        })
     }
 
     //fully deletes a message based on id
     completeDeletemessage = (parsedMessage) => {
-        this.setState({chatMessages:    
-            this.state.chatMessages.map(function(message) {
-                if(message.data.length == 1 && message.data[0].id == parsedMessage.id) {return};
-                message.data = message.data.filter(data => data.id != parsedMessage.id);
-                return message;
-            }).filter(x=>x),
+        this.setState({
+            chatMessages:
+                this.state.chatMessages.map(function (message) {
+                    if (message.data.length == 1 && message.data[0].id == parsedMessage.id) { return };
+                    message.data = message.data.filter(data => data.id != parsedMessage.id);
+                    return message;
+                }).filter(x => x),
             newMessage: false
         })
     }
@@ -304,26 +312,26 @@ export class Room extends Component {
         var msg = parsedMessage.message || "";
         var queuedMessages = [];
         const regex = new RegExp('^http.*\.(jpeg|jpg|gif|png)$');
-        if(parsedMessage.type == "video") {
+        if (parsedMessage.type == "video") {
             queuedMessages.push({ "type": "video", "href": parsedMessage.image });
-        } else if(parsedMessage.type == "image") {
+        } else if (parsedMessage.type == "image") {
             queuedMessages.push({ "type": "image", "href": parsedMessage.image });
         } else {
             var offset = 0;
             var urls = linkify.find(msg);
             var remaining = msg;
-            urls.forEach(function(element) {
-                if(element.start != offset) {
+            urls.forEach(function (element) {
+                if (element.start != offset) {
                     queuedMessages.push({ "type": "text", "message": remaining.substring(offset, element.start) });
                 }
-                if(element.type == "url") {
-                        queuedMessages.push({ "type": "url", "href": element.href,"value": element.value });
+                if (element.type == "url") {
+                    queuedMessages.push({ "type": "url", "href": element.href, "value": element.value });
                 } else {
                     queuedMessages.push({ "type": "text", "message": element.value });
                 }
                 offset = element.end;
             });
-            if(offset < remaining.length) {
+            if (offset < remaining.length) {
                 queuedMessages.push({ "type": "text", "message": remaining.substring(offset, remaining.length) });
             }
         }
@@ -340,26 +348,28 @@ export class Room extends Component {
             var date = moment(parsedMessage.timestamp);
             var timestamp = date.format('h:mm A');
             var lastMessage = null;
-            if(list.length > 0) lastMessage = list[list.length-1];
-            if(list.length > 0 && lastMessage.session == parsedMessage.session && lastMessage.anonymous == parsedMessage.anonymous) {
-                lastMessage.data.push({messages: queuedMessages, id: parsedMessage.id, timestamp: timestamp,msg: msg, edited: parsedMessage.edited})
+            if (list.length > 0) lastMessage = list[list.length - 1];
+            if (list.length > 0 && lastMessage.session == parsedMessage.session && lastMessage.anonymous == parsedMessage.anonymous) {
+                lastMessage.data.push({ messages: queuedMessages, id: parsedMessage.id, timestamp: timestamp, msg: msg, edited: parsedMessage.edited })
             } else {
                 list.push({
                     username: parsedMessage.username,
                     nameColor: parsedMessage.nameColor,
                     session: parsedMessage.session,
                     anonymous: parsedMessage.anonymous,
-                    data: [{messages: queuedMessages, id: parsedMessage.id, timestamp: timestamp, msg: msg, edited: parsedMessage.edited}]
+                    data: [{ messages: queuedMessages, id: parsedMessage.id, timestamp: timestamp, msg: msg, edited: parsedMessage.edited }]
                 })
             }
-        } )
-        this.setState(state => {return {
-            newMessage: true, 
-            chatMessages: list,
-            forceChatScroll: true
-        }})
+        })
+        this.setState(state => {
+            return {
+                newMessage: true,
+                chatMessages: list,
+                forceChatScroll: true
+            }
+        })
     }
-    
+
     chatmessage = (parsedMessage, skip_notifications) => {
         var msg = parsedMessage.message || "";
         var queuedMessages = this.parseMessage(parsedMessage);
@@ -367,14 +377,14 @@ export class Room extends Component {
         this.setState((state) => {
             var list;
             var lastMessage;
-            if(this.state.chatMessages.length > 0) lastMessage = state.chatMessages[state.chatMessages.length-1];
-            if(this.state.chatMessages.length > 0 && lastMessage.session == parsedMessage.session && lastMessage.anonymous == parsedMessage.anonymous) {
-                var lastMessageID = state.chatMessages[state.chatMessages.length-1].data[0].id;
+            if (this.state.chatMessages.length > 0) lastMessage = state.chatMessages[state.chatMessages.length - 1];
+            if (this.state.chatMessages.length > 0 && lastMessage.session == parsedMessage.session && lastMessage.anonymous == parsedMessage.anonymous) {
+                var lastMessageID = state.chatMessages[state.chatMessages.length - 1].data[0].id;
                 list = state.chatMessages.map((message) => {
-                    if(message.data[0].id === lastMessageID){
+                    if (message.data[0].id === lastMessageID) {
                         const updatedMessage = {
                             ...message,
-                            data: [...message.data,{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A'),msg: msg, edited: parsedMessage.edited}]
+                            data: [...message.data, { messages: queuedMessages, id: parsedMessage.id, timestamp: moment(parsedMessage.timestamp).format('h:mm A'), msg: msg, edited: parsedMessage.edited }]
                         }
                         return updatedMessage;
                     }
@@ -386,17 +396,17 @@ export class Room extends Component {
                     session: parsedMessage.session,
                     nameColor: parsedMessage.nameColor,
                     anonymous: parsedMessage.anonymous,
-                    data: [{messages: queuedMessages, id: parsedMessage.id, timestamp:moment(parsedMessage.timestamp).format('h:mm A'),msg: msg, edited: parsedMessage.edited}]
+                    data: [{ messages: queuedMessages, id: parsedMessage.id, timestamp: moment(parsedMessage.timestamp).format('h:mm A'), msg: msg, edited: parsedMessage.edited }]
                 }]
             };
             return {
-                newMessage: true, 
+                newMessage: true,
                 chatMessages: list
             }
         }
         )
 
-        if(skip_notifications) {
+        if (skip_notifications) {
             return
         }
 
@@ -410,52 +420,57 @@ export class Room extends Component {
             audio.play();
         }
 
-        if(document.hidden) {
-            this.setState({newMessageCount: this.state.newMessageCount + 1 })
+        if (document.hidden) {
+            this.setState({ newMessageCount: this.state.newMessageCount + 1 })
             favicon.badge(this.state.newMessageCount + 1);
         }
 
     }
-    
+
     join = (parsedMessage) => {
         this.leave(parsedMessage)
-        this.setState(state => {return {
-            userlist: [...state.userlist, {
-                username: parsedMessage.username,
-                url: parsedMessage.url,
-                session: parsedMessage.session,
-                remote: false,
-                lastTimeSeen: moment(parsedMessage.lastTimeSeen).format('h:mm A'),
-                active: parsedMessage.active,
-                muted: parsedMessage.muted,
-                nameColor: parsedMessage.nameColor,
-                anonymous: parsedMessage.anonymous
-            }]
-        }})
+        this.setState(state => {
+            return {
+                userlist: [...state.userlist, {
+                    username: parsedMessage.username,
+                    url: parsedMessage.url,
+                    session: parsedMessage.session,
+                    remote: false,
+                    lastTimeSeen: moment(parsedMessage.lastTimeSeen).format('h:mm A'),
+                    active: parsedMessage.active,
+                    muted: parsedMessage.muted,
+                    nameColor: parsedMessage.nameColor,
+                    anonymous: parsedMessage.anonymous
+                }]
+            }
+        })
     }
 
     updateUser = (parsedMessage) => {
-        this.setState(state => { return {
-            userlist: state.userlist.map(function(element) {
-                if(element.session == parsedMessage.session) {
-                    const updatedElement = {
-                        ...element,
-                        active: parsedMessage.active,
-                        lastTimeSeen:  moment(parsedMessage.lastTimeSeen).format('h:mm A'),
-                        username: parsedMessage.username,
-                        url: parsedMessage.url,
-                        nameColor: parsedMessage.nameColor,
-                        muted: parsedMessage.muted
+        this.setState(state => {
+            return {
+                userlist: state.userlist.map(function (element) {
+                    if (element.session == parsedMessage.session) {
+                        const updatedElement = {
+                            ...element,
+                            active: parsedMessage.active,
+                            lastTimeSeen: moment(parsedMessage.lastTimeSeen).format('h:mm A'),
+                            username: parsedMessage.username,
+                            url: parsedMessage.url,
+                            nameColor: parsedMessage.nameColor,
+                            muted: parsedMessage.muted
+                        }
+                        return updatedElement;
                     }
-                    return updatedElement;
-                }
-                return element;
-            })
-        }})
+                    return element;
+                })
+            }
+        })
     }
 
     loadUsers = (parseMessage) => {
-        let users = parseMessage.users.map(user => {return {
+        let users = parseMessage.users.map(user => {
+            return {
                 username: user.username,
                 url: user.url,
                 session: user.session,
@@ -465,126 +480,139 @@ export class Room extends Component {
                 muted: user.muted,
                 nameColor: user.nameColor,
                 anonymous: user.anonymous
-            }});
-        this.setState((state) => { return {userlist: users}})
+            }
+        });
+        this.setState((state) => { return { userlist: users } })
     }
-    
+
     updateActivity = (parsedMessage) => {
-        this.setState(state => { return {
-            userlist: state.userlist.map(function(element) {
-                if(element.session == parsedMessage.session) {
-                    const updatedElement = {
-                        ...element,
-                        active: parsedMessage.active,
-                        lastTimeSeen:  moment(parsedMessage.lastTimeSeen).format('h:mm A')
+        this.setState(state => {
+            return {
+                userlist: state.userlist.map(function (element) {
+                    if (element.session == parsedMessage.session) {
+                        const updatedElement = {
+                            ...element,
+                            active: parsedMessage.active,
+                            lastTimeSeen: moment(parsedMessage.lastTimeSeen).format('h:mm A')
+                        }
+                        return updatedElement;
                     }
-                    return updatedElement;
-                }
-                return element;
-            })
-        }})
+                    return element;
+                })
+            }
+        })
     }
-    
+
     updateMuted = (parsedMessage) => {
-        this.setState(state => {return {
-            userlist: state.userlist.map(function(element) {
-                if(element.session == parsedMessage.session) {
-                    const newElement = {
-                        ...element,
-                        muted:  parsedMessage.muted
+        this.setState(state => {
+            return {
+                userlist: state.userlist.map(function (element) {
+                    if (element.session == parsedMessage.session) {
+                        const newElement = {
+                            ...element,
+                            muted: parsedMessage.muted
+                        }
+                        return newElement;
                     }
-                    return newElement;
-                }
-                return element;
-            })
-        }})
+                    return element;
+                })
+            }
+        })
     }
-    
+
     changeusername = (parsedMessage) => {
-        this.setState(state => {return{
-            userlist: state.userlist.map(function(element) {
-                if(element.session == parsedMessage.session) {
-                    return {
-                        ...element,
-                        username: parsedMessage.username
+        this.setState(state => {
+            return {
+                userlist: state.userlist.map(function (element) {
+                    if (element.session == parsedMessage.session) {
+                        return {
+                            ...element,
+                            username: parsedMessage.username
+                        }
                     }
-                }
-                return element;
-            }),
-            chatMessages: state.chatMessages.map(function(message) {
-                if(message.session == parsedMessage.session)
-                    return {
-                        ...message,
-                        username: parsedMessage.username
-                    }
-                return message;
-            })
-        }})
+                    return element;
+                }),
+                chatMessages: state.chatMessages.map(function (message) {
+                    if (message.session == parsedMessage.session)
+                        return {
+                            ...message,
+                            username: parsedMessage.username
+                        }
+                    return message;
+                })
+            }
+        })
     }
-    
+
     changeprofilepicture = (parsedMessage) => {
-        this.setState(state => {return {
-            userlist: state.userlist.map(function(element) {
-                if(element.session == parsedMessage.session) {
-                    return {
-                        ...element,
-                        url: parsedMessage.url
+        this.setState(state => {
+            return {
+                userlist: state.userlist.map(function (element) {
+                    if (element.session == parsedMessage.session) {
+                        return {
+                            ...element,
+                            url: parsedMessage.url
+                        }
                     }
-                }
-                return element;
-            })
-            }}
+                    return element;
+                })
+            }
+        }
         )
     }
-    
+
     leave = (parsedMessage) => {
-        this.setState(state => {return{
-            userlist: state.userlist.filter(function(element) {
-                return element.session != parsedMessage.session;
-            })
-        }})
+        this.setState(state => {
+            return {
+                userlist: state.userlist.filter(function (element) {
+                    return element.session != parsedMessage.session;
+                })
+            }
+        })
         filterTyping(parsedMessage.session);
     }
-    
+
     ban = (parsedMessage) => {
-        if(parsedMessage.session == this.state.session) {
-            localStorage.setItem("banned", parsedMessage.expiration);
-            this.setState({
+        localStorage.setItem("banned-" + this.state.roomId, parsedMessage.expiration);
+        this.setState(state => {
+            return {
                 banned: parsedMessage.expiration
-            })
-            this.websocket.close();
-        }
+            }
+        })
+        this.websocket.close();
     }
 
     roomSettings = (parsedMessage) => {
         this.setState(state => {
             let a = 'public';
-            if(parsedMessage.accountOnly) a = 'authenticated';
-            if(parsedMessage.inviteOnly) a = 'invite';
-            return{
-            roomSettings: {
-                ...this.roomSettings,
-                accessType: a,
-                centerRemote: parsedMessage.centerRemote,
-                default_remote_permission: parsedMessage.default_remote_permission,
-                default_image_permission: parsedMessage.default_image_permission
-            },
-            permissions: {
-                remotePermission: state.personalPermissions.remotePermission || parsedMessage.default_remote_permission,
-                imagePermission: state.personalPermissions.imagePermission || parsedMessage.default_image_permission
+            if (parsedMessage.accountOnly) a = 'authenticated';
+            if (parsedMessage.inviteOnly) a = 'invite';
+            return {
+                roomSettings: {
+                    ...this.roomSettings,
+                    accessType: a,
+                    centerRemote: parsedMessage.centerRemote,
+                    default_remote_permission: parsedMessage.default_remote_permission,
+                    default_image_permission: parsedMessage.default_image_permission
+                },
+                permissions: {
+                    remotePermission: state.personalPermissions.remotePermission || parsedMessage.default_remote_permission,
+                    imagePermission: state.personalPermissions.imagePermission || parsedMessage.default_image_permission
+                }
             }
-        }})
+        })
     }
-    
+
     isBanned = () => {
-        if(this.state.banned == null) {
+        if (this.state.banned == null) {
             return false;
         }
-        if(this.state.banned == "unlimited") {
+        if (this.state.banned == "unlimited") {
             return true
         } else {
             var expiration = new Date(this.state.banned)
-            if(new Date().getTime() < expiration.getTime()) {
+            if (new Date().getTime() < expiration.getTime()) {
+                localStorage.removeItem("banned-" + this.state.roomId);
                 return true
             }
         }
@@ -592,20 +620,20 @@ export class Room extends Component {
     }
 
     unauthorized = (parsedMessage) => {
-        switch(parsedMessage.message){
+        switch (parsedMessage.message) {
             default:
-                route('/',true);
+                route('/', true);
                 break;
         }
     }
-    
+
     keepAlive;
-    connect = (room,bearerToken) => {
-        if(this.isBanned()) {
+    connect = (room, bearerToken) => {
+        if (this.isBanned()) {
             return;
         }
         var wsProtocol = 'wss'
-        if(document.location.protocol != 'https:') {
+        if (document.location.protocol != 'https:') {
             wsProtocol = 'ws'
         }
         this.websocket = new WebSocket(wsProtocol + '://' + location.host + '/player/' + room);
@@ -616,20 +644,22 @@ export class Room extends Component {
                 case 'keepalive':
                     break;
                 case 'authenticated':
-                    this.setState(state => {return {
-                        admin: parsedMessage.admin,
-                        personalPermissions: {
-                            remotePermission: parsedMessage.remotePermission,
-                            imagePermission: parsedMessage.imagePermission
-                        },
-                        permissions: {
-                            remotePermission: parsedMessage.remotePermission || state.roomSettings.default_remote_permission,
-                            imagePermission: parsedMessage.imagePermission || state.roomSettings.default_image_permission
+                    this.setState(state => {
+                        return {
+                            admin: parsedMessage.admin,
+                            personalPermissions: {
+                                remotePermission: parsedMessage.remotePermission,
+                                imagePermission: parsedMessage.imagePermission
+                            },
+                            permissions: {
+                                remotePermission: parsedMessage.remotePermission || state.roomSettings.default_remote_permission,
+                                imagePermission: parsedMessage.imagePermission || state.roomSettings.default_image_permission
+                            }
                         }
-                    }})
+                    })
                     this.keepAlive = setInterval(() => {
                         this.sendMessage({
-                            action : 'keepalive',
+                            action: 'keepalive',
                         });
                     }, 30000);
                     this.webrtc_start()
@@ -644,9 +674,11 @@ export class Room extends Component {
                     this.unauthorized(parsedMessage)
                     break;
                 case 'session_id':
-                    this.setState(state => {return {
-                        session: parsedMessage.session
-                    }})
+                    this.setState(state => {
+                        return {
+                            session: parsedMessage.session
+                        }
+                    })
                     break;
                 case 'startResponse':
                     this.startResponse(parsedMessage);
@@ -664,7 +696,7 @@ export class Room extends Component {
                     this.updateMuted(parsedMessage);
                     break;
                 case 'chat_history':
-                    if(parsedMessage.messages) {
+                    if (parsedMessage.messages) {
                         this.chatHistory(parsedMessage.messages)
                     }
                     break;
@@ -696,37 +728,41 @@ export class Room extends Component {
                     this.leave(parsedMessage);
                     break;
                 case 'drop_remote':
-                    this.setState((state) =>  {return {
-                        remote: false,
-                        remoteUsed: false,
-                        userlist: state.userlist.map((user) => {
-                            if(user.session == parsedMessage.session) {
-                                return {
-                                    ...user,
-                                    remote: false
+                    this.setState((state) => {
+                        return {
+                            remote: false,
+                            remoteUsed: false,
+                            userlist: state.userlist.map((user) => {
+                                if (user.session == parsedMessage.session) {
+                                    return {
+                                        ...user,
+                                        remote: false
+                                    }
                                 }
-                            }
-                            return user;
-                        })
-                    }})
+                                return user;
+                            })
+                        }
+                    })
                     break;
                 case 'pickup_remote':
-                    this.setState((state) =>  {return {
-                        remote: parsedMessage.has_remote,
-                        remoteUsed: !parsedMessage.has_remote,
-                        userlist: state.userlist.map((user) => {
-                            return {
-                                ...user,
-                                remote: user.session == parsedMessage.session
-                            }
-                        })
-                    }})
+                    this.setState((state) => {
+                        return {
+                            remote: parsedMessage.has_remote,
+                            remoteUsed: !parsedMessage.has_remote,
+                            userlist: state.userlist.map((user) => {
+                                return {
+                                    ...user,
+                                    remote: user.session == parsedMessage.session
+                                }
+                            })
+                        }
+                    })
                     break;
                 case 'window_title':
-                    this.setState({windowTitle: parsedMessage.title})
+                    this.setState({ windowTitle: parsedMessage.title })
                     break;
                 case 'iceCandidate':
-                    this.webRtcPeer.addIceCandidate(parsedMessage.candidate, function(error) {
+                    this.webRtcPeer.addIceCandidate(parsedMessage.candidate, function (error) {
                         if (error) {
                             console.log('Error iceCandidate: ' + error);
                             return;
@@ -744,45 +780,49 @@ export class Room extends Component {
             this.webrtc_stop()
             clearInterval(this.keepAlive)
             this.keepAlive = null;
-            this.setState(state => {return {
-                userlist: [],
-                chatMessages: [],
-                remote: false
-            }})
-            if(this.mounted) setTimeout(() => this.connect(room,bearerToken), 1500)
+            this.setState(state => {
+                return {
+                    userlist: [],
+                    chatMessages: [],
+                    remote: false
+                }
+            })
+            if (this.mounted) setTimeout(() => this.connect(room, bearerToken), 1500)
         }
-      
+
         this.websocket.onopen = (event) => {
             setTimeout(() => {
                 this.start(bearerToken);
                 document.addEventListener("visibilitychange", () => {
                     this.calcActiveStatus(document.visibilityState != "visible");
-                  });
+                });
             }, 300);
         };
 
-        this.setState(state => {return {
-            roomId: room
-        }})
+        this.setState(state => {
+            return {
+                roomId: room
+            }
+        })
     }
-    
+
     start = (bearerToken) => {
         this.sendMessage({
-            action : 'join',
+            action: 'join',
             token: bearerToken,
             muted: (this.state.showIfMuted ? this.state.muted : false)
         });
     }
-    
+
     webrtc_start = () => {
         fetch("/turn/credential").then((e) => e.json()).then((iceServer) => {
             var options = {
-                remoteVideo : document.getElementById("video"),
-                mediaConstraints : {
-                    audio : true,
-                    video : true
+                remoteVideo: document.getElementById("video"),
+                mediaConstraints: {
+                    audio: true,
+                    video: true
                 },
-                onicecandidate : this.onIceCandidate,
+                onicecandidate: this.onIceCandidate,
                 configuration: {
                     iceServers: [iceServer]
                 }
@@ -797,33 +837,33 @@ export class Room extends Component {
                 })
         });
     }
-    
+
     webrtc_stop = () => {
         if (this.webRtcPeer) {
             this.webRtcPeer.dispose();
             this.webRtcPeer = null;
         }
     }
-    
+
     onOffer = (error, sdpOffer) => {
         if (error) {
             console.log(error);
             return;
         }
-      
+
         this.sendMessage({
-            action : 'start',
-            sdpOffer : sdpOffer
+            action: 'start',
+            sdpOffer: sdpOffer
         });
     }
-    
+
     onIceCandidate = (candidate) => {
         this.sendMessage({
-            action : 'onIceCandidate',
-            candidate : candidate
+            action: 'onIceCandidate',
+            candidate: candidate
         });
     }
-    
+
     startResponse = (message) => {
         this.webRtcPeer.processAnswer(message.sdpAnswer, (error) => {
             if (error) {
@@ -832,42 +872,50 @@ export class Room extends Component {
             }
         });
         var settings = message.videoSettings
-        this.setState(state => {return {
-            viewPort: { width: settings.desktopWidth,
-                height: settings.desktopHeight
-            },
-            roomSettings: {
-                ...this.state.roomSettings,
-                desktopResolution: settings.desktopHeight,
-                streamResolution: settings.scaleHeight,
-                framerate: settings.framerate,
-                videoBitrate: settings.videoBitrate,
-                audioBitrate: settings.audioBitrate
+        this.setState(state => {
+            return {
+                viewPort: {
+                    width: settings.desktopWidth,
+                    height: settings.desktopHeight
+                },
+                roomSettings: {
+                    ...this.state.roomSettings,
+                    desktopResolution: settings.desktopHeight,
+                    streamResolution: settings.scaleHeight,
+                    framerate: settings.framerate,
+                    videoBitrate: settings.videoBitrate,
+                    audioBitrate: settings.audioBitrate
+                }
             }
-        }}
+        }
         )
     }
-    
+
     sendMessage = (message) => {
         this.websocket.send(JSON.stringify(message));
     }
 
     render({ roomId }, state) {
-    return <Fragment>
-            {this.isBanned() && <InfoScreen message={'You are banned'} submessage={`until ${state.banned}`}/>}
+        return <Fragment>
+            {this.isBanned() &&
+                <InfoScreen message={'You are banned'} submessage={`until ${state.banned == "unlimited" ? "unlimited" : moment(state.banned).format('h:mm:ss A')}`}>
+                    <DefaultButton enabled={true} onclick={e => route("/", false)}>
+                        ok
+                    </DefaultButton>
+                </InfoScreen>}
             {!this.isBanned() && <Fragment>
-                {!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && <div><Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={true} fullscreen={state.fullscreen} hasRemote={state.remote} updateRoomState={this.updateRoomState}/></div>}
+                {!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && <div><Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={true} fullscreen={state.fullscreen} hasRemote={state.remote} updateRoomState={this.updateRoomState} /></div>}
                 <div id="videoWrapper" class="videoWrapper">
                     <VideoControls state={state} sendMessage={this.sendMessage} pauseVideo={this.pauseVideo} updateRoomState={this.updateRoomState} />
                     <div id="pagetoolbar" class={state.fullscreen ? "toolbarFullscreen" : ""}>
-                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} startVideo={this.webrtc_start.bind(this)} stopVideo={this.webrtc_stop.bind(this)} permissions={state.permissions}/>
-                        {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} updateRoomState={this.updateRoomState}/>}
+                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} startVideo={this.webrtc_start.bind(this)} stopVideo={this.webrtc_stop.bind(this)} permissions={state.permissions} />
+                        {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} updateRoomState={this.updateRoomState} />}
                     </div>
                 </div>
-                {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions}/>}
-                {state.profileModal && <ProfileModal state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} setAppState={this.props.setAppState} profile={this.props.profile}/>}
-                {state.hoverText && <UserHoverName state={state}/>}
-                </Fragment>}
+                {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions} />}
+                {state.profileModal && <ProfileModal state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} setAppState={this.props.setAppState} profile={this.props.profile} />}
+                {state.hoverText && <UserHoverName state={state} />}
+            </Fragment>}
         </Fragment>
     }
 }

@@ -14,6 +14,7 @@ import com.github.vorlent.cozycastserver.*
 import com.github.vorlent.cozycastserver.UserState
 import com.github.vorlent.cozycastserver.domain.ChatMessage
 import com.github.vorlent.cozycastserver.domain.RoomPermission
+import com.github.vorlent.cozycastserver.domain.User
 import com.github.vorlent.cozycastserver.service.RoomPermissionGormService
 
 import java.time.format.DateTimeFormatter
@@ -589,6 +590,7 @@ class WebsocketRoomService {
             boolean image_permission = false;
             boolean invited = false;
             boolean existingUser = false;
+            boolean verified = false;
             jwtTokenValidator.validateToken(token,null).subscribe({
                 auth -> 
                     def name = auth.getName();
@@ -597,19 +599,29 @@ class WebsocketRoomService {
                         if(user != null){
                             username = user.getUsername();
                             admin = user.admin;
+                            verified = user.verified || admin;
                             RoomPermission perm = roomPermissionGormService.findByUserAndRoom(user, room.name);
                             if(perm != null) {
                                 if(perm.banned) {
-                                    sendMessage(session, new UnauthorizedEvent(message: "Banned"))
-                                    return;
+                                    if(perm.bannedUntil == null) {
+                                        sendMessage(session, new BanEvent(
+                                            session: name,
+                                            expiration: "unlimited"))
+                                        return;
+                                    }
+                                    if(ZonedDateTime.now(ZoneId.of("UTC")) > perm.bannedUntil){
+                                        roomPermissionGormService.updateBanned(perm.id,false)
+                                    } else {
+                                        sendMessage(session, new BanEvent(
+                                            session: name,
+                                            expiration: perm.bannedUntil.toOffsetDateTime().toString()))
+                                        return;
+                                    }
+
                                 }
-                                if(room.inviteOnly  && !perm.invited){
-                                    sendMessage(session, new UnauthorizedEvent(message: "Invites only"))
-                                    return;
-                                }
-                                remote_permission = perm.remote_permission;
-                                image_permission = perm.image_permission;
-                                invited = perm.invited;
+                                remote_permission = perm.remote_permission || verified;
+                                image_permission = perm.image_permission || verified;
+                                invited = perm.invited || verified;
                             }
                             if( room.inviteOnly && !invited) {
                                 sendMessage(session, new UnauthorizedEvent(message: "Invites only"))
@@ -1036,15 +1048,40 @@ class WebsocketRoomService {
         if(modUser.admin) {
             UserSession user = room.users.get(bannedSession)
             def expiration = "unlimited"
+            def expirationDate = null
             if(jsonMessage.expiration.isInteger() && jsonMessage.expiration.toLong() > 0) {
-                def expirationDate = ZonedDateTime.now(ZoneId.of("UTC"))
+                expirationDate = ZonedDateTime.now(ZoneId.of("UTC"))
                 expirationDate = expirationDate.plusMinutes(jsonMessage.expiration.toLong())
                 expiration = expirationDate.toOffsetDateTime().toString()
             }
+            User.withTransaction{
+            User userDb = User.get(bannedSession)
+            if(userDb != null){
+            RoomPermission.withTransaction {
+                RoomPermission perms = RoomPermission.findByUserAndRoom(userDb,room.name)
+                if(perms == null){
+                    perms = new RoomPermission(
+                        user: userDb,
+                        room: room.name,
+                        invited: false,
+                        banned: true,
+                        bannedUntil: expirationDate,
+                        remote_permission: false,
+                        image_permission: false
+                    )
+                } else{
+                        perms.banned = true;
+                        perms.bannedUntil = expirationDate
+                }
+                perms.save();
+            }
+            }
+        }
             user.connections.each {sessionId, connection ->
-            sendMessage(connection.webSocketSession, new BanEvent(
-                session: bannedSession,
-                expiration: expiration))
+                sendMessage(connection.webSocketSession, new BanEvent(
+                    session: bannedSession,
+                    expiration: expiration))
+                connection.webSocketSession.close();
             }
         }
         else {
@@ -1057,6 +1094,7 @@ class WebsocketRoomService {
 
     private void stop(Room room, String sessionId) {
         String username = room.sessionToName.remove(sessionId)
+        if(!username) return;
         UserSession user = room.users.get(username)
         user?.release(sessionId);
         int size = -1;

@@ -20,7 +20,8 @@ class User implements GormEntity<User>, UserState{
     String email
     String username
     String nickname
-    String password 
+    String password
+    boolean verified = false
 
     String refreshToken
     ZonedDateTime tokenCreated = null

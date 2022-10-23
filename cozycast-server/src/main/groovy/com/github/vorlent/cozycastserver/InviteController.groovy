@@ -4,6 +4,7 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Delete
 import io.micronaut.http.annotation.QueryValue
+import io.micronaut.core.annotation.Nullable
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Null
 import io.micronaut.http.HttpStatus
@@ -48,7 +49,6 @@ class InviteController {
                 return HttpResponse.status(HttpStatus.GONE)
             } else {
                 inv.uses += 1
-                inv.save(flush: true)
                 User.withTransaction {
                     User user = User.get(authentication.getName())
                     RoomPermission.withTransaction{
@@ -59,12 +59,14 @@ class InviteController {
                             user: user, 
                             invited: true,
                             remote_permission: inv.remote_permission,
-                            image_permission: inv.image_permission
+                            image_permission: inv.image_permission,
+                            inviteName: inv.inviteName
                             ).save(flush: true)
                         } else{
                             rp.invited= true;
                             rp.remote_permission = rp.remote_permission || inv.remote_permission;
                             rp.image_permission = rp.image_permission || inv.image_permission;
+                            rp.inviteName = inv.inviteName;
                             rp.save(flush: true)
                         }
                     }
@@ -78,7 +80,10 @@ class InviteController {
     @Get("/new")
     Object create(@NotBlank @QueryValue("room") String room,
         @QueryValue(value = "maxUses", defaultValue = "-1") Integer maxUses,
-        @QueryValue(value = "expiration", defaultValue = "-1") Integer expiration) {
+        @QueryValue(value = "expiration", defaultValue = "-1") Integer expiration,
+        @QueryValue(value = "remotePermission", defaultValue = "false") boolean remotePermission,
+        @QueryValue(value = "imagePermission", defaultValue = "false") boolean imagePermission,
+        @Nullable @QueryValue(value = "inviteName") String inviteName) {
 
         def expirationDate = null
         if(expiration > 0) {
@@ -93,7 +98,10 @@ class InviteController {
             def invite = new RoomInvite(
                 room: room,
                 maxUses: maxUses,
-                expiration: expirationDate)
+                expiration: expirationDate,
+                remote_permission: remotePermission,
+                image_permission: imagePermission,
+                inviteName: inviteName)
             invite.id = code
             invite.save()
             return [code: invite.id]

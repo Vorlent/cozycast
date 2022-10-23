@@ -90,8 +90,8 @@ export class RoomList extends Component {
                                     {room.accountOnly  && <span class="room-badge">Account Only</span>}</td>
                                 <td><span class="room-list-entry-usercount">{room.userCount} users</span></td>
                                 <td class ="room-list-join-column" ><button type="button" class="btn btn-danger btn-join btnStandard" onclick={e =>  route(`/room/${room.id}`,true) }
-                                disabled={!this.canJoin(room)}>
-                                        {this.canJoin(room)? 'Join' : 'Closed'}
+                                disabled={!(this.canJoin(room) || profile.verified)}>
+                                        {(this.canJoin(room) || profile.verified)? 'Join' : 'Closed'}
                                         </button></td>
                             </tr>
                         )}

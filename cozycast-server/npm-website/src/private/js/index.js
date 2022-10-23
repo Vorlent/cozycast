@@ -69,7 +69,8 @@ class App extends Component {
                                     avatarUrl: e.avatarUrl,
                                     admin: e.admin,
                                     nickname: e.nickname,
-                                    nameColor: e.nameColor
+                                    nameColor: e.nameColor,
+                                    verified: (e.verified || e.admin)
                                 },
                                 loggedIn: true
                             }
