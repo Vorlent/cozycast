@@ -2,6 +2,7 @@ import { Component, h, Fragment } from 'preact'
 import { InviteModal } from './InviteModal.js'
 import { authFetch} from './Authentication.js'
 import { route } from 'preact-router'
+import { DefaultButton } from './DefaultButton.js';
 
 export class RoomList extends Component {
     constructor(props){
@@ -49,6 +50,7 @@ export class RoomList extends Component {
             <div class="room-list-background">
                 {this.state.inviteModal && <InviteModal roomId={this.state.currentRoom} updateSettingsState={this.setState.bind(this)}/>}
                 <div class="room-list">
+                    <DefaultButton enabled={true} onclick={this.refresh.bind(this)} style="buttonRefresh">refresh</DefaultButton>
                     <div class="room-list-title">
                         Rooms
                     </div>

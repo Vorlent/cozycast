@@ -75,7 +75,7 @@ export class PermissionManager extends Component {
                 <td class="inviteColumn"><input type="checkbox" checked={state.newPerm.remote_permission}  onclick={() => this.setState(state => {return {newPerm: {...state.newPerm, remote_permission: !state.newPerm.remote_permission}}})}></input></td>
                 <td class="inviteColumn"><input type="checkbox" checked={state.newPerm.image_permission}  onclick={() => this.setState(state => {return {newPerm: {...state.newPerm, image_permission: !state.newPerm.image_permission}}})}></input></td>
                 <td class="tableCenter">
-                    <DefaultButton enabled={true} onclick={this.updatePerm}>Create</DefaultButton>
+                    <DefaultButton enabled={true} onclick={this.updatePerm}>Create/Edit</DefaultButton>
                 </td>
             </tr>
             {state.permissions.map(perm => 
@@ -87,7 +87,7 @@ export class PermissionManager extends Component {
                 <td class="inviteColumn"><input onclick={(e) => e.preventDefault()} type="checkbox" checked={perm.remote_permission}></input></td>
                 <td class="inviteColumn"><input onclick={(e) => e.preventDefault()} type="checkbox" checked={perm.image_permission}></input></td>
                 <td class="tableCenter">
-                    <DefaultButton enabled={true} 
+                    <DefaultButton enabled={false} 
                     onclick={() => this.setState({newPerm:{
                         room: perm.room,
                         invited: perm.invited,
@@ -95,7 +95,7 @@ export class PermissionManager extends Component {
                         remote_permission: perm.remote_permission,
                         image_permission: perm.image_permission,
                         userId: perm.userId
-                    }})}>Edit</DefaultButton>
+                    }})}>Load into orange box</DefaultButton>
                 </td>
             </tr>)}
         </table>

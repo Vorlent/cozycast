@@ -15,13 +15,14 @@ export class Invite extends Component {
         authFetch('/api/invite/use/' + this.props.code)
             .then((e) => {
                 if (e == TokenStatus.EXPIRED || e == TokenStatus.NO_TOKEN) {
-                    alert("Please log in to use invites");
                     this.setState({ message: "Not logged in", submessage: "Please log in to use an invite" })
                 } else if (e.status == 410) {
                     this.setState({ message: "Invite expired", submessage: undefined })
+                } else if (e.status == 200) {
+                    this.setState({ message: "Success", submessage: "Invite used" })
                 }
                 else {
-                    this.setState({ message: "Success", submessage: "Invite used" })
+                    this.setState({ message: "Invalid invite", submessage: undefined })
                 }
             });
     }
