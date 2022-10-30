@@ -169,7 +169,7 @@ export class Controls extends Component {
                     title={state.muted ? 'Unmute' : 'Mute'} style="buttonSmall">
                     <img class="video-control-icon" src={state.muted ? '/svg/sound-mute.svg' : '/svg/sound-max.svg'}/>
                 </Button>
-                <input id="volumeControl" type="range" min="0" max="100" class="volumeSlider buttonBig" oninput={this.changeVolume} value={this.props.state.muted ? 0 : this.props.state.volume}/>
+                <input id="volumeControl" tabindex="0" type="range" min="0" max="100" class="volumeSlider buttonBig" oninput={this.changeVolume} value={this.props.state.muted ? 0 : this.props.state.volume}/>
             </div>
 
         if(state.fullscreen && state.remote) return middle;

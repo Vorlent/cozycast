@@ -85,11 +85,11 @@ export class ChatMessages extends Component {
                                                 return <span><a class="chat-link" target="_blank" href={msg.href}>{msg.value}</a></span>;
                                             case "image": 
                                                 return <div class="chat-image">
-                                                            <a class="chat-link" target="_blank" href={msg.href}><img onload={this.scrollToBottom} src={msg.href} alt={msg.href} onclick={(e) =>{e.preventDefault(); this.clickImage("image", msg.href)}} /></a>
+                                                            <a tabindex="-1" class="chat-link" target="_blank" href={msg.href}><img onload={this.scrollToBottom} src={msg.href} alt={msg.href} onclick={(e) =>{e.preventDefault(); this.clickImage("image", msg.href)}} /></a>
                                                         </div>
                                             case "video": 
                                                 return <div class="chat-video">
-                                                            <a class="chat-link" target="_blank" href={msg.href}><video loop autoplay muted onloadeddata={this.scrollToBottom} src={msg.href} onclick={(e) => {e.preventDefault();this.clickImage("video", msg.href)}}/></a>
+                                                            <a tabindex="-1" class="chat-link" target="_blank" href={msg.href}><video loop autoplay muted onloadeddata={this.scrollToBottom} src={msg.href} onclick={(e) => {e.preventDefault();this.clickImage("video", msg.href)}}/></a>
                                                         </div>
                                             case "deleted": 
                                                 return <div class="chat-deleted">deleted </div>;

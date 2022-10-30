@@ -76,6 +76,23 @@ class InviteController {
         }
     }
 
+    @Secured(SecurityRule.IS_ANONYMOUS)
+    @Get("/check/{code}")
+    Object checkInvite(String code) {
+        RoomInvite.withTransaction {
+            def inv = RoomInvite.get(code)
+            if(!inv) {
+                return HttpResponse.status(HttpStatus.NOT_FOUND)
+            }
+            if(inv.isExpired()) {
+                inv.delete()
+                return HttpResponse.status(HttpStatus.NOT_FOUND)
+            } else {
+                return HttpResponse.status(HttpStatus.OK)
+            }
+        }
+    }
+
     @Secured("ROLE_ADMIN")
     @Get("/new")
     Object create(@NotBlank @QueryValue("room") String room,

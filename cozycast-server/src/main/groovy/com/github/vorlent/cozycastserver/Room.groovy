@@ -15,8 +15,8 @@ class Room {
     Boolean verifiedOnly = false
     Boolean inviteOnly = false
     Boolean centerRemote = false
-    Boolean default_remote_permission = true
-    Boolean default_image_permission = true
+    Boolean default_remote_permission = false
+    Boolean default_image_permission = false
     VideoSettings videoSettings = new VideoSettings(
         desktopWidth: 1280,
         desktopHeight: 720,

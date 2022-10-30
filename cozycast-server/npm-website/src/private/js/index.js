@@ -76,19 +76,23 @@ class App extends Component {
                             }
                         )
                     })
-                    authFetch("/api/permission").then(e => e.json()).then(e => {
-                        const map = new Map(
-                            e.map(perm => {
-                                return [perm.room, perm];
-                            }),
-                        );
-                        this.setState({
-                            loginCompleted: true,
-                            roomPerms: map
-                        })
-
-                    })
+                    this.updatePermissions();
             }
+        })
+    }
+
+    updatePermissions = () => {
+        authFetch("/api/permission").then(e => e.json()).then(e => {
+            const map = new Map(
+                e.map(perm => {
+                    return [perm.room, perm];
+                }),
+            );
+            this.setState({
+                loginCompleted: true,
+                roomPerms: map
+            })
+
         })
     }
 
@@ -140,8 +144,8 @@ class App extends Component {
     render(_, state) {
         if (!this.state.loginCompleted)
             return <div id="pagecontent" class={state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}>
-                        <InfoScreen message={"Connecting to CozyCast..."} submessage={"If this takes too long please refresh"} legacyDesign={state.legacyDesign}/>
-                    </div>
+                <InfoScreen message={"Connecting to CozyCast..."} submessage={"If this takes too long please refresh"} legacyDesign={state.legacyDesign} />
+            </div>
         return <div id="pagecontent" class={state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}>
             <Match path="/">{({ matches, path, url }) => {
                 if (url.startsWith('/room')) {
@@ -154,7 +158,7 @@ class App extends Component {
             <Router onChange={this.checkIfLoggedOut}>
                 <RoomList path="/" profile={this.state.profile} roomPerms={state.roomPerms} loggedIn={state.loggedIn} />
                 <Room path="/room/:roomId" setAppState={this.setState.bind(this)} profile={this.state.profile} />
-                <Invite path="/invite/:code" />
+                <Invite path="/invite/:code" updatePermissions={this.updatePermissions.bind(this)}/>
                 <Login path="/login/" loggedIn={this.state.loggedIn} logout={this.logout.bind(this)} login={this.login.bind(this)} />
                 <Register path="/register" />
                 <Accounts path="/accounts" profile={this.state.profile} />

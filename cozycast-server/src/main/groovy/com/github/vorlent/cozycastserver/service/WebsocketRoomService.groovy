@@ -600,6 +600,9 @@ class WebsocketRoomService {
                             username = user.getUsername();
                             admin = user.admin;
                             verified = user.verified || admin;
+                            remote_permission = verified;
+                            image_permission = verified;
+                            invited = verified;
                             RoomPermission perm = roomPermissionGormService.findByUserAndRoom(user, room.name);
                             if(perm != null) {
                                 if(perm.banned) {

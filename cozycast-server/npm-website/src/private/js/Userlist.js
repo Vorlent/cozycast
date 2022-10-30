@@ -33,7 +33,7 @@ export class Userlist extends Component {
                     }
                 })}
             </div>
-            <a id="copyright" href="/license" target="_blank" class={isLeft ? "left" : "bottom"}>Copyright (C) 2022 Vorlent</a>
+            <a tabindex="-1" id="copyright" href="/license" target="_blank" class={isLeft ? "left" : "bottom"}>Copyright (C) 2022 Vorlent</a>
         </Fragment>
     }
 }
