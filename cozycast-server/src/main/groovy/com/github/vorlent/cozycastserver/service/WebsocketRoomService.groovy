@@ -801,7 +801,7 @@ class WebsocketRoomService {
         //send remote info for joining user
         if(room.remote != null){
             sendMessage(session, new PickupRemoteEvent(
-                session: room.remote,
+                session: room.sessionToName.get(room.remote),
                 has_remote: room.remote == session.getId()))
         }
     }
@@ -1052,7 +1052,7 @@ class WebsocketRoomService {
             UserSession user = room.users.get(bannedSession)
             def expiration = "unlimited"
             def expirationDate = null
-            if(jsonMessage.expiration.isInteger() && jsonMessage.expiration.toLong() > 0) {
+            if(jsonMessage.expiration.isInteger() && jsonMessage.expiration.toLong() >= 0) {
                 expirationDate = ZonedDateTime.now(ZoneId.of("UTC"))
                 expirationDate = expirationDate.plusMinutes(jsonMessage.expiration.toLong())
                 expiration = expirationDate.toOffsetDateTime().toString()

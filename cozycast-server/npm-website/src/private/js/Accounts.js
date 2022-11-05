@@ -52,40 +52,41 @@ export class Accounts extends Component {
     }
 
     render({ profile }, state) {
-        return <div class="accountListBackground"><table class="accountList">
-            <tr>
-                <td></td>
-                <td>username</td>
-                <td>nickname</td>
-                <td>color</td>
-                <td class="tableCenter">verified</td>
-                <td class="tableCenter">admin</td>
-                <td class="tableCenter">delete</td>
-            </tr>
-            {state.accounts.map(account =>
-                <tr class="accountElement">
-                    <td class="avatarContainerHeader"><img src={account.avatarUrl} class="avatarImageHeader"></img></td>
-                    <td class="accountName">{account.username}</td>
-                    <td class="accountName">{account.nickname}</td>
-                    <td class="accountName">{account.nameColor}</td>
-                    <td class="tableCenter" ><DefaultButton enabled={account.verified} onclick={() => this.updateUser(account.username, account.admin, !account.verified)}>
-                        {account.verified ? "verified" : "Not verified"}</DefaultButton>
-                    </td>
-                    {
-                        profile.username != account.username &&
-                        <Fragment>
-                            <td class="tableCenter">
-                                <DefaultButton enabled={account.admin} onclick={() => this.updateUser(account.username, !account.admin, account.verified)}>{account.admin ? 'Remove Admin' : 'Make Admin'}</DefaultButton>
-                            </td>
-                            <td class="tableCenter">
-                                <DefaultButton enabled={!account.admin} onclick={() => this.deleteUser(account.username)}>{account.admin ? 'Cant delete Admin' : 'Delete'}</DefaultButton>
-                            </td>
-                        </Fragment>
+        return <div class="accountListBackground">
+            <table class="accountList">
+                <tr>
+                    <td></td>
+                    <td>username</td>
+                    <td>nickname</td>
+                    <td>color</td>
+                    <td class="tableCenter">verified</td>
+                    <td class="tableCenter">admin</td>
+                    <td class="tableCenter">delete</td>
+                </tr>
+                {state.accounts.map(account =>
+                    <tr class="accountElement">
+                        <td class="avatarContainerHeader"><img src={account.avatarUrl} class="avatarImageHeader"></img></td>
+                        <td class="accountName">{account.username}</td>
+                        <td class="accountName">{account.nickname}</td>
+                        <td class="accountName">{account.nameColor}</td>
+                        <td class="tableCenter" ><DefaultButton enabled={account.verified} onclick={() => this.updateUser(account.username, account.admin, !account.verified)}>
+                            {account.verified ? "verified" : "Not verified"}</DefaultButton>
+                        </td>
+                        {
+                            profile.username != account.username &&
+                            <Fragment>
+                                <td class="tableCenter">
+                                    <DefaultButton enabled={account.admin} onclick={() => this.updateUser(account.username, !account.admin, account.verified)}>{account.admin ? 'Remove Admin' : 'Make Admin'}</DefaultButton>
+                                </td>
+                                <td class="tableCenter">
+                                    <DefaultButton enabled={!account.admin} onclick={() => this.deleteUser(account.username)}>{account.admin ? 'Cant delete Admin' : 'Delete'}</DefaultButton>
+                                </td>
+                            </Fragment>
 
-                    }
-                    {profile.username == account.username && <Fragment><td class="tableCenter" >(you)</td><td class="tableCenter">(you)</td></Fragment>}
-                </tr>)}
-        </table>
+                        }
+                        {profile.username == account.username && <Fragment><td class="tableCenter" >(you)</td><td class="tableCenter">(you)</td></Fragment>}
+                    </tr>)}
+            </table>
         </div>
     }
 }

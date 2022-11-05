@@ -436,6 +436,8 @@ button{
     font-weight: 300;
     font-size: 0.8em;
     color: lightgray;
+    margin-right: 0.5em;
+    float: right;
 }
 
 .idSquare {
@@ -1310,6 +1312,21 @@ input[type=range]::-webkit-slider-thumb {
     width: 100%;
 }
 
+.room-message{
+    margin-bottom: 11em;
+    position: absolute;
+    max-width: 80%;
+    bottom: 0;
+}
+
+.misc-settings{
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+    align-items: center;
+}
+
 .room-list-background {
     background-color: var(--cozyColorMenu,#123);
     color: white;
@@ -1317,6 +1334,7 @@ input[type=range]::-webkit-slider-thumb {
     width: 100%;
     display: flex;
     justify-content: center;
+    flex-direction: column;
     align-items: center;
 }
 
@@ -1325,7 +1343,6 @@ input[type=range]::-webkit-slider-thumb {
     border-radius: 1em;
     background: var(--cozyColorMenu,#123) var(--cozycast-noise);
     width: max(35%,25em);
-    margin: 15% auto;
     padding: 10px;
 
     display: flex;
@@ -1374,6 +1391,11 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .room-list-entry-usercount {
+}
+
+.inviteButtonContainer{
+    display: flex;
+    gap: 2.5em;
 }
 
 /* RoomList.js End */
@@ -1830,6 +1852,9 @@ input[type=range]::-webkit-slider-thumb {
     border-color: transparent var(--cozyColorAccent) transparent transparent;
 }
 
+.message .subMessage:nth-child(2) .hoverInfo.top{
+    display: none;
+}
 
 .hoverInfo {
     position: absolute;

@@ -50,6 +50,7 @@ export class RoomList extends Component {
             <div class="room-list-background">
                 {this.state.inviteModal && <InviteModal roomId={this.state.currentRoom} updateSettingsState={this.setState.bind(this)}/>}
                 <div class="room-list">
+                    <div class="room-message">{this.props.message}</div>
                     <DefaultButton enabled={true} onclick={this.refresh.bind(this)} style="buttonRefresh">refresh</DefaultButton>
                     <div class="room-list-title">
                         Rooms

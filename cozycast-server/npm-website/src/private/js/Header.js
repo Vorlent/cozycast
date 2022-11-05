@@ -5,7 +5,7 @@ import { route } from 'preact-router'
 
 export class Header extends Component {
 
-    render({ loggedIn, profile, logout }) {
+    render({ loggedIn, profile, logout, registerWithInviteOnly }) {
         return <header class="header">
             <h1>CozyCast</h1>
             {loggedIn && <div class="avatarContainerHeader floatRight inNav" onclick={ () => route('/profile',true)} ><img src={profile.avatarUrl} class="avatarImageHeader"></img></div>}
@@ -22,8 +22,9 @@ export class Header extends Component {
                     <Link activeClassName="active" href="/accounts">Accounts</Link>
                     <Link activeClassName="active" href="/invites">Invites</Link>
                     <Link activeClassName="active" href="/permission">Permission</Link>
+                    <Link activeClassName="active" href="/cozysettings">Cozy Settings</Link>
                     </Fragment>}
-                {!loggedIn && <Link activeClassName="active" href="/register">Register</Link>}
+                {!loggedIn && !registerWithInviteOnly && <Link activeClassName="active" href="/register">Register</Link>}
             </nav>
         </header>
             ;

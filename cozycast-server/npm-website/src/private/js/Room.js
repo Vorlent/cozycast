@@ -188,7 +188,7 @@ export class Room extends Component {
 
     componentWillUnmount() {
         this.mounted = false;
-        this.websocket.close();
+        if(this.websocket) this.websocket.close();
     }
 
     componentDidUpdate() {

@@ -53,7 +53,7 @@ export class InviteManager extends Component {
             {state.invites.map(invite => 
             <tr class="accountElement">
                 <td class="inviteColumn">{invite.room}</td>
-                <td class="inviteColumn">{invite.uses}</td>
+                <td class="inviteColumn">{invite.uses} / {invite.maxUses? invite.maxUses : '∞'}</td>
                 <td class="inviteColumn">{invite.remote_permission? 'remote allowed' : 'no remote'}</td>
                 <td class="inviteColumn">{invite.image_permission? 'can post images' : 'no images'}</td>
                 <td class="inviteColumn">{invite.expired ? 'expired' : 'active'}</td>

@@ -17,4 +17,6 @@ class Account{
     @NotBlank(message = "Password cannot be blank")
     @Size(min = 8, max = 100, message  = "Username must be between 8 and 100 characters")
     String password
+
+    String inviteCode
 }
