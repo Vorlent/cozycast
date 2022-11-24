@@ -14,8 +14,6 @@ mkdir -p /var/run/dbus
 dbus-uuidgen > /var/lib/dbus/machine-id
 dbus-daemon --config-file=/usr/share/dbus-1/system.conf --print-address
 
-sudo -u cozycast pulseaudio --start
-
 export DISPLAY=":$RANDOM"
 sudo chown cozycast:cozycast /home/cozycast
 
