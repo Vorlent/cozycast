@@ -320,7 +320,7 @@ function onmessage(ws, data)
     end
     if data.action == "worker_restart" then
         print "Worker restart requested..."
-        ws:close()
+        os.execute("echo '' >> /worker.restart")
         return true
     end
     if data.action == "worker_update_settings" then
@@ -412,3 +412,4 @@ while true do
     os.execute("sleep 5")
 end
 libxdo.xdo_free(xdo)
+

@@ -9,6 +9,8 @@ else
     gpasswd -a ${UNAME} audio
 fi
 
+touch /worker.restart
+
 # run dbus for pulseaudio
 mkdir -p /var/run/dbus
 dbus-uuidgen > /var/lib/dbus/machine-id
@@ -30,7 +32,7 @@ function restart {
 
 restart
 
-while inotifywait -e modify /worker.lua
+while inotifywait -e modify /worker.lua /worker.restart
 do
     restart
 done
