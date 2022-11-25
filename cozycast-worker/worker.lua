@@ -320,7 +320,7 @@ function onmessage(ws, data)
     end
     if data.action == "worker_restart" then
         print "Worker restart requested..."
-        ws:close()
+        os.execute("echo '' >> /worker.restart")
         return true
     end
     if data.action == "worker_update_settings" then
@@ -402,6 +402,8 @@ function start_server()
     ws:close()
 end
 os.execute ("Xvfb $DISPLAY -screen 0 "..video_settings.desktop_width.."x"..video_settings.desktop_height.."x24 -nolisten tcp & echo $! >> /worker.pid")
+os.execute ("sudo -u cozycast pulseaudio --kill")
+os.execute ("sudo -u cozycast pulseaudio & echo $! >> /worker.pid")
 os.execute ("sudo -u cozycast xfce4-session & echo $! >> /worker.pid")
 os.execute("sleep 1")
 xdo = libxdo.xdo_new(nil)
@@ -411,3 +413,4 @@ while true do
     os.execute("sleep 5")
 end
 libxdo.xdo_free(xdo)
+

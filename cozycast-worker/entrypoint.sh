@@ -9,12 +9,12 @@ else
     gpasswd -a ${UNAME} audio
 fi
 
+touch /worker.restart
+
 # run dbus for pulseaudio
 mkdir -p /var/run/dbus
 dbus-uuidgen > /var/lib/dbus/machine-id
 dbus-daemon --config-file=/usr/share/dbus-1/system.conf --print-address
-
-sudo -u cozycast pulseaudio --start
 
 export DISPLAY=":$RANDOM"
 sudo chown cozycast:cozycast /home/cozycast
@@ -32,7 +32,7 @@ function restart {
 
 restart
 
-while inotifywait -e modify /worker.lua
+while inotifywait -e modify /worker.lua /worker.restart
 do
     restart
 done
