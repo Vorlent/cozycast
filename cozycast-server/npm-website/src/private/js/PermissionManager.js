@@ -1,5 +1,6 @@
 import { h, Component } from 'preact'
 import { authFetch, TokenStatus } from './Authentication.js'
+import { DefaultButton} from './DefaultButton.js'
 
 export class PermissionManager extends Component {
 
@@ -66,27 +67,27 @@ export class PermissionManager extends Component {
                 <td>remote permission</td>
                 <td>image permission</td>
             </tr>
-            <tr class="accountElement">
+            <tr class="accountElement accountElementSpecial">
                 <td class="inviteColumn"><input value={state.newPerm.room} oninput={(e) => this.setState(state => {return {newPerm: {...state.newPerm, room: e.target.value}}})}></input></td>
                 <td class="inviteColumn"><input value={state.newPerm.userId} oninput={(e) => this.setState(state => {return {newPerm: {...state.newPerm, userId: e.target.value}}})}></input></td>
                 <td class="inviteColumn"><input type="checkbox" checked={state.newPerm.invited} onclick={() => this.setState(state => {return {newPerm: {...state.newPerm, invited: !state.newPerm.invited}}})}></input></td>
                 <td class="inviteColumn"><input type="checkbox" checked={state.newPerm.banned}  onclick={() => this.setState(state => {return {newPerm: {...state.newPerm, banned: !state.newPerm.banned}}})}></input></td>
                 <td class="inviteColumn"><input type="checkbox" checked={state.newPerm.remote_permission}  onclick={() => this.setState(state => {return {newPerm: {...state.newPerm, remote_permission: !state.newPerm.remote_permission}}})}></input></td>
                 <td class="inviteColumn"><input type="checkbox" checked={state.newPerm.image_permission}  onclick={() => this.setState(state => {return {newPerm: {...state.newPerm, image_permission: !state.newPerm.image_permission}}})}></input></td>
-                <td class="accountButtons">
-                    <button type="button" class="btn btn-danger" onclick={this.updatePerm}>Create</button>
+                <td class="tableCenter">
+                    <DefaultButton enabled={true} onclick={this.updatePerm}>Create/Edit</DefaultButton>
                 </td>
             </tr>
             {state.permissions.map(perm => 
             <tr class="accountElement">
                 <td class="inviteColumn">{perm.room}</td>
                 <td class="inviteColumn">{perm.userId}</td>
-                <td class="inviteColumn"><input onclick={(e) => e.preventDefault()} type="checkbox" checked={perm.invited}></input></td>
+                <td class="inviteColumn"><input onclick={(e) => e.preventDefault()} type="checkbox" checked={perm.invited}/>{perm.inviteName}</td>
                 <td class="inviteColumn"><input onclick={(e) => e.preventDefault()} type="checkbox" checked={perm.banned}></input></td>
                 <td class="inviteColumn"><input onclick={(e) => e.preventDefault()} type="checkbox" checked={perm.remote_permission}></input></td>
                 <td class="inviteColumn"><input onclick={(e) => e.preventDefault()} type="checkbox" checked={perm.image_permission}></input></td>
-                <td class="accountButtons">
-                    <button type="button" class="btn btn-danger" 
+                <td class="tableCenter">
+                    <DefaultButton enabled={false} 
                     onclick={() => this.setState({newPerm:{
                         room: perm.room,
                         invited: perm.invited,
@@ -94,7 +95,7 @@ export class PermissionManager extends Component {
                         remote_permission: perm.remote_permission,
                         image_permission: perm.image_permission,
                         userId: perm.userId
-                    }})}>Edit</button>
+                    }})}>Load into orange box</DefaultButton>
                 </td>
             </tr>)}
         </table>

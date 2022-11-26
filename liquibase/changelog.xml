@@ -198,4 +198,22 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="12" author="vorlent">
+        <addColumn tableName="room_permission">
+            <column name="invite_name" type="varchar(64)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="users">
+            <column name="verified" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="room_invite">
+            <column name="invite_name" type="varchar(64)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

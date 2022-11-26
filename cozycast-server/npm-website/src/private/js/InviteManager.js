@@ -1,5 +1,6 @@
 import { h, Component } from 'preact'
 import { authFetch, TokenStatus } from './Authentication.js'
+import { DefaultButton } from './DefaultButton.js';
 
 export class InviteManager extends Component {
 
@@ -46,18 +47,20 @@ export class InviteManager extends Component {
                 <td>image permission</td>
                 <td>expired</td>
                 <td>link</td>
+                <td>name</td>
                 <td></td>
             </tr>          
             {state.invites.map(invite => 
             <tr class="accountElement">
                 <td class="inviteColumn">{invite.room}</td>
-                <td class="inviteColumn">{invite.uses}</td>
+                <td class="inviteColumn">{invite.uses} / {invite.maxUses? invite.maxUses : '∞'}</td>
                 <td class="inviteColumn">{invite.remote_permission? 'remote allowed' : 'no remote'}</td>
-                <td class="inviteColumn">{invite.image_permission? 'no images' : 'can post images'}</td>
+                <td class="inviteColumn">{invite.image_permission? 'can post images' : 'no images'}</td>
                 <td class="inviteColumn">{invite.expired ? 'expired' : 'active'}</td>
                 <td class="inviteColumn">{location.host + '/invite/' + invite.id}</td>
-                <td class="accountButtons">
-                    <button type="button" class="btn btn-danger" onclick={() => this.deleteInvite(invite.id)}>Delete</button>
+                <td class="inviteColumn">{invite.inviteName ? invite.inviteName : ""}</td>
+                <td class="tableCenter">
+                    <DefaultButton enabled={true} onclick={() => this.deleteInvite(invite.id)}>Delete</DefaultButton>
                 </td>
             </tr>)}
         </table>

@@ -8,6 +8,7 @@ services:
         - run
         environment:
             SOURCE_URL: $SOURCE_URL
+            COZYCAST_WORKER_KEY: $COZYCAST_WORKER_KEY
         volumes:
             - "../data/cozycast-server/avatar:/var/cozycast/avatar/"
             - "../cozycast-server:/root/cozycast/cozycast-server"

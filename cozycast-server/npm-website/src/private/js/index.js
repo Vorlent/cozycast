@@ -14,6 +14,7 @@ import { Profile } from './Profile.js';
 import { InviteManager } from './InviteManager.js';
 import { PermissionManager } from './PermissionManager.js';
 import { InfoScreen } from './InfoScreen.js';
+import { MiscSettings } from './MiscSettings.js';
 
 export var SidebarState = {
     CHAT: "CHAT",
@@ -44,13 +45,26 @@ class App extends Component {
             },
             loginCompleted: false,
             loggedIn: false,
-            roomPerms: new Map()
+            roomPerms: new Map(),
+            inviteCode: undefined,
+            registerWithInviteOnly: true,
+            message: ""
         }
+    }
+
+    componentDidUpdate(){
+        console.log(this.state);
     }
 
     logout = () => {
         logOut();
         this.setState({ loggedIn: false });
+    }
+
+    fetchMisc = () => {
+        fetch("/api/misc").then((e) => e.json()).then((e) => {
+            this.setState(state => { return { registerWithInviteOnly: e.registerWithInviteOnly, message: e.message } })
+        });
     }
 
     login = () => {
@@ -62,32 +76,40 @@ class App extends Component {
                     break;
                 default:
                     e.json().then(e => {
-                        this.setState(
-                            {
+                        this.setState(state => {
+                            return {
                                 profile: {
                                     username: e.username,
                                     avatarUrl: e.avatarUrl,
                                     admin: e.admin,
                                     nickname: e.nickname,
-                                    nameColor: e.nameColor
+                                    nameColor: e.nameColor,
+                                    verified: (e.verified || e.admin)
                                 },
                                 loggedIn: true
                             }
+                        }
                         )
                     })
-                    authFetch("/api/permission").then(e => e.json()).then(e => {
-                        const map = new Map(
-                            e.map(perm => {
-                                return [perm.room, perm];
-                            }),
-                        );
-                        this.setState({
-                            loginCompleted: true,
-                            roomPerms: map
-                        })
-
-                    })
+                    this.updatePermissions();
             }
+        })
+    }
+
+    updatePermissions = () => {
+        authFetch("/api/permission").then(e => e.json()).then(e => {
+            const map = new Map(
+                e.map(perm => {
+                    return [perm.room, perm];
+                }),
+            );
+            this.setState(state => {
+                return {
+                    loginCompleted: true,
+                    roomPerms: map
+                }
+            })
+
         })
     }
 
@@ -118,6 +140,7 @@ class App extends Component {
     }
 
     componentDidMount() {
+        this.fetchMisc()
         this.login()
     }
 
@@ -139,27 +162,28 @@ class App extends Component {
     render(_, state) {
         if (!this.state.loginCompleted)
             return <div id="pagecontent" class={state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}>
-                        <InfoScreen message={"Connecting to CozyCast..."} submessage={"If this takes too long please refresh"} legacyDesign={state.legacyDesign}/>
-                    </div>
+                <InfoScreen message={"Connecting to CozyCast..."} submessage={"If this takes too long please refresh"} legacyDesign={state.legacyDesign} />
+            </div>
         return <div id="pagecontent" class={state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}>
             <Match path="/">{({ matches, path, url }) => {
                 if (url.startsWith('/room')) {
                     return;
                 }
-                return <Header loggedIn={this.state.loggedIn} profile={this.state.profile} logout={this.logout.bind(this)}></Header>
+                return <Header loggedIn={this.state.loggedIn} profile={this.state.profile} logout={this.logout.bind(this)} registerWithInviteOnly={this.state.registerWithInviteOnly}></Header>
             }
             }
             </Match>
             <Router onChange={this.checkIfLoggedOut}>
-                <RoomList path="/" profile={this.state.profile} roomPerms={state.roomPerms} loggedIn={state.loggedIn} />
-                <Room path="/room/:roomId" setAppState={this.setState.bind(this)} profile={this.state.profile} />
-                <Invite path="/invite/:code" />
-                <Login path="/login/" loggedIn={this.state.loggedIn} logout={this.logout.bind(this)} login={this.login.bind(this)} />
-                <Register path="/register" />
+                <RoomList path="/" profile={this.state.profile} roomPerms={state.roomPerms} loggedIn={state.loggedIn} message={this.state.message}/>
+                <Room path="/room/:roomId" setAppState={this.setState.bind(this)} profile={this.state.profile}/>
+                <Invite path="/invite/:code" updatePermissions={this.updatePermissions.bind(this)} setAppState={this.setState.bind(this)} />
+                <Login path="/login/" loggedIn={this.state.loggedIn} logout={this.logout.bind(this)} login={this.login.bind(this)} inviteCode={this.state.inviteCode} />
+                <Register path="/register" inviteCode={this.state.inviteCode} setAppState={this.setState.bind(this)}/>
                 <Accounts path="/accounts" profile={this.state.profile} />
                 <Profile path="/profile" profile={this.state.profile} setAppState={this.setState.bind(this)} updateProfile={this.updateProfile.bind(this)} />
                 <InviteManager path="/invites" profile={this.state.profile} />
                 <PermissionManager path="/permission" />
+                <MiscSettings path="/cozysettings" message={this.state.message} registerWithInviteOnly={this.state.registerWithInviteOnly} updateMisc={this.fetchMisc.bind(this)}/>
             </Router>
         </div>
             ;

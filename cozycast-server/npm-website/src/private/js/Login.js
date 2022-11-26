@@ -21,7 +21,8 @@ export class Login extends Component {
                     password: ""
                 });
                 this.props.login();
-                route("/", true);
+                if(this.props.inviteCode) route(`/invite/${this.props.inviteCode}`, true);
+                else route("/", true);
             } else {
                 alert("Username or password is wrong")
             }

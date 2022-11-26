@@ -2,6 +2,7 @@ import { Component, h, Fragment } from 'preact'
 import { InviteModal } from './InviteModal.js'
 import { authFetch} from './Authentication.js'
 import { route } from 'preact-router'
+import { DefaultButton } from './DefaultButton.js';
 
 export class RoomList extends Component {
     constructor(props){
@@ -49,6 +50,8 @@ export class RoomList extends Component {
             <div class="room-list-background">
                 {this.state.inviteModal && <InviteModal roomId={this.state.currentRoom} updateSettingsState={this.setState.bind(this)}/>}
                 <div class="room-list">
+                    <div class="room-message">{this.props.message}</div>
+                    <DefaultButton enabled={true} onclick={this.refresh.bind(this)} style="buttonRefresh">refresh</DefaultButton>
                     <div class="room-list-title">
                         Rooms
                     </div>
@@ -90,8 +93,8 @@ export class RoomList extends Component {
                                     {room.accountOnly  && <span class="room-badge">Account Only</span>}</td>
                                 <td><span class="room-list-entry-usercount">{room.userCount} users</span></td>
                                 <td class ="room-list-join-column" ><button type="button" class="btn btn-danger btn-join btnStandard" onclick={e =>  route(`/room/${room.id}`,true) }
-                                disabled={!this.canJoin(room)}>
-                                        {this.canJoin(room)? 'Join' : 'Closed'}
+                                disabled={!(this.canJoin(room) || profile.verified)}>
+                                        {(this.canJoin(room) || profile.verified)? 'Join' : 'Closed'}
                                         </button></td>
                             </tr>
                         )}

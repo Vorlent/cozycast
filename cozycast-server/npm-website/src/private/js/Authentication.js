@@ -16,6 +16,14 @@ export async function authFetch(path, body = {})  {
     let authBody = body;
     authBody["headers"] = {...body["headers"],Authorization: "Bearer " + access_token.token}
     let response = await fetch(path,authBody);
+    if(response.status == 401) {
+        let respRetry = await updateAccessToken(true);
+        if (respRetry != TokenStatus.VALID) {
+            return respRetry;
+        }
+        authBody["headers"]["Authorization"] = "Bearer " + access_token.token
+        response = await fetch(path,authBody)
+    }
     return response;
 }
 
@@ -49,8 +57,8 @@ export function logOut() {
     refresh_token = null;
 }
 
-async function updateAccessToken() {
-    if (access_token != null && (access_token.expires + 60 > Math.ceil(new Date().getTime()/1000))) {
+async function updateAccessToken(forceRefresh = false) {
+    if (!forceRefresh && access_token != null && (access_token.expires - 60 > Math.ceil(new Date().getTime()/1000))) {
         return TokenStatus.VALID;
     } else if (refresh_token != null) {
         if (await authRefresh()) {

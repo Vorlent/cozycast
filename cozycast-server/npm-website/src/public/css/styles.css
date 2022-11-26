@@ -61,7 +61,7 @@ textarea:focus,
 button:focus,
 video:focus,
 div:focus {
-    outline: none;
+    
 }
 
 html, body, #pagecontent, #videosizer {
@@ -436,6 +436,8 @@ button{
     font-weight: 300;
     font-size: 0.8em;
     color: lightgray;
+    margin-right: 0.5em;
+    float: right;
 }
 
 .idSquare {
@@ -504,6 +506,10 @@ button{
         0 0.07em black,
         -0.07em 0 black,
         0 -0.07em black;
+}
+
+#chat-textbox:focus{
+    outline:none;
 }
 
 .fullscreenSidebar .timestamp, 
@@ -622,6 +628,7 @@ button{
     display: flex;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
 }
 
 .image-uploader-button {
@@ -683,14 +690,13 @@ button{
     max-width: 100px;
     height: 5px;
     background: var(--cozyScrollbar,#346);
-    outline: none;
     opacity: 0.7;
     -webkit-transition: .2s;
     transition: opacity .2s;
 }
 
 .volumeSlider:focus {
-    outline: 0;
+    outline-offset: 0.7em;
 }
 
 .volumeSlider::-moz-range-thumb, .volumeSlider::-webkit-slider-thumb {
@@ -1158,6 +1164,7 @@ input[type=range]::-webkit-slider-thumb {
     background: var(--cozyColorMenu);
     width: 100%;
     height: 100%;
+    overflow: auto;
 }
 
 .accountList{
@@ -1172,9 +1179,19 @@ input[type=range]::-webkit-slider-thumb {
     border-radius: 10px;
 }
 
+.accountElementSpecial{
+    border: solid 3px var(--cozyOrange);
+    border-radius: 10px;
+}
+
 .accountButtons{
     display: flex;
     justify-content: space-around;
+}
+
+.tableCenter{
+    text-align: center;
+    vertical-align: middle;
 }
 
 .accountName{
@@ -1184,7 +1201,7 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .inviteColumn{
-    width: 14%;
+    width: 12.5%;
     display: table-cell;
     vertical-align: middle;
 }
@@ -1295,6 +1312,21 @@ input[type=range]::-webkit-slider-thumb {
     width: 100%;
 }
 
+.room-message{
+    margin-bottom: 11em;
+    position: absolute;
+    max-width: 80%;
+    bottom: 0;
+}
+
+.misc-settings{
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+    align-items: center;
+}
+
 .room-list-background {
     background-color: var(--cozyColorMenu,#123);
     color: white;
@@ -1302,6 +1334,7 @@ input[type=range]::-webkit-slider-thumb {
     width: 100%;
     display: flex;
     justify-content: center;
+    flex-direction: column;
     align-items: center;
 }
 
@@ -1309,13 +1342,13 @@ input[type=range]::-webkit-slider-thumb {
     border: 1px solid black;
     border-radius: 1em;
     background: var(--cozyColorMenu,#123) var(--cozycast-noise);
-    width: 30%;
-    margin: 15% auto;
+    width: max(35%,25em);
     padding: 10px;
 
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
 }
 
 .room-list-title {
@@ -1358,6 +1391,11 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .room-list-entry-usercount {
+}
+
+.inviteButtonContainer{
+    display: flex;
+    gap: 2.5em;
 }
 
 /* RoomList.js End */
@@ -1460,6 +1498,7 @@ input[type=range]::-webkit-slider-thumb {
 
 .infoScreenSubMessage{
     font-size: 1em;
+    margin-bottom: 1em;
 }
 
 /* Admin.js End */
@@ -1678,6 +1717,14 @@ input[type=range]::-webkit-slider-thumb {
     width: 4.5em;
 }
 
+.buttonRefresh{
+    position: absolute;
+    top: -3em;
+    right: 0em;
+    height: 2em;
+    background-color: rgba(0,0,0,0.5);
+}
+
 
 .screenshotBorder {
     outline: 1em solid var(--cozyButton);
@@ -1805,6 +1852,9 @@ input[type=range]::-webkit-slider-thumb {
     border-color: transparent var(--cozyColorAccent) transparent transparent;
 }
 
+.message .subMessage:nth-child(2) .hoverInfo.top{
+    display: none;
+}
 
 .hoverInfo {
     position: absolute;
@@ -1819,6 +1869,8 @@ input[type=range]::-webkit-slider-thumb {
     transition: opacity 0.15s ease;
     pointer-events: none;
     font-size: 0.6em;
+    user-select: none;
+    -moz-user-select: none; 
 }
 
 .hoverInfo::before{

@@ -10,4 +10,7 @@ import javax.validation.constraints.Pattern
 class AccountUpdateAdmin{
     @NotNull(message = "Must declare Admin")
     Boolean admin
+
+    @NotNull(message = "Must declare verified")
+    Boolean verified
 }

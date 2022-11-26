@@ -21,5 +21,7 @@ interface RoomPermissionGormService {
     where $u.username = $userId""") 
     List<RoomPermission> findAllByUserId(String userId)
 
+    RoomPermission updateBanned(String id, boolean banned)
+
     int count()
 }

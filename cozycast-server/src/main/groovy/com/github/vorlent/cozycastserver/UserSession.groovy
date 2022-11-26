@@ -2,12 +2,18 @@ package com.github.vorlent.cozycastserver
 
 import io.micronaut.websocket.WebSocketSession
 import java.time.ZonedDateTime
+import java.util.concurrent.ConcurrentHashMap
 
 import org.kurento.client.WebRtcEndpoint
 
-class UserSession {
+class UserEndpoint {
     WebRtcEndpoint webRtcEndpoint
     WebSocketSession webSocketSession
+}
+
+
+class UserSession {
+    final ConcurrentHashMap<String, UserEndpoint> connections = new ConcurrentHashMap<>()
     String username
     String nickname
     String avatarUrl
@@ -21,7 +27,7 @@ class UserSession {
     Boolean image_permission = false
     ZonedDateTime lastTimeSeen
 
-    public void release() {
-        webRtcEndpoint?.release()
+    public void release(String id) {
+        connections.computeIfPresent(id, (k,v) -> {v.webRtcEndpoint?.release(); return v});
     }
 }

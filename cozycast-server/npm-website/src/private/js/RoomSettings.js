@@ -204,11 +204,12 @@ export class RoomSettings extends Component {
                 <Button style={"maxHeightButton"} onclick={e => this.openBanModal(this.props.state.roomId)}>
                     Ban User
                 </Button>
-
+                { false &&
                 <Button  style={"maxHeightButton"} enabled={this.props.state.roomSettings.workerStarted}
                     onclick={e => this.toggleWorker(this.props.state.roomId)}>
                     {this.props.state.roomSettings.workerStarted ? 'Stop' : 'Start'}
                 </Button>
+                }
 
                 <Button style={"maxHeightButton"} onclick={e => this.restartWorker(this.props.state.roomId)}>
                     Restart

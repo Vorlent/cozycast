@@ -41,7 +41,7 @@ class PermissionController {
     ArrayList perms() {
         ArrayList perms = null
         RoomPermission.withTransaction {
-            perms = RoomPermission.list()
+            perms = RoomPermission.list(sort:"user")
         }
         return perms;
     }
@@ -61,7 +61,8 @@ class PermissionController {
                         invited: permission.invited,
                         banned: permission.banned,
                         remote_permission: permission.remote_permission,
-                        image_permission: permission.image_permission
+                        image_permission: permission.image_permission,
+                        bannedUntil : null
                     )
                 } else{
                         perms.invited = permission.invited

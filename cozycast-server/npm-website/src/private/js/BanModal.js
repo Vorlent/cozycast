@@ -58,7 +58,7 @@ export class BanModal extends Component {
 
                           <option value={null} >Select a User</option>
                           {state.userlist.map(user => 
-                              <option value={user.session}>{user.username}</option>
+                              <option value={user.session}>{user.username + `(${user.session})`}</option>
                           )}
                         </select>
                     </div>
@@ -69,6 +69,7 @@ export class BanModal extends Component {
                         <div class="modal-widget">
                             <select value={this.state.expiration}
                                 onChange={e => this.selectExpiration(e)}>
+                                 <option value="0">Refresh</option>
                                  <option value="10">10 minutes</option>
                                  <option value="60">1 hour</option>
                                  <option value="1440">1 day</option>

@@ -45,7 +45,7 @@ class AccountManagementController {
     User[] accounts() {
         ArrayList user = null
         User.withTransaction {
-            user = User.list()
+            user = User.list(sort:"username")
         }
         return user;
     }
@@ -57,6 +57,7 @@ class AccountManagementController {
         User.withTransaction {
             User user = User.get(username);
             user.admin = account.admin;
+            user.verified = account.verified;
             user.save();
         }
         return HttpStatus.OK;

@@ -17,9 +17,16 @@ class RoomPermission implements GormEntity<RoomPermission> {
     User user
     String room
     boolean invited
+    String inviteName
     boolean banned = false
+    ZonedDateTime bannedUntil
     boolean remote_permission
     boolean image_permission
+
+    static constraints = {
+        inviteName nullable: true
+        bannedUntil nullable: true
+    }
 
     static mapping = {
         id generator: 'uuid2'

@@ -15,9 +15,10 @@ class RoomInvite {
     String room
     Integer uses = 0
     Integer maxUses
-    boolean remote_permission = true
-    boolean image_permission = true
+    boolean remote_permission
+    boolean image_permission
     ZonedDateTime expiration
+    String inviteName
 
     static String generateCode() {
         SecureRandom random = new SecureRandom()
@@ -48,5 +49,6 @@ class RoomInvite {
     static constraints = {
         maxUses nullable: true
         expiration nullable: true
+        inviteName nullable: true
     }
 }

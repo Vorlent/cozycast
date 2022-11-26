@@ -31,7 +31,8 @@ export class Register extends Component {
             },
             body: JSON.stringify({
                 username: this.state.username,
-                password: this.state.password
+                password: this.state.password,
+                inviteCode: this.props.inviteCode
             })
         }).then((e) => {
             if (e.status == 200) {
@@ -41,6 +42,7 @@ export class Register extends Component {
                     password: "",
                     confirmPassword: ""
                 });
+                this.props.setAppState(state => { return { inviteCode: undefined } })
             } else e.json().then(e => alert(e.errors.join("\n")))
         });
     }
@@ -96,6 +98,15 @@ export class Register extends Component {
                                         name="confirmPassword" maxlength="64" value={state.confirmPassword} autocomplete="off" />
                                 </div>
                             </div>
+                            {this.props.inviteCode && <div>
+                                <label for="inviteCode">
+                                    Invite Code
+                                </label>
+                                <div>
+                                    <input class="modal-username standardInputField" id="inviteCode"
+                                        name="inviteCode" disabled value={this.props.inviteCode } autocomplete="off" />
+                                </div>
+                            </div>}
                             <div>
                                 <button class="btn btn-primary btnStandard" type="summit">Register</button>
                             </div>

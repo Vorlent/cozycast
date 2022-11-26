@@ -173,7 +173,7 @@ export class VideoControls extends Component {
 
     render({ state }) {
         return <div id="videoBig" class={state.scheduleSidebar ? 'hidden': ''}>
-            <div id="videocontrols" tabindex="0"
+            <div id="videocontrols" tabindex="-1"
               oncontextmenu={disableContextmenu}
               onmousemove={this.videoMousemove}
               onmouseup={this.videoMouseUp}
@@ -199,7 +199,7 @@ export class VideoControls extends Component {
             <audio id="autoplay" controls="" volume="0" src="/audio/pop.wav" autoplay
                 preload="auto" onplay={e => this.autoplayDetected(false)}/>
             <div id="videosizer">
-              <video id="video" autoplay tabindex="0"
+              <video id="video" autoplay tabindex="-1"
                   oncanplay={e => this.onCanPlay(e)}
                   onloadstart={e => this.onLoadStart(e)}
               ></video>
