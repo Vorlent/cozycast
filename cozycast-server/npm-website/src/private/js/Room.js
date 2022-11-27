@@ -320,9 +320,17 @@ export class Room extends Component {
             var offset = 0;
             var urls = linkify.find(msg);
             var remaining = msg;
+            const regexp = /(@[^ \n]*)|([^@]*)/g;
             urls.forEach(function (element) {
                 if (element.start != offset) {
-                    queuedMessages.push({ "type": "text", "message": remaining.substring(offset, element.start) });
+                    const matches = remaining.substring(offset, element.start).matchAll(regexp);        
+                    for (const match of matches) {
+                        if(match[0].length == 0) continue;
+                        if(match[0].length == 1 || !match[0].startsWith('@')) {
+                            queuedMessages.push({ "type": "text", "message": match[0]});
+                        }
+                        else queuedMessages.push({ "type": "ping", "message": match[0],"you": "@" + this.props.profile.nickname.toLowerCase() == match[0].toLowerCase()});
+                    }
                 }
                 if (element.type == "url") {
                     queuedMessages.push({ "type": "url", "href": element.href, "value": element.value });
@@ -332,7 +340,14 @@ export class Room extends Component {
                 offset = element.end;
             });
             if (offset < remaining.length) {
-                queuedMessages.push({ "type": "text", "message": remaining.substring(offset, remaining.length) });
+                const matches = remaining.substring(offset, remaining.length).matchAll(regexp);      
+                for (const match of matches) {
+                    if(match[0].length == 0) continue;
+                    if(match[0].length == 1 || !match[0].startsWith('@')) {
+                        queuedMessages.push({ "type": "text", "message": match[0]});
+                    }
+                    else queuedMessages.push({ "type": "ping", "message": match[0],"you": "@" + this.props.profile.nickname.toLowerCase() == match[0].toLowerCase()});
+                }
             }
         }
         return queuedMessages;
@@ -409,17 +424,14 @@ export class Room extends Component {
         if (skip_notifications) {
             return
         }
-
         var lowerCaseMsg = msg.toLowerCase()
         var pattern = "@" + this.props.profile.nickname.toLowerCase()
         var mentionPos = lowerCaseMsg.indexOf(pattern)
-        var lookahead = lowerCaseMsg.substring(mentionPos, (pattern + " ").length).trim()
-        var mention = lookahead == pattern
+        var mention =  mentionPos != -1
         if (this.state.historyMode || mention || !this.state.muteChatNotification && document.hidden && parsedMessage.session !== this.state.session) {
             var audio = new Audio('/audio/pop.wav');
             audio.play();
         }
-
         if (document.hidden) {
             this.setState({ newMessageCount: this.state.newMessageCount + 1 })
             favicon.badge(this.state.newMessageCount + 1);

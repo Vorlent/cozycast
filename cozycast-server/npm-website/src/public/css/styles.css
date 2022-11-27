@@ -8,6 +8,7 @@
     font-family: "Arial", "sans-serif";
     --noise: url("/png/noise_128.png");
     --cozyOrange:#f90;
+    --cozyOrangePing:#aa7019;
     --chat-size: max(12%,15em);
 }
 
@@ -1022,6 +1023,16 @@ input[type=range]::-webkit-slider-thumb {
     flex-direction: column;
     min-height: 0;
     flex-grow: 1;
+}
+
+.chat-ping{
+    background-color: var(--cozyOrangePing);
+    padding-left: 0.1em;
+    padding-right: 0.1em;
+}
+
+.chat-ping-other{
+    color: rgb(74, 149, 173);
 }
 
 .cozycast-pagetitle {
