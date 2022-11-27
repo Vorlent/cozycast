@@ -81,6 +81,9 @@ export class ChatMessages extends Component {
                                         switch(msg.type){
                                             case "text": 
                                                 return <span class="chat-text"> {msg.message.split("\n").map((message,index) => <Fragment>{index != 0 && <br/>}{message}</Fragment>)}</span>
+                                            case "ping": 
+                                                if(msg.you) return <span class="chat-ping"> {msg.message}</span>
+                                                else return <span class="chat-ping-other"> {msg.message}</span>
                                             case "url": 
                                                 return <span><a class="chat-link" target="_blank" href={msg.href}>{msg.value}</a></span>;
                                             case "image": 
