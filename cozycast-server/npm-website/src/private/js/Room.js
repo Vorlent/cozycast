@@ -192,6 +192,7 @@ export class Room extends Component {
     }
 
     componentDidUpdate() {
+        console.log(this.state.chatMessages);
         document.title = this.state.windowTitle
     }
 
@@ -281,7 +282,7 @@ export class Room extends Component {
                             if (data.id == parsedMessage.id) {
                                 return {
                                     ...data,
-                                    messages: this.parseMessage(parsedMessage),
+                                    messages: this.parseMessage(parsedMessage)[0],
                                     msg: msg,
                                     edited: true
                                 }

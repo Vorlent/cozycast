@@ -64,7 +64,7 @@ class App extends Component {
 
     fetchMisc = () => {
         fetch("/api/misc").then((e) => e.json()).then((e) => {
-            this.setState(state => { return { registerWithInviteOnly: e.registerWithInviteOnly, message: e.message } })
+            this.setState(state => { return { registerWithInviteOnly: e.registerWithInviteOnly, message: e.message == null ? "" : e.message } })
         });
     }
 
