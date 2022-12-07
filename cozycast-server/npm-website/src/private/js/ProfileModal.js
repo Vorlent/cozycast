@@ -9,7 +9,7 @@ export class ProfileModal extends Component {
         this.state = {
             muteChatNotification: props.state.muteChatNotification,
             showUsernames: props.state.showUsernames,
-            legacyDesign: props.state.legacyDesign,
+            legacyDesign: props.legacyDesign,
             showIfMuted: props.state.showIfMuted,
             userlistOnLeft: props.state.userlistOnLeft,
             transparentChat: props.state.transparentChat,
@@ -23,7 +23,7 @@ export class ProfileModal extends Component {
             return {
                 muteChatNotification: props.state.muteChatNotification,
                 showUsernames: props.state.showUsernames,
-                legacyDesign: props.state.legacyDesign,
+                legacyDesign: props.legacyDesign,
                 showIfMuted: props.state.showIfMuted,
                 userlistOnLeft: props.state.userlistOnLeft,
                 transparentChat: props.state.transparentChat,

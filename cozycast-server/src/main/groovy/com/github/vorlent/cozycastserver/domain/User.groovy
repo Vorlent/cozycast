@@ -23,10 +23,6 @@ class User implements GormEntity<User>, UserState{
     String password
     boolean verified = false
 
-    String refreshToken
-    ZonedDateTime tokenCreated = null
-    Boolean tokenRevoked = false
-
     String avatarUrl = "/png/default_avatar.png"
     String nameColor = "#fff"
     boolean enabled = true
@@ -42,6 +38,11 @@ class User implements GormEntity<User>, UserState{
                 user == this
             }.deleteAll()
         }
+        RefreshToken.withTransaction{
+            RefreshToken.where{
+                username == this.username
+            }.deleteAll()
+        }
         return true;
     }
 
@@ -49,8 +50,6 @@ class User implements GormEntity<User>, UserState{
         email nullable: true, blank: false
         username nullable: false, blank: false, unique: true
         password nullable: false, blank: false, password: true
-        refreshToken nullable: true, blank: false
-        tokenCreated nullable: true
     }
 
     static mapping = {

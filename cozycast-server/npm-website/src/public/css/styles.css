@@ -1026,7 +1026,7 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .chat-ping{
-    background-color: var(--cozyOrangePing);
+    background-color: var(--cozyOrange);
     padding-left: 0.1em;
     padding-right: 0.2em;
     border-radius: 0.2em;

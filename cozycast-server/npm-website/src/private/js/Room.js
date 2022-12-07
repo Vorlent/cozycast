@@ -73,6 +73,7 @@ export class Room extends Component {
                 imagePermission: false
             },
             userlist: [],
+            pingLookup: {},
             roomlist: [],
             chatMessages: [],
             newMessage: false,
@@ -116,7 +117,6 @@ export class Room extends Component {
             userlistHidden: false,
             muteChatNotification: localStorage.hasOwnProperty('muteChatNotification') ? localStorage.getItem("muteChatNotification") == 'true' : true,
             showUsernames: localStorage.hasOwnProperty('showUsernames') ? localStorage.getItem("showUsernames") == 'true' : true,
-            legacyDesign: localStorage.hasOwnProperty('legacyDesign') ? localStorage.getItem("legacyDesign") == 'true' : false,
             muted: localStorage.hasOwnProperty('muted') ? localStorage.getItem("muted") == 'true' : false,
             showIfMuted: localStorage.hasOwnProperty('showIfMuted') ? localStorage.getItem("showIfMuted") == 'true' : false,
             userlistOnLeft: localStorage.hasOwnProperty('userlistOnLeft') ? localStorage.getItem("userlistOnLeft") == 'true' : false,
@@ -309,9 +309,29 @@ export class Room extends Component {
     }
 
     parseMessage = (parsedMessage) => {
+        var lowername = this.props.profile.nickname.toLowerCase();
+        var pinged = false;
         var msg = parsedMessage.message || "";
         var queuedMessages = [];
         const regex = new RegExp('^http.*\.(jpeg|jpg|gif|png)$');
+        const regexp = /(@[^ \n@]*)|([^@]*)/g;
+
+        let parseping = (remaining,start, end) => {
+            const matches = remaining.substring(start, end).matchAll(regexp);        
+            for (const match of matches) {
+                if(match[0].length == 0) continue;
+                if(match[0].length == 1 || !match[0].startsWith('@')) {
+                    queuedMessages.push({ "type": "text", "message": match[0]});
+                }
+                else {
+                    let pingTarget = match[0].substr(1).toLowerCase();
+                    let thisPinged = lowername == pingTarget;
+                    pinged = thisPinged || pinged;
+                    queuedMessages.push({ "type": "ping", "message": match[0],"you": thisPinged, "target": pingTarget});
+                }
+            }
+        }
+
         if (parsedMessage.type == "video") {
             queuedMessages.push({ "type": "video", "href": parsedMessage.image });
         } else if (parsedMessage.type == "image") {
@@ -320,17 +340,9 @@ export class Room extends Component {
             var offset = 0;
             var urls = linkify.find(msg);
             var remaining = msg;
-            const regexp = /(@[^ \n]*)|([^@]*)/g;
             urls.forEach(function (element) {
                 if (element.start != offset) {
-                    const matches = remaining.substring(offset, element.start).matchAll(regexp);        
-                    for (const match of matches) {
-                        if(match[0].length == 0) continue;
-                        if(match[0].length == 1 || !match[0].startsWith('@')) {
-                            queuedMessages.push({ "type": "text", "message": match[0]});
-                        }
-                        else queuedMessages.push({ "type": "ping", "message": match[0],"you": "@" + this.props.profile.nickname.toLowerCase() == match[0].toLowerCase()});
-                    }
+                    parseping(remaining,offset,element.start);
                 }
                 if (element.type == "url") {
                     queuedMessages.push({ "type": "url", "href": element.href, "value": element.value });
@@ -340,18 +352,13 @@ export class Room extends Component {
                 offset = element.end;
             });
             if (offset < remaining.length) {
-                const matches = remaining.substring(offset, remaining.length).matchAll(regexp);      
-                for (const match of matches) {
-                    if(match[0].length == 0) continue;
-                    if(match[0].length == 1 || !match[0].startsWith('@')) {
-                        queuedMessages.push({ "type": "text", "message": match[0]});
-                    }
-                    else queuedMessages.push({ "type": "ping", "message": match[0],"you": "@" + this.props.profile.nickname.toLowerCase() == match[0].toLowerCase()});
-                }
+                parseping(remaining,offset,remaining.length);
             }
         }
-        return queuedMessages;
+        return [queuedMessages,pinged];
     }
+
+
 
     /* parses the chatHistory in the messages array used in states. Called once upon entering a room. 
     Faster since it only calls setState once with the entire chat history*/
@@ -359,7 +366,8 @@ export class Room extends Component {
         var list = [];
         allMessages.slice().reverse().forEach(parsedMessage => {
             var msg = parsedMessage.message || "";
-            var queuedMessages = this.parseMessage(parsedMessage);
+            var parseMessage = this.parseMessage(parsedMessage)
+            var queuedMessages = parseMessage[0];
             var date = moment(parsedMessage.timestamp);
             var timestamp = date.format('h:mm A');
             var lastMessage = null;
@@ -387,7 +395,8 @@ export class Room extends Component {
 
     chatmessage = (parsedMessage, skip_notifications) => {
         var msg = parsedMessage.message || "";
-        var queuedMessages = this.parseMessage(parsedMessage);
+        var parseMessage = this.parseMessage(parsedMessage);
+        var queuedMessages = parseMessage[0];
 
         this.setState((state) => {
             var list;
@@ -424,10 +433,8 @@ export class Room extends Component {
         if (skip_notifications) {
             return
         }
-        var lowerCaseMsg = msg.toLowerCase()
-        var pattern = "@" + this.props.profile.nickname.toLowerCase()
-        var mentionPos = lowerCaseMsg.indexOf(pattern)
-        var mention =  mentionPos != -1
+        
+        var mention = parseMessage[1];
         if (this.state.historyMode || mention || !this.state.muteChatNotification && document.hidden && parsedMessage.session !== this.state.session) {
             var audio = new Audio('/audio/pop.wav');
             audio.play();
@@ -440,7 +447,7 @@ export class Room extends Component {
     }
 
     join = (parsedMessage) => {
-        this.leave(parsedMessage)
+        //this.leave(parsedMessage)
         this.setState(state => {
             return {
                 userlist: [...state.userlist, {
@@ -453,15 +460,20 @@ export class Room extends Component {
                     muted: parsedMessage.muted,
                     nameColor: parsedMessage.nameColor,
                     anonymous: parsedMessage.anonymous
-                }]
+                }],
+                pingLookup: {...state.pingLookup,
+                    [parsedMessage.username.toLowerCase()] : state.pingLookup[parsedMessage.username.toLowerCase()] > 0 ? state.pingLookup[parsedMessage.username.toLowerCase()] + 1 : 1
+                }
             }
         })
     }
 
     updateUser = (parsedMessage) => {
         this.setState(state => {
+            var oldUsername;
+            var newUsername = parsedMessage.username.toLowerCase();
             return {
-                userlist: state.userlist.map(function (element) {
+                userlist: state.userlist.map((element) => {
                     if (element.session == parsedMessage.session) {
                         const updatedElement = {
                             ...element,
@@ -472,16 +484,24 @@ export class Room extends Component {
                             nameColor: parsedMessage.nameColor,
                             muted: parsedMessage.muted
                         }
+                        oldUsername = element.username.toLowerCase();
                         return updatedElement;
                     }
                     return element;
-                })
+                }),
+                pingLookup: {...state.pingLookup, 
+                    [oldUsername]: state.pingLookup[oldUsername] - 1,
+                    [newUsername]: state.pingLookup[newUsername] > 0 ? newUsername != oldUsername ? state.pingLookup[newUsername] + 1  : state.pingLookup[newUsername] : 1
+                }
             }
         })
     }
 
     loadUsers = (parseMessage) => {
+        let pingLookup = {};
         let users = parseMessage.users.map(user => {
+            var userLower = user.username.toLowerCase();
+            pingLookup[userLower] = pingLookup[userLower] > 0 ? pingLookup[userLower] + 1 : 1;
             return {
                 username: user.username,
                 url: user.url,
@@ -494,7 +514,7 @@ export class Room extends Component {
                 anonymous: user.anonymous
             }
         });
-        this.setState((state) => { return { userlist: users } })
+        this.setState((state) => { return { userlist: users, pingLookup: pingLookup } })
     }
 
     updateActivity = (parsedMessage) => {
@@ -574,11 +594,17 @@ export class Room extends Component {
     }
 
     leave = (parsedMessage) => {
+        let username;
         this.setState(state => {
             return {
-                userlist: state.userlist.filter(function (element) {
-                    return element.session != parsedMessage.session;
-                })
+                userlist: state.userlist.filter((element) => {
+                    let other = element.session != parsedMessage.session;
+                    if(!other) username = element.username;
+                    return other;
+                }),
+                pingLookup: {...state.pingLookup,
+                    [username.toLowerCase()] : state.pingLookup[username.toLowerCase()] - 1
+                }
             }
         })
         filterTyping(parsedMessage.session);
@@ -924,8 +950,8 @@ export class Room extends Component {
                         {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} updateRoomState={this.updateRoomState} />}
                     </div>
                 </div>
-                {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions} />}
-                {state.profileModal && <ProfileModal state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} setAppState={this.props.setAppState} profile={this.props.profile} />}
+                {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions} pingLookup={state.pingLookup}/>}
+                {state.profileModal && <ProfileModal state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} setAppState={this.props.setAppState} profile={this.props.profile} legacyDesign={this.props.legacyDesign}/>}
                 {state.hoverText && <UserHoverName state={state} />}
             </Fragment>}
         </Fragment>

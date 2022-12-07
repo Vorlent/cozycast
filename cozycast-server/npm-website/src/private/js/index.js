@@ -41,7 +41,8 @@ class App extends Component {
         this.state = {
             legacyDesign: localStorage.hasOwnProperty('legacyDesign') ? localStorage.getItem("legacyDesign") == 'true' : false,
             profile: {
-                admin: false
+                admin: false,
+                nickname: "anonymous"
             },
             loginCompleted: false,
             loggedIn: false,
@@ -151,7 +152,8 @@ class App extends Component {
                 case TokenStatus.EXPIRED:
                     this.setState({
                         loggedIn: false, profile: {
-                            admin: false
+                            admin: false,
+                            nickname: "Anonymous"
                         }
                     });
                 default:
@@ -175,7 +177,7 @@ class App extends Component {
             </Match>
             <Router onChange={this.checkIfLoggedOut}>
                 <RoomList path="/" profile={this.state.profile} roomPerms={state.roomPerms} loggedIn={state.loggedIn} message={this.state.message}/>
-                <Room path="/room/:roomId" setAppState={this.setState.bind(this)} profile={this.state.profile}/>
+                <Room path="/room/:roomId" setAppState={this.setState.bind(this)} profile={this.state.profile} legacyDesign={this.state.legacyDesign}/>
                 <Invite path="/invite/:code" updatePermissions={this.updatePermissions.bind(this)} setAppState={this.setState.bind(this)} />
                 <Login path="/login/" loggedIn={this.state.loggedIn} logout={this.logout.bind(this)} login={this.login.bind(this)} inviteCode={this.state.inviteCode} />
                 <Register path="/register" inviteCode={this.state.inviteCode} setAppState={this.setState.bind(this)}/>
