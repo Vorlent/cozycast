@@ -1,115 +1,178 @@
-import { Component, Fragment, h } from 'preact'
-import { Button } from './Button';
-import { route } from 'preact-router'
+import { h, Component, createRef, Fragment } from 'preact'
+import { authFetch } from './Authentication.js'
+import { HexColorPicker } from "react-colorful";
+import Cropper from 'cropperjs';
 
 export class ProfileModal extends Component {
+    regExp = new RegExp('#(?:[0-9a-fA-F]{3}){1,2}')
+
     constructor(props) {
         super(props);
-        //since profileModal is the only component changing these states it's okay to intitalize it like this
         this.state = {
-            muteChatNotification: props.state.muteChatNotification,
-            showUsernames: props.state.showUsernames,
-            legacyDesign: props.legacyDesign,
-            showIfMuted: props.state.showIfMuted,
-            userlistOnLeft: props.state.userlistOnLeft,
-            transparentChat: props.state.transparentChat,
-            editMode: false
+            nickname: this.props.profile.nickname,
+            nameColor: this.props.profile.nameColor,
+            validColor: this.props.profile.nameColor,
+            profilePicture: this.props.profile.avatarUrl
         }
-    }
-
-    static getDerivedStateFromProps(props, state) {
-        // This is suboptimal and can be avoided by having the props passed down as the correct value the first time around
-        if (props.state.profileModal !== undefined && !state.editMode) {
-            return {
-                muteChatNotification: props.state.muteChatNotification,
-                showUsernames: props.state.showUsernames,
-                legacyDesign: props.legacyDesign,
-                showIfMuted: props.state.showIfMuted,
-                userlistOnLeft: props.state.userlistOnLeft,
-                transparentChat: props.state.transparentChat,
-                editMode: true
-            };
-        }
-        return null;
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {
-        return nextProps.state.profileModal != undefined || this.state.editMode
-    }
-
-    closeProfile = () => {
-        this.props.updateRoomState({ profileModal: undefined })
-        this.setState({ editMode: false })
-    }
-
-    saveProfile = () => {
-        if (this.props.state.showIfMuted != this.state.showIfMuted)
-            this.props.sendMessage({
-                action: 'userMuted',
-                muted: this.state.showMuted && (this.props.state.muted || this.props.state.videoPaused)
-            });
-        this.props.updateRoomState({
-            muteChatNotification: this.state.muteChatNotification,
-            showUsernames: this.state.showUsernames,
-            showIfMuted: this.state.showIfMuted,
-            userlistOnLeft: this.state.userlistOnLeft,
-            transparentChat: this.state.transparentChat
-        })
-        this.props.setAppState({
-            legacyDesign: this.state.legacyDesign
-        })
-
-        localStorage.setItem("muteChatNotification", this.state.muteChatNotification);
-        localStorage.setItem("showUsernames", this.state.showUsernames);
-        localStorage.setItem("legacyDesign", this.state.legacyDesign);
-        localStorage.setItem("showIfMuted", this.state.showIfMuted);
-        localStorage.setItem("userlistOnLeft", this.state.userlistOnLeft);
-        localStorage.setItem("transparentChat", this.state.transparentChat);
-        this.closeProfile()
     }
 
     onSubmit = e => {
         e.preventDefault();
-        this.saveProfile();
+        if(this.state.profilePicture != this.props.profile.avatarUrl){
+            this.uploadAvatar();
+        }   
+        else this.uploadProfileChanges();
     }
 
-    toggle = (e, name) => {
-        let checked = this.state[name];
-        if (checked === undefined) return;
-        this.setState({ [name]: !checked })
+    uploadAvatar = () => {
+        let formData = new FormData();
+        formData.append("avatar", this.state.pictureBlob);
+        authFetch('/avatar/upload', { method: "POST", body: formData }).then((e) => e.json()).then((e) => {
+            if (e.url) {
+                this.props.setAppState(state => { return { profile: { ...state.profile, avatarUrl: e.url } } });
+                this.setState({profilePicture: e.url});
+                this.uploadProfileChanges();
+            }
+        });
     }
 
-    render({ state,profile }) {
-        return <div class="modal-background">
-            <form class="profile modal" onSubmit={this.onSubmit}>
-                {profile.username && <Button onclick={() => route('/profile',true)}>Edit Profile Picture and Nickname</Button>}
-                {!profile.username && <div>Please log in to edit your Nickname and Profile Picture</div>}
-                <div class="userOptions">
-                    <div class="usersubOptions">
-                        <div><input class="modal-username" type="checkbox" id="muteChatNotification" onClick={e => this.toggle(e, 'muteChatNotification')}
-                            name="muteChatNotification" checked={this.state.muteChatNotification} /> <label for="muteChatNotification">Mute Chat Notification</label>
+    uploadProfileChanges = () => {
+        authFetch('/api/profile', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                nickname: this.state.nickname,
+                nameColor: this.state.nameColor
+            })
+        }).then((e) => {
+            if (e.status == 200) {
+                this.props.updateProfile();
+                if(this.props.successCallback){
+                    this.props.successCallback();
+                }
+                alert("Profile edited!");
+            } else e.json().then(e => alert(e.errors.join("\n")))
+        });
+    }
+
+    cropper = null;
+
+    componentWillUnmount(){
+        this.removeCropper();
+    }
+
+    removeCropper = () => {
+        if(this.cropper) {
+            this.cropper.destroy();
+            this.cropper = null;
+        }
+    }
+
+    currentImage = createRef();
+    avatarSelected = (e) => {
+        if(!this.cropper) {
+            this.cropper = new Cropper(this.currentImage.current, {zoomable: false,aspectRatio: 1 ,autoCropArea: 0.3});
+        }
+        this.setState({pictureSelect: true});
+        this.cropper.replace(URL.createObjectURL(e.target.files[0]));
+    }
+
+    changeAvatar = () => {
+        this.cropper.getCroppedCanvas().toBlob((blob) => {
+            var croppedImage = URL.createObjectURL(blob);
+            this.setState({profilePicture: croppedImage, pictureBlob: blob,  pictureSelect: false})
+        });
+    }
+
+    onInput = e => {
+        this.setState({ nickname: e })
+    }
+
+    onInputColor = e => {
+        this.setState(state => {
+            if (this.regExp.test(e)) return { nameColor: e, validColor: e }
+            return { nameColor: e }
+        }
+        )
+    }
+
+    render({ profile }) {
+        return <Fragment><form class="profile-page-modal" onSubmit={this.onSubmit}>
+                <div class="profileTitle">
+                    Profile
+                </div>
+                <div class="profileDataContainer">
+                    <div class="profileTextInfoContainer">
+                        <div class="profileTextContainer">
+                            <div class="profileTextInfo">Username</div>
+                            <div class="profileTextData">{profile.username}</div>
                         </div>
-                        <div><input class="modal-username" type="checkbox" id="legacyDesign" onClick={e => this.toggle(e, 'legacyDesign')}
-                            name="legacyDesign" checked={this.state.legacyDesign} /> <label for="legacyDesign">Use Legacy Design</label>
-                        </div>
-                        <div><input class="modal-username" type="checkbox" id="showIfMuted" onClick={e => this.toggle(e, 'showIfMuted')}
-                            name="showIfMuted" checked={this.state.showIfMuted} /> <label for="showIfMuted">Show Others If Muted</label>
+                        <div class="profileTextContainer">
+                            <div class="profileTextInfo">Nickname</div>
+                            <div class="profileTextData">{profile.nickname}</div>
                         </div>
                     </div>
-                    <div class="usersubOptions">
-                        <div><input class="modal-username" type="checkbox" id="showUsernames" onClick={e => this.toggle(e, 'showUsernames')}
-                            name="showUsernames" checked={this.state.showUsernames} /> <label for="showUsernames">Show Usernames</label>
+                    <div class="profileAvatarContainer">
+                        <div class="image avatar big" style={{ 'background-image': `url(${this.state.profilePicture})` }}>
+                            <div class="uploader-overlay" onclick={() => document.getElementById('avatar-uploader').click()}>
+                                <input id="avatar-uploader" type="file" name="avatar" accept="image/png, image/jpeg, image/webp" onchange={this.avatarSelected} />
+                                <div class="center">Upload</div>
+                            </div>
                         </div>
-                        <div><input class="modal-username" type="checkbox" id="userlistOnLeft" onClick={e => this.toggle(e, 'userlistOnLeft')}
-                            name="userlistOnLeft" checked={this.state.userlistOnLeft} /> <label for="userlistOnLeft">Show Users On Left</label>
+                    </div>
+                </div>
+                <br /><br />
+                <div class="profileNicknameContainer">
+                    <div>
+                        Edit Nickname
+                    </div>
+                    <input class="modal-username standardInputField" type="text"
+                        onInput={e => this.onInput(e.target.value)}
+                        name="username" maxlength="12" value={this.state.nickname} />
+                </div>
+                <div style={{ display: "flex" }}>
+                    <div class="profileHexColorContainer">
+                        <HexColorPicker color={this.state.validColor} onChange={this.onInputColor} />
+                    </div>
+                    <div>
+                        <div style={{ background: "#171b22" }} class="chatMessagePreviewContainer">
+                            <div style={{ width: "15em", height: "max-content" }}>
+                                <div class="message">
+                                    <div class="username" style={{ color: this.state.validColor }}>{this.state.nickname}<span class="timestamp">{"   8:00 AM"}</span>
+                                    </div>
+                                    <div class="subMessage">
+                                        <span class="chat-text">This is how it will look with the legacy theme<br /></span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div><input class="modal-username" type="checkbox" id="transparentChat" onClick={e => this.toggle(e, 'transparentChat')}
-                            name="transparentChat" checked={this.state.transparentChat} /> <label for="transparentChat">Fullscreen Transparent Chat</label>
+                        <div style={{ background: "#123 var(--cozycast-noise)" }} class="chatMessagePreviewContainer">
+                            <div style={{ width: "15em", height: "max-content" }}>
+                                <div class="message">
+                                    <div class="username" style={{ color: this.state.validColor }}>{this.state.nickname}<span class="timestamp">{"   8:00 AM"}</span>
+                                    </div>
+                                    <div class="subMessage">
+                                        <span class="chat-text">This is how it will look with the default theme<br /></span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <button class="btn btn-primary btnStandard" type="summit" >Save</button>
             </form>
-        </div>
+            <div class="imageModal" style={{'max-width': '80vw', position: "absolute", tabindex: "0", "z-index": "100", 
+            display: this.state.pictureSelect ? "unset" : "none", background: "var(--cozyButton)", "border-radius": "0.1em",outline: "1em solid var(--cozyButton" }}>
+                    <div class="screenshotBorder">
+                        <img style={{display: "block", 'max-width': '100%'}} ref={this.currentImage}/>
+                    </div>
+                    <div class="confirmButton">
+                        <button type="button" onclick={this.changeAvatar} class="btn btn-danger buttonBorder">Crop</button>
+                        <button type="button" onclick={() => this.setState({pictureSelect: false})} class="btn buttonCancel buttonBorder">Close</button>
+                    </div>
+            </div>
+            </Fragment>
     }
 }

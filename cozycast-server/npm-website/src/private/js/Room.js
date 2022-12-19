@@ -6,7 +6,7 @@ import Favico from './libs/favico-0.3.10.min.js'
 import { route } from 'preact-router'
 
 import { RoomSidebar } from './RoomSidebar.js'
-import { ProfileModal } from './ProfileModal.js'
+import { UserRoomSettings } from './UserRoomSettings.js'
 import { Userlist } from './Userlist.js'
 import { VideoControls } from './VideoControls.js'
 import { Controls } from './Controls.js'
@@ -192,7 +192,6 @@ export class Room extends Component {
     }
 
     componentDidUpdate() {
-        console.log(this.state.chatMessages);
         document.title = this.state.windowTitle
     }
 
@@ -310,8 +309,7 @@ export class Room extends Component {
     }
 
     parseMessage = (parsedMessage) => {
-        var lowername = this.props.profile.nickname.toLowerCase();
-        var pinged = false;
+        var pinged = 0;
         var msg = parsedMessage.message || "";
         var queuedMessages = [];
         const regex = new RegExp('^http.*\.(jpeg|jpg|gif|png)$');
@@ -326,9 +324,9 @@ export class Room extends Component {
                 }
                 else {
                     let pingTarget = match[0].substr(1).toLowerCase();
-                    let thisPinged = lowername == pingTarget;
-                    pinged = thisPinged || pinged;
-                    queuedMessages.push({ "type": "ping", "message": match[0],"you": thisPinged, "target": pingTarget});
+                    let thisPinged = this.props.profile.pingName == pingTarget;
+                    if(thisPinged) pinged++;
+                    queuedMessages.push({ "type": "ping", "message": match[0],"target": pingTarget});
                 }
             }
         }
@@ -436,7 +434,10 @@ export class Room extends Component {
         }
         
         var mention = parseMessage[1];
-        if (this.state.historyMode || mention || !this.state.muteChatNotification && document.hidden && parsedMessage.session !== this.state.session) {
+        if(mention > 0){
+            this.rapidPing(mention);
+        }
+        else if (this.state.historyMode || !this.state.muteChatNotification && document.hidden && parsedMessage.session !== this.state.session) {
             var audio = new Audio('/audio/pop.wav');
             audio.play();
         }
@@ -447,8 +448,17 @@ export class Room extends Component {
 
     }
 
+    rapidPing = (times) => {
+        if(times > 0){
+            var audio = new Audio('/audio/pop.wav');
+            audio.play();
+            setTimeout(() => this.rapidPing(times - 1),50);      
+        }
+    }
+
     join = (parsedMessage) => {
         //this.leave(parsedMessage)
+        var targetName = parsedMessage.username.toLowerCase().replace(/\s/g, '');
         this.setState(state => {
             return {
                 userlist: [...state.userlist, {
@@ -463,7 +473,7 @@ export class Room extends Component {
                     anonymous: parsedMessage.anonymous
                 }],
                 pingLookup: {...state.pingLookup,
-                    [parsedMessage.username.toLowerCase()] : state.pingLookup[parsedMessage.username.toLowerCase()] > 0 ? state.pingLookup[parsedMessage.username.toLowerCase()] + 1 : 1
+                    [targetName] : state.pingLookup[targetName] > 0 ? state.pingLookup[targetName] + 1 : 1
                 }
             }
         })
@@ -472,7 +482,7 @@ export class Room extends Component {
     updateUser = (parsedMessage) => {
         this.setState(state => {
             var oldUsername;
-            var newUsername = parsedMessage.username.toLowerCase();
+            var newUsername = parsedMessage.username.toLowerCase().replace(/\s/g, '');
             return {
                 userlist: state.userlist.map((element) => {
                     if (element.session == parsedMessage.session) {
@@ -485,7 +495,7 @@ export class Room extends Component {
                             nameColor: parsedMessage.nameColor,
                             muted: parsedMessage.muted
                         }
-                        oldUsername = element.username.toLowerCase();
+                        oldUsername = element.username.toLowerCase().replace(/\s/g, '');
                         return updatedElement;
                     }
                     return element;
@@ -496,12 +506,15 @@ export class Room extends Component {
                 }
             }
         })
+        if(parsedMessage.session == this.props.profile.username){
+            this.props.updateProfile();
+        }
     }
 
     loadUsers = (parseMessage) => {
         let pingLookup = {};
         let users = parseMessage.users.map(user => {
-            var userLower = user.username.toLowerCase();
+            var userLower = user.username.toLowerCase().replace(/\s/g, '');
             pingLookup[userLower] = pingLookup[userLower] > 0 ? pingLookup[userLower] + 1 : 1;
             return {
                 username: user.username,
@@ -604,7 +617,7 @@ export class Room extends Component {
                     return other;
                 }),
                 pingLookup: {...state.pingLookup,
-                    [username.toLowerCase()] : state.pingLookup[username.toLowerCase()] - 1
+                    [username.toLowerCase().replace(/\s/g, '')] : state.pingLookup[username.toLowerCase().replace(/\s/g, '')] - 1
                 }
             }
         })
@@ -678,7 +691,6 @@ export class Room extends Component {
         this.websocket = new WebSocket(wsProtocol + '://' + location.host + '/player/' + room);
         this.websocket.onmessage = (message) => {
             var parsedMessage = JSON.parse(message.data);
-            console.log(parsedMessage)
             switch (parsedMessage.action) {
                 case 'keepalive':
                     break;
@@ -952,7 +964,7 @@ export class Room extends Component {
                     </div>
                 </div>
                 {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions} pingLookup={state.pingLookup}/>}
-                {state.profileModal && <ProfileModal state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} setAppState={this.props.setAppState} profile={this.props.profile} legacyDesign={this.props.legacyDesign}/>}
+                {state.UserRoomSettings && <UserRoomSettings state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} updateProfile={this.props.updateProfile} setAppState={this.props.setAppState} profile={this.props.profile} legacyDesign={this.props.legacyDesign}/>}
                 {state.hoverText && <UserHoverName state={state} />}
             </Fragment>}
         </Fragment>

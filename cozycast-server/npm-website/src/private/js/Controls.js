@@ -134,7 +134,7 @@ export class Controls extends Component {
 
     shouldComponentUpdate(nextProps, nextState){
         return this.props.state.userlistHidden !== nextProps.state.userlistHidden ||
-        this.props.state.profileModal !== nextProps.state.profileModal ||
+        this.props.state.UserRoomSettings !== nextProps.state.UserRoomSettings ||
         this.props.state.remote !== nextProps.state.remote ||
         this.props.state.videoPaused !== nextProps.state.videoPaused ||
         this.props.state.fullscreen !== nextProps.state.fullscreen ||
@@ -179,8 +179,8 @@ export class Controls extends Component {
                         title={state.userlistHidden ? 'Show Users' : 'Hide Users'} style="buttonSmall optional">
                         <img class="video-control-icon" src={state.userlistOnLeft||state.fullscreen? state.userlistHidden ? '/svg/chevron-right.svg' : '/svg/chevron-left.svg' : state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}/>
                     </Button>
-                    <Button enabled={state.profileModal}
-                            onclick={() => this.props.updateRoomState({profileModal: true})} style="buttonSmall">
+                    <Button enabled={state.UserRoomSettings}
+                            onclick={() => this.props.updateRoomState({UserRoomSettings: true})} style="buttonSmall">
                             <img class="video-control-icon" src="/svg/settings.svg"/>
                         </Button>
                     <Button enabled={false} onclick={() => route('/',true)} style="buttonBig">Rooms</Button>

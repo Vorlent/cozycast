@@ -11,7 +11,7 @@ import { BanModal } from './BanModal.js'
 export class RoomSettings extends Component {
     constructor(props) {
         super(props);
-        //since profileModal is the only component changing these states it's okay to intitalize it like this
+        //since UserRoomSettings is the only component changing these states it's okay to intitalize it like this
         this.state = {
             accessType: this.props.state.roomSettings.accessType,
             centerRemote: this.props.state.roomSettings.centerRemote,

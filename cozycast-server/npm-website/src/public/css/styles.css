@@ -255,6 +255,8 @@ html, body, #pagecontent, #videosizer {
 
 .userprofileName{
     white-space: nowrap;
+    max-width: 8em;
+    overflow: hidden;
 }
 
 
@@ -426,6 +428,8 @@ button{
     font-weight: 600;
     padding-left: 0.5em;
     position: relative;
+    word-break: normal;
+    overflow: hidden;
 }
 
 .usernameList {
@@ -1031,6 +1035,7 @@ input[type=range]::-webkit-slider-thumb {
     padding-right: 0.2em;
     border-radius: 0.2em;
     color: #000;
+    text-shadow: none;
 }
 
 .chat-ping-other{
@@ -1453,6 +1458,9 @@ input[type=range]::-webkit-slider-thumb {
     display: flex;
     flex-direction: column;
     align-items: center;
+    background-color: var(--cozyColorMenu,#123);
+    padding: 2em;
+    border-radius: 1em;
 }
 
 .profile-page-modal .title {
@@ -1462,6 +1470,15 @@ input[type=range]::-webkit-slider-thumb {
 
 .admin-background {
     background-color: var(--cozyColorMenu,#123);
+    color: white;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.center-background {
     color: white;
     height: 100%;
     width: 100%;

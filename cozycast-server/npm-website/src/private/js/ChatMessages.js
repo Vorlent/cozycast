@@ -82,7 +82,7 @@ export class ChatMessages extends Component {
                                     case "text":
                                         return <span class="chat-text"> {msg.message.split("\n").map((message, index) => <Fragment>{index != 0 && <br />}{message}</Fragment>)}</span>
                                     case "ping":
-                                        if (msg.you) return <span class="chat-ping"> {msg.message}</span>
+                                        if (msg.target == this.props.profile.pingName) return <span class="chat-ping"> {msg.message}</span>
                                         else if (this.props.pingLookup[msg.target] > 0) return <span class="chat-ping-other"> {msg.message}</span>
                                         else return <span class="chat-text"> {msg.message}</span>
                                     case "url":

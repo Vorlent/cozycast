@@ -806,6 +806,23 @@ class WebsocketRoomService {
         }
     }
 
+    private void updateProfile(Room room, WebSocketSession session, String username){
+        UserState user = userFetcher.findByUsername(username);
+        if(user != null){
+            UserSession userSession = room.users.get(username);
+            if(userSession){
+                room.users.computeIfPresent(username,(key, oldValue) -> {
+                        oldValue.nickname = user.getNickname();
+                        oldValue.avatarUrl = user.getAvatarUrl();
+                        oldValue.nameColor = user.getNameColor();
+                        oldValue.lastTimeSeen = ZonedDateTime.now(ZoneId.of("UTC")); 
+                        oldValue.active = true;
+                    return oldValue;});
+                updateUser(room,null,userSession);
+            }
+        }
+    }
+
     private void updateUser(Room room, WebSocketSession session, UserSession user){
         room.users.each { key, value ->
             // update user for all
@@ -1193,6 +1210,9 @@ class WebsocketRoomService {
                         break;
                     case "typing":
                         typing(currentRoom, session, jsonMessage, username)
+                        break;
+                    case "updateprofile":
+                        updateProfile(currentRoom, session, username)
                         break;
                     case "chatmessage":
                         chatmessage(currentRoom, session, jsonMessage, username)
