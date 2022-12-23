@@ -8,11 +8,9 @@ services:
         - run
         environment:
             SOURCE_URL: $SOURCE_URL
-            COZYCAST_WORKER_KEY: $COZYCAST_WORKER_KEY
         volumes:
             - "../data/cozycast-server/avatar:/var/cozycast/avatar/"
             - "../cozycast-server:/root/cozycast/cozycast-server"
-#            - "../cozycast-server/npm-website/src:/root/cozycast/cozycast-server/src/main/resources/website"
             - "../data/cozycast-server/cache/.gradle:/root/.gradle/repository"
             - "../data/cozycast-server/cache/build:/root/cozycast/cozycast-server/build"
     cozycast-worker:
