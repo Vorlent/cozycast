@@ -432,6 +432,22 @@ button{
     overflow: hidden;
 }
 
+.username:hover .real-username{
+    opacity: 1;
+}
+
+.real-username{
+    opacity: 0;
+    position: absolute;
+    background-color: var(--cozyColorMenu);
+    border-radius: 0.2em;
+    color: white;
+    top: 0;
+    user-select: none;
+    pointer-events: none;
+    right: 0;
+}
+
 .usernameList {
     font-weight: 600;
     position: relative;

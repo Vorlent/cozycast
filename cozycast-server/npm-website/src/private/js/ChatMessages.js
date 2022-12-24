@@ -66,10 +66,13 @@ export class ChatMessages extends Component {
     }
 
     render({ chatMessages, session, profile }) {
+        console.log(chatMessages);
         return <div id="messages" onscroll={this.chatScroll}>
             {chatMessages.map(message =>
                 <div class="message" key={message.data[0].id + message.data.length} id={message.data[0].id}>
-                    <div class="username" style={{ color: message.nameColor }}>{message.username}<span class="timestamp">{"  " + message.data[0].timestamp}</span>
+                    <div class="username" style={{ color: message.nameColor }}>{message.username}
+                    <div class="real-username">{message.anonymous ? `Anon(${message.session.substr(0, 4)})` : message.session}</div>
+                    <span class="timestamp">{"  " + message.data[0].timestamp}</span>
                         {false && <div class="idSquare" style={{ 'background-color': this.stringToColor(message.session) }}> {session == message.session ? "You" : message.session.substr(0, 3).toLowerCase()} </div>}
                     </div>
                     {message.data.map(data =>

@@ -750,6 +750,7 @@ class WebsocketRoomService {
                         image: it.image,
                         type: it.type,
                         username: it.username,
+                        anonymous: it.anonymous,
                         session: it.session,
                         nameColor: it.nameColor,
                         timestamp: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'")
