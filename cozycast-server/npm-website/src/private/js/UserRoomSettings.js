@@ -126,7 +126,7 @@ export class UserRoomSettings extends Component {
             </form>
             }
             {this.state.profileUpdateMode &&
-            <div class="center-background" ref={this.backgroundProfileUpdate} onclick={(e) => {if(e.target == this.backgroundProfileUpdate.current) this.setState({profileUpdateMode: false})}}>
+            <div class="center-background" ref={this.backgroundProfileUpdate} onmousedown={(e) => {if(e.target == this.backgroundProfileUpdate.current) this.setState({profileUpdateMode: false})}}>
                 <ProfileModal profile={this.props.profile} updateProfile={this.props.updateProfile} setAppState={this.props.setAppState} successCallback={this.profileUpdateCallback.bind(this)}/>
             </div>
             }

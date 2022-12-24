@@ -77,12 +77,13 @@ export class ProfileModal extends Component {
         }
         this.setState({pictureSelect: true});
         this.cropper.replace(URL.createObjectURL(e.target.files[0]));
+        e.target.value = '';
     }
 
     changeAvatar = () => {
         this.cropper.getCroppedCanvas().toBlob((blob) => {
             var croppedImage = URL.createObjectURL(blob);
-            this.setState({profilePicture: croppedImage, pictureBlob: blob,  pictureSelect: false})
+            this.setState({profilePicture: croppedImage, pictureBlob: blob,  pictureSelect: false});
         });
     }
 
