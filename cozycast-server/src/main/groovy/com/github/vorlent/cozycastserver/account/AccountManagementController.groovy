@@ -73,13 +73,21 @@ class AccountManagementController {
     }
 
     @Post("/")
-    User updateProfile(Authentication authentication, @Body @Valid AccountUpdate account) {
+    updateProfile(Authentication authentication, @Body @Valid AccountUpdate account) {
         User user;
-        User.withTransaction {
-            user = User.get(authentication.getName())
-            user.nickname = account.nickname;
-            user.nameColor = account.nameColor;
-            user.save()
+        try{
+            User.withTransaction {
+                user = User.get(authentication.getName())
+                User otherUser = User.get(account.nickname.toLowerCase());
+                if(otherUser != null && otherUser != user){
+                    throw new Exception("error");
+                }
+                user.nickname = account.nickname;
+                user.nameColor = account.nameColor;
+                user.save()
+            }
+        } catch(Exception e){
+            return HttpResponse.badRequest().body([errors: ["Can't use nickname of another accounts name"]]);
         }
         return user;
     }

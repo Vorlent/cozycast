@@ -442,10 +442,12 @@ button{
     background-color: var(--cozyColorMenu);
     border-radius: 0.2em;
     color: white;
-    top: 0;
     user-select: none;
     pointer-events: none;
-    right: 0;
+    top: -0.2em;
+    right: 0.4em;
+    min-width: 3em;
+    text-align: right;
 }
 
 .usernameList {
