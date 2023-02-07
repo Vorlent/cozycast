@@ -66,7 +66,6 @@ export class ChatMessages extends Component {
     }
 
     render({ chatMessages, session, profile }) {
-        console.log(chatMessages);
         return <div id="messages" onscroll={this.chatScroll}>
             {chatMessages.map(message =>
                 <div class="message" key={message.data[0].id + message.data.length} id={message.data[0].id}>

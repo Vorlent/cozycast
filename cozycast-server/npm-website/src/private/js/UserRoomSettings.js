@@ -14,26 +14,17 @@ export class UserRoomSettings extends Component {
             showIfMuted: props.state.showIfMuted,
             userlistOnLeft: props.state.userlistOnLeft,
             transparentChat: props.state.transparentChat,
+            smallPfp: props.state.smallPfp,
             editMode: false,
             profileUpdateMode: false,
+            openSettings: {
+                profile: false,
+                userlist: false,
+                notification: false,
+                design: false
+            }
         }
     }
-
-    //static getDerivedStateFromProps(props, state) {
-    //    // This is suboptimal and can be avoided by having the props passed down as the correct value the first time around
-    //    if (props.state.UserRoomSettings !== undefined && !state.editMode) {
-    //        return {
-    //            muteChatNotification: props.state.muteChatNotification,
-    //            showUsernames: props.state.showUsernames,
-    //            legacyDesign: props.legacyDesign,
-    //            showIfMuted: props.state.showIfMuted,
-    //            userlistOnLeft: props.state.userlistOnLeft,
-    //            transparentChat: props.state.transparentChat,
-    //            editMode: true
-    //        };
-    //    }
-    //    return null;
-    //}
 
     shouldComponentUpdate(nextProps, nextState) {
         return nextProps.state.UserRoomSettings != undefined || this.state.editMode || true
@@ -42,6 +33,12 @@ export class UserRoomSettings extends Component {
     closeProfile = () => {
         this.props.updateRoomState({ UserRoomSettings: undefined })
         this.setState({ editMode: false })
+    }
+
+    sendWorkerRestart = () => {
+        this.props.sendMessage({
+            action: 'worker_restart'
+        });
     }
 
     saveProfile = () => {
@@ -55,7 +52,8 @@ export class UserRoomSettings extends Component {
             showUsernames: this.state.showUsernames,
             showIfMuted: this.state.showIfMuted,
             userlistOnLeft: this.state.userlistOnLeft,
-            transparentChat: this.state.transparentChat
+            transparentChat: this.state.transparentChat,
+            smallPfp: this.state.smallPfp,
         })
         this.props.setAppState({
             legacyDesign: this.state.legacyDesign
@@ -67,11 +65,11 @@ export class UserRoomSettings extends Component {
         localStorage.setItem("showIfMuted", this.state.showIfMuted);
         localStorage.setItem("userlistOnLeft", this.state.userlistOnLeft);
         localStorage.setItem("transparentChat", this.state.transparentChat);
+        localStorage.setItem("smallPfp", this.state.smallPfp);
         this.closeProfile()
     }
 
     onSubmit = e => {
-        console.log("submitted!");
         e.preventDefault();
         this.saveProfile();
     }
@@ -90,38 +88,70 @@ export class UserRoomSettings extends Component {
         });
     }
 
+    confirmRestart = () => {
+        if(confirm("Are you sure you want to restart the VM?\n\nPlease only restart the VM if there are techinall isses. Keep in mind that restarting the VM will put this command on a 1 hour cooldown for all users.")){
+            this.sendWorkerRestart();
+        }
+    }
+
 
     backgroundProfileUpdate = createRef();
-    render({ state,profile }) {
-        return <div class="modal-background">
+    backgroundSettings = createRef();
+    render({profile },state) {
+        return <div class="modal-background" ref={this.backgroundSettings} onmousedown={(e) => {if(e.target == this.backgroundSettings.current) this.closeProfile()}}>
             {!this.state.profileUpdateMode &&
             <form class="profile modal" onSubmit={this.onSubmit}>
-                {profile.username && <Button onclick={() => this.setState({profileUpdateMode: true})}>Edit Profile</Button>}
-                {!profile.username && <div>Please log in to edit your Nickname and Profile Picture</div>}
-                <div class="userOptions">
-                    <div class="usersubOptions">
+                <div class="roomSettingsHeaders">SETTINGS</div>
+                <div class="settingsContainer">
+
+                    {profile.username ? <div onclick={() => this.setState({profileUpdateMode: true})} class={`settingsMenu`}>Edit Profile</div> : 
+                        <Fragment>
+                        <div onclick={() => this.setState(state => {return {openSettings: {...state.openSettings, profile: !state.openSettings.profile}}})} class={`settingsMenu ${state.openSettings.profile ? "open" : ""}`}>Edit Profile</div>
+                            {state.openSettings.profile && 
+                            <div class = "subSettings">
+                                Please log in to edit your profile. <a href='/login' style={{color: "var(--cozyOrange)"}}>Login</a>
+                            </div> }
+                        </Fragment>
+                    }
+
+                    <div onclick={() => this.setState(state => {return {openSettings: {...state.openSettings, notification: !state.openSettings.notification}}})} class={`settingsMenu ${state.openSettings.notification ? "open" : ""}`}>Notification & Display</div>
+                    {state.openSettings.notification && 
+                    <div class = "subSettings">
                         <div><input class="modal-username" type="checkbox" id="muteChatNotification" onClick={e => this.toggle(e, 'muteChatNotification')}
                             name="muteChatNotification" checked={this.state.muteChatNotification} /> <label for="muteChatNotification">Mute Chat Notification</label>
                         </div>
-                        <div><input class="modal-username" type="checkbox" id="legacyDesign" onClick={e => this.toggle(e, 'legacyDesign')}
-                            name="legacyDesign" checked={this.state.legacyDesign} /> <label for="legacyDesign">Use Legacy Design</label>
-                        </div>
                         <div><input class="modal-username" type="checkbox" id="showIfMuted" onClick={e => this.toggle(e, 'showIfMuted')}
-                            name="showIfMuted" checked={this.state.showIfMuted} /> <label for="showIfMuted">Show Others If Muted</label>
+                                name="showIfMuted" checked={this.state.showIfMuted} /> <label for="showIfMuted">Show Others If Muted</label>
                         </div>
-                    </div>
-                    <div class="usersubOptions">
-                        <div><input class="modal-username" type="checkbox" id="showUsernames" onClick={e => this.toggle(e, 'showUsernames')}
-                            name="showUsernames" checked={this.state.showUsernames} /> <label for="showUsernames">Show Usernames</label>
-                        </div>
+                    </div> }
+
+                    <div onclick={() => this.setState(state => {return {openSettings: {...state.openSettings, userlist: !state.openSettings.userlist}}})} class={`settingsMenu ${state.openSettings.userlist ? "open" : ""}`}>Userlist</div>
+                    {state.openSettings.userlist && 
+                    <div class = "subSettings">
                         <div><input class="modal-username" type="checkbox" id="userlistOnLeft" onClick={e => this.toggle(e, 'userlistOnLeft')}
                             name="userlistOnLeft" checked={this.state.userlistOnLeft} /> <label for="userlistOnLeft">Show Users On Left</label>
                         </div>
-                        <div><input class="modal-username" type="checkbox" id="transparentChat" onClick={e => this.toggle(e, 'transparentChat')}
-                            name="transparentChat" checked={this.state.transparentChat} /> <label for="transparentChat">Fullscreen Transparent Chat</label>
+                        <div><input class="modal-username" type="checkbox" id="showUsernames" onClick={e => this.toggle(e, 'showUsernames')}
+                            name="showUsernames" checked={this.state.showUsernames} /> <label for="showUsernames">Show Usernames</label>
                         </div>
-                    </div>
+                        <div><input class="modal-username" type="checkbox" id="smallPfp" onClick={e => this.toggle(e, 'smallPfp')}
+                                name="smallPfp" checked={this.state.smallPfp} /> <label for="smallPfp">Use Small Profile Pictures</label>
+                        </div>
+                    </div> }
+
+                    <div onclick={() => this.setState(state => {return {openSettings: {...state.openSettings, design: !state.openSettings.design}}})} class={`settingsMenu ${state.openSettings.design ? "open" : ""}`}>Design</div>
+                    {state.openSettings.design && 
+                    <div class = "subSettings">
+                            <div><input class="modal-username" type="checkbox" id="legacyDesign" onClick={e => this.toggle(e, 'legacyDesign')}
+                                name="legacyDesign" checked={this.state.legacyDesign} /> <label for="legacyDesign">Use Legacy Design</label>
+                            </div>
+                            <div><input class="modal-username" type="checkbox" id="transparentChat" onClick={e => this.toggle(e, 'transparentChat')}
+                                name="transparentChat" checked={this.state.transparentChat} /> <label for="transparentChat">Fullscreen Transparent Chat</label>
+                            </div>
+                    </div> }
+                    {profile.verified && <div class="settingsMenu" onclick={this.confirmRestart}>Restart VM</div>}
                 </div>
+
                 <button class="btn btn-primary btnStandard" type="summit" >Save</button>
             </form>
             }

@@ -237,10 +237,57 @@ html, body, #pagecontent, #videosizer {
     scrollbar-width: thin;
 }
 
+.userlist.bottom.smallPfp.big {
+    height: 3.3em;
+}
+
+.userlist.bottom.smallPfp.small {
+    height: 2.6em;
+}
+
+.userlist.smallPfp .avatar,
+.userlist.smallPfp .avatarContainer,
+.userlist.smallPfp .orangeCircle
+{
+    width: 30px;
+    height: 30px;
+}
+
+.userlist.smallPfp .mutedDot,
+.userlist.smallPfp .remoteIcon{
+    height: 12px;
+    width: 12px;
+}
+
+.userlist.bottom.smallPfp .user{
+    font-size: 0.65em;
+}
+
+.userlist.left .userprofileName{
+    margin-top: 0.4em;
+    font-size: 0.75em;
+    max-width: 98%;
+}
+
+.userlist.bottom.big {
+    height: 5.5em;
+}
+
+.userlist.bottom.small {
+    height: 4.5em;
+}
+
 .userlist.left {
     height: 100%;
     flex-direction: column;
+}
+
+.userlist.left {
     width: 5em;
+}
+
+.userlist.left.smallPfp {
+    width: 2.6em;
 }
 
 .userlist.fullscreenUserlist{
@@ -262,14 +309,6 @@ html, body, #pagecontent, #videosizer {
 
 .visibleControls{
     background: var(--cozyColorMenu) var(--cozycast-noise);
-}
-
-.userlist.bottom.big {
-    height: 5.5em;
-}
-
-.userlist.bottom.small {
-    height: 4.5em;
 }
 
 .userlistSidebar {
@@ -851,7 +890,7 @@ input[type=range]::-webkit-slider-thumb {
     border-radius: 1em;
     box-shadow: 0 0 1em black;
     color: #fff;
-    min-width: 250px;
+    min-width: min(600px,95vw);
 }
 
 .modal > .title {
@@ -1088,6 +1127,38 @@ input[type=range]::-webkit-slider-thumb {
 
 .roomSettingsContainer{
     justify-content: space-around;
+}
+
+.settingsContainer{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.settingsMenu{
+    background: var(--cozyButton);
+    width: 95%;
+    padding: 0.2em;
+    padding-left: 0.5em;
+    font-size: 1.2em;
+    border-radius: 0.3em;
+    margin-top: 0.60em;
+    margin-bottom: 0.25em;
+    cursor: pointer;
+}
+
+.settingsMenu.open{
+    background: var(--cozyOrange);
+}
+
+.subSettings{
+    width: 70%;
+}
+
+.headlineSettings{
+    font-weight: bold;
+    font-size: 2em;
 }
 
 .roomSettingsHeaders{

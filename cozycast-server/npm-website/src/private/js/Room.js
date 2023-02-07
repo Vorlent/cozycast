@@ -115,6 +115,7 @@ export class Room extends Component {
                 days: []
             },
             userlistHidden: false,
+            smallPfp: localStorage.hasOwnProperty('smallPfp') ? localStorage.getItem("smallPfp") == 'true' : false,
             muteChatNotification: localStorage.hasOwnProperty('muteChatNotification') ? localStorage.getItem("muteChatNotification") == 'true' : true,
             showUsernames: localStorage.hasOwnProperty('showUsernames') ? localStorage.getItem("showUsernames") == 'true' : true,
             muted: localStorage.hasOwnProperty('muted') ? localStorage.getItem("muted") == 'true' : false,
@@ -634,6 +635,10 @@ export class Room extends Component {
         this.websocket.close();
     }
 
+    nextRestartAvailable = (parsedMessage) => {
+        alert(`Restart failed. VM has been restarted recently.\nNext restart available at ${moment(parsedMessage.time).format('h:mm A')}`)
+    }
+
     roomSettings = (parsedMessage) => {
         this.setState(state => {
             let a = 'public';
@@ -777,6 +782,9 @@ export class Room extends Component {
                     break;
                 case 'leave':
                     this.leave(parsedMessage);
+                    break;
+                case 'nextRestartAvailable':
+                    this.nextRestartAvailable(parsedMessage);
                     break;
                 case 'drop_remote':
                     this.setState((state) => {
@@ -955,17 +963,18 @@ export class Room extends Component {
                     </DefaultButton>
                 </InfoScreen>}
             {!this.isBanned() && <Fragment>
-                {!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && <div><Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={true} fullscreen={state.fullscreen} hasRemote={state.remote} updateRoomState={this.updateRoomState} /></div>}
+                {!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && <div><Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={true} smallPfp={state.smallPfp} fullscreen={state.fullscreen} hasRemote={state.remote} updateRoomState={this.updateRoomState} /></div>}
                 <div id="videoWrapper" class="videoWrapper">
                     <VideoControls state={state} sendMessage={this.sendMessage} pauseVideo={this.pauseVideo} updateRoomState={this.updateRoomState} />
                     <div id="pagetoolbar" class={state.fullscreen ? "toolbarFullscreen" : ""}>
                         <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} startVideo={this.webrtc_start.bind(this)} stopVideo={this.webrtc_stop.bind(this)} permissions={state.permissions} />
-                        {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} updateRoomState={this.updateRoomState} />}
+                        {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} smallPfp={state.smallPfp} updateRoomState={this.updateRoomState} />}
                     </div>
                 </div>
                 {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions} pingLookup={state.pingLookup}/>}
                 {state.UserRoomSettings && <UserRoomSettings state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} updateProfile={this.props.updateProfile} setAppState={this.props.setAppState} profile={this.props.profile} legacyDesign={this.props.legacyDesign}/>}
                 {state.hoverText && <UserHoverName state={state} />}
+                {!state.userlistHidden  && <a tabindex="-1" id="copyright" href="/license" target="_blank" class={state.userlistOnLeft ? "left" : "bottom"}>Copyright (C) 2022 Vorlent</a>}
             </Fragment>}
         </Fragment>
     }

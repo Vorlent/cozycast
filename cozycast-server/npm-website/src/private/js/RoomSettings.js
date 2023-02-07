@@ -88,8 +88,7 @@ export class RoomSettings extends Component {
 
     sendWorkerRestart = () => {
         this.props.sendMessage({
-            action: 'worker_restart',
-            token: this.props.state.roomToken
+            action: 'worker_restart'
         });
     }
 
