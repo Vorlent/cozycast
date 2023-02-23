@@ -196,8 +196,16 @@ export class Room extends Component {
         document.title = this.state.windowTitle
     }
 
-    pauseVideo = (e) => {
-        let updatedPaused = !this.state.videoPaused;
+    manualPause = false;
+    pauseVideo = (toggle = true, paused = false) => {
+        let updatedPaused = paused;
+        if(toggle){
+            updatedPaused = !this.state.videoPaused;
+            this.manualPause = updatedPaused;
+        }
+        else{
+            if(this.manualPause) return;
+        }
         if (updatedPaused) {
             var videoElement = document.getElementById('video');
             videoElement.pause();
@@ -830,6 +838,12 @@ export class Room extends Component {
                         }
                     });
                     break;
+                case 'stop_stream':
+                    this.pauseVideo(false,true);
+                    break;
+                case 'start_stream':
+                    this.pauseVideo(false,false);
+                    break;
                 default:
                     console.log('Unknown action: ', parsedMessage);
             }
@@ -967,7 +981,7 @@ export class Room extends Component {
                 <div id="videoWrapper" class="videoWrapper">
                     <VideoControls state={state} sendMessage={this.sendMessage} pauseVideo={this.pauseVideo} updateRoomState={this.updateRoomState} />
                     <div id="pagetoolbar" class={state.fullscreen ? "toolbarFullscreen" : ""}>
-                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} startVideo={this.webrtc_start.bind(this)} stopVideo={this.webrtc_stop.bind(this)} permissions={state.permissions} />
+                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} pauseVideo={this.pauseVideo} permissions={state.permissions} />
                         {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} smallPfp={state.smallPfp} updateRoomState={this.updateRoomState} />}
                     </div>
                 </div>

@@ -92,8 +92,7 @@ class WorkerWebsocketServer {
             videoPort: videoPort,
             audioPort: audioPort
         ))
-        roomObj.close(true)
-        roomObj.worker = worker
+        roomObj.startStream(worker)
     }
 
     private void windowtitle(Room room, WebSocketSession session, Map jsonMessage) {
@@ -133,8 +132,7 @@ class WorkerWebsocketServer {
             WorkerSession worker = roomObj.worker
             if(!(worker?.websocket?.getId() == session.getId())) return;
             log.info "Closed websocket session to worker of ${room}"
-            worker?.close()
-            roomObj.worker = null
+            roomObj.stopStream()
         }
     }
 }

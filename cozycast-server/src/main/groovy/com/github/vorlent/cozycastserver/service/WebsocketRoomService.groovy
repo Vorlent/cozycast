@@ -943,9 +943,9 @@ class WebsocketRoomService {
                 log.info "Verified user restarting worker"
                 sendMessage(room.worker?.websocket, new RestartWorkerEvent());
             } else {
-                String time = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(room.lastRestarted.plusHours(1));
-                sendMessage(session, new NextRestartAvailable(time: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(room.lastRestarted.plusHours(1))))
-                log.info "Verified user failed to restarting worker $time" 
+                String timeWhenRestartAvail = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(room.lastRestarted.plusHours(1));
+                sendMessage(session, new NextRestartAvailable(time: timeWhenRestartAvail))
+                log.info "Verified user failed to restarting worker $timeWhenRestartAvail" 
             }
         }
         else log.info "User with missing permissions tried to restart worker"

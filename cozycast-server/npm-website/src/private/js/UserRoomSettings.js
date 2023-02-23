@@ -89,7 +89,7 @@ export class UserRoomSettings extends Component {
     }
 
     confirmRestart = () => {
-        if(confirm("Are you sure you want to restart the VM?\n\nPlease only restart the VM if there are techinall isses. Keep in mind that restarting the VM will put this command on a 1 hour cooldown for all users.")){
+        if(confirm("Are you sure you want to restart the VM?\n\nPlease only restart the VM if there are technical issues. Keep in mind that restarting the VM will put this command on a 1 hour cooldown for all users.")){
             this.sendWorkerRestart();
         }
     }

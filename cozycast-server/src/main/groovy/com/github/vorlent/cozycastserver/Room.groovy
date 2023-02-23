@@ -9,6 +9,14 @@ import io.micronaut.websocket.CloseReason
 
 import com.github.vorlent.cozycastserver.domain.RoomPersistence
 
+class StopStreamEvent {
+    String action = "stop_stream"
+}
+
+class StartStreamEvent {
+    String action = "start_stream"
+}
+
 class Room {
     String name
     final ConcurrentHashMap<String, UserSession> users = new ConcurrentHashMap<>()
@@ -80,6 +88,36 @@ class Room {
                         } catch(IOException e) {
                             e.printStackTrace()
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    def stopStream() {
+        worker?.close()
+        worker = null
+        users.each { key, user ->
+            if(user != null) {
+                user.connections.each {sessionId, connection ->
+                    connection.webRtcEndpoint?.release();
+                    if(connection.webSocketSession) {
+                        connection.webSocketSession.send(new StopStreamEvent()).subscribe({arg -> ""})
+                    }
+                }
+            }
+        }
+    }
+
+    def startStream(WorkerSession workerNew = null) {
+        worker?.close()
+        worker = workerNew
+        users.each { key, user ->
+            if(user != null) {
+                user.connections.each {sessionId, connection ->
+                    connection.webRtcEndpoint?.release();
+                    if(connection.webSocketSession) {
+                        connection.webSocketSession.send(new StartStreamEvent()).subscribe({arg -> ""})
                     }
                 }
             }
