@@ -6,7 +6,7 @@ import Favico from './libs/favico-0.3.10.min.js'
 import { route } from 'preact-router'
 
 import { RoomSidebar } from './RoomSidebar.js'
-import { ProfileModal } from './ProfileModal.js'
+import { UserRoomSettings } from './UserRoomSettings.js'
 import { Userlist } from './Userlist.js'
 import { VideoControls } from './VideoControls.js'
 import { Controls } from './Controls.js'
@@ -73,6 +73,7 @@ export class Room extends Component {
                 imagePermission: false
             },
             userlist: [],
+            pingLookup: {},
             roomlist: [],
             chatMessages: [],
             newMessage: false,
@@ -114,9 +115,9 @@ export class Room extends Component {
                 days: []
             },
             userlistHidden: false,
+            smallPfp: localStorage.hasOwnProperty('smallPfp') ? localStorage.getItem("smallPfp") == 'true' : false,
             muteChatNotification: localStorage.hasOwnProperty('muteChatNotification') ? localStorage.getItem("muteChatNotification") == 'true' : true,
             showUsernames: localStorage.hasOwnProperty('showUsernames') ? localStorage.getItem("showUsernames") == 'true' : true,
-            legacyDesign: localStorage.hasOwnProperty('legacyDesign') ? localStorage.getItem("legacyDesign") == 'true' : false,
             muted: localStorage.hasOwnProperty('muted') ? localStorage.getItem("muted") == 'true' : false,
             showIfMuted: localStorage.hasOwnProperty('showIfMuted') ? localStorage.getItem("showIfMuted") == 'true' : false,
             userlistOnLeft: localStorage.hasOwnProperty('userlistOnLeft') ? localStorage.getItem("userlistOnLeft") == 'true' : false,
@@ -195,8 +196,16 @@ export class Room extends Component {
         document.title = this.state.windowTitle
     }
 
-    pauseVideo = (e) => {
-        let updatedPaused = !this.state.videoPaused;
+    manualPause = false;
+    pauseVideo = (toggle = true, paused = false) => {
+        let updatedPaused = paused;
+        if(toggle){
+            updatedPaused = !this.state.videoPaused;
+            this.manualPause = updatedPaused;
+        }
+        else{
+            if(this.manualPause) return;
+        }
         if (updatedPaused) {
             var videoElement = document.getElementById('video');
             videoElement.pause();
@@ -281,7 +290,7 @@ export class Room extends Component {
                             if (data.id == parsedMessage.id) {
                                 return {
                                     ...data,
-                                    messages: this.parseMessage(parsedMessage),
+                                    messages: this.parseMessage(parsedMessage)[0],
                                     msg: msg,
                                     edited: true
                                 }
@@ -309,9 +318,28 @@ export class Room extends Component {
     }
 
     parseMessage = (parsedMessage) => {
+        var pinged = 0;
         var msg = parsedMessage.message || "";
         var queuedMessages = [];
         const regex = new RegExp('^http.*\.(jpeg|jpg|gif|png)$');
+        const regexp = /(@[^ \n@]*)|([^@]*)/g;
+
+        let parseping = (remaining,start, end) => {
+            const matches = remaining.substring(start, end).matchAll(regexp);        
+            for (const match of matches) {
+                if(match[0].length == 0) continue;
+                if(match[0].length == 1 || !match[0].startsWith('@')) {
+                    queuedMessages.push({ "type": "text", "message": match[0]});
+                }
+                else {
+                    let pingTarget = match[0].substr(1).toLowerCase();
+                    let thisPinged = this.props.profile.pingName == pingTarget;
+                    if(thisPinged) pinged++;
+                    queuedMessages.push({ "type": "ping", "message": match[0],"target": pingTarget});
+                }
+            }
+        }
+
         if (parsedMessage.type == "video") {
             queuedMessages.push({ "type": "video", "href": parsedMessage.image });
         } else if (parsedMessage.type == "image") {
@@ -320,17 +348,9 @@ export class Room extends Component {
             var offset = 0;
             var urls = linkify.find(msg);
             var remaining = msg;
-            const regexp = /(@[^ \n]*)|([^@]*)/g;
             urls.forEach(function (element) {
                 if (element.start != offset) {
-                    const matches = remaining.substring(offset, element.start).matchAll(regexp);        
-                    for (const match of matches) {
-                        if(match[0].length == 0) continue;
-                        if(match[0].length == 1 || !match[0].startsWith('@')) {
-                            queuedMessages.push({ "type": "text", "message": match[0]});
-                        }
-                        else queuedMessages.push({ "type": "ping", "message": match[0],"you": "@" + this.props.profile.nickname.toLowerCase() == match[0].toLowerCase()});
-                    }
+                    parseping(remaining,offset,element.start);
                 }
                 if (element.type == "url") {
                     queuedMessages.push({ "type": "url", "href": element.href, "value": element.value });
@@ -340,18 +360,13 @@ export class Room extends Component {
                 offset = element.end;
             });
             if (offset < remaining.length) {
-                const matches = remaining.substring(offset, remaining.length).matchAll(regexp);      
-                for (const match of matches) {
-                    if(match[0].length == 0) continue;
-                    if(match[0].length == 1 || !match[0].startsWith('@')) {
-                        queuedMessages.push({ "type": "text", "message": match[0]});
-                    }
-                    else queuedMessages.push({ "type": "ping", "message": match[0],"you": "@" + this.props.profile.nickname.toLowerCase() == match[0].toLowerCase()});
-                }
+                parseping(remaining,offset,remaining.length);
             }
         }
-        return queuedMessages;
+        return [queuedMessages,pinged];
     }
+
+
 
     /* parses the chatHistory in the messages array used in states. Called once upon entering a room. 
     Faster since it only calls setState once with the entire chat history*/
@@ -359,7 +374,8 @@ export class Room extends Component {
         var list = [];
         allMessages.slice().reverse().forEach(parsedMessage => {
             var msg = parsedMessage.message || "";
-            var queuedMessages = this.parseMessage(parsedMessage);
+            var parseMessage = this.parseMessage(parsedMessage)
+            var queuedMessages = parseMessage[0];
             var date = moment(parsedMessage.timestamp);
             var timestamp = date.format('h:mm A');
             var lastMessage = null;
@@ -387,7 +403,8 @@ export class Room extends Component {
 
     chatmessage = (parsedMessage, skip_notifications) => {
         var msg = parsedMessage.message || "";
-        var queuedMessages = this.parseMessage(parsedMessage);
+        var parseMessage = this.parseMessage(parsedMessage);
+        var queuedMessages = parseMessage[0];
 
         this.setState((state) => {
             var list;
@@ -424,11 +441,12 @@ export class Room extends Component {
         if (skip_notifications) {
             return
         }
-        var lowerCaseMsg = msg.toLowerCase()
-        var pattern = "@" + this.props.profile.nickname.toLowerCase()
-        var mentionPos = lowerCaseMsg.indexOf(pattern)
-        var mention =  mentionPos != -1
-        if (this.state.historyMode || mention || !this.state.muteChatNotification && document.hidden && parsedMessage.session !== this.state.session) {
+        
+        var mention = parseMessage[1];
+        if(mention > 0){
+            this.rapidPing(mention);
+        }
+        else if (this.state.historyMode || !this.state.muteChatNotification && document.hidden && parsedMessage.session !== this.state.session) {
             var audio = new Audio('/audio/pop.wav');
             audio.play();
         }
@@ -439,8 +457,17 @@ export class Room extends Component {
 
     }
 
+    rapidPing = (times) => {
+        if(times > 0){
+            var audio = new Audio('/audio/pop.wav');
+            audio.play();
+            setTimeout(() => this.rapidPing(times - 1),50);      
+        }
+    }
+
     join = (parsedMessage) => {
-        this.leave(parsedMessage)
+        //this.leave(parsedMessage)
+        var targetName = parsedMessage.username.toLowerCase().replace(/\s/g, '');
         this.setState(state => {
             return {
                 userlist: [...state.userlist, {
@@ -453,15 +480,20 @@ export class Room extends Component {
                     muted: parsedMessage.muted,
                     nameColor: parsedMessage.nameColor,
                     anonymous: parsedMessage.anonymous
-                }]
+                }],
+                pingLookup: {...state.pingLookup,
+                    [targetName] : state.pingLookup[targetName] > 0 ? state.pingLookup[targetName] + 1 : 1
+                }
             }
         })
     }
 
     updateUser = (parsedMessage) => {
         this.setState(state => {
+            var oldUsername;
+            var newUsername = parsedMessage.username.toLowerCase().replace(/\s/g, '');
             return {
-                userlist: state.userlist.map(function (element) {
+                userlist: state.userlist.map((element) => {
                     if (element.session == parsedMessage.session) {
                         const updatedElement = {
                             ...element,
@@ -472,16 +504,27 @@ export class Room extends Component {
                             nameColor: parsedMessage.nameColor,
                             muted: parsedMessage.muted
                         }
+                        oldUsername = element.username.toLowerCase().replace(/\s/g, '');
                         return updatedElement;
                     }
                     return element;
-                })
+                }),
+                pingLookup: {...state.pingLookup, 
+                    [oldUsername]: state.pingLookup[oldUsername] - 1,
+                    [newUsername]: state.pingLookup[newUsername] > 0 ? newUsername != oldUsername ? state.pingLookup[newUsername] + 1  : state.pingLookup[newUsername] : 1
+                }
             }
         })
+        if(parsedMessage.session == this.props.profile.username){
+            this.props.updateProfile();
+        }
     }
 
     loadUsers = (parseMessage) => {
+        let pingLookup = {};
         let users = parseMessage.users.map(user => {
+            var userLower = user.username.toLowerCase().replace(/\s/g, '');
+            pingLookup[userLower] = pingLookup[userLower] > 0 ? pingLookup[userLower] + 1 : 1;
             return {
                 username: user.username,
                 url: user.url,
@@ -494,7 +537,7 @@ export class Room extends Component {
                 anonymous: user.anonymous
             }
         });
-        this.setState((state) => { return { userlist: users } })
+        this.setState((state) => { return { userlist: users, pingLookup: pingLookup } })
     }
 
     updateActivity = (parsedMessage) => {
@@ -574,11 +617,17 @@ export class Room extends Component {
     }
 
     leave = (parsedMessage) => {
+        let username;
         this.setState(state => {
             return {
-                userlist: state.userlist.filter(function (element) {
-                    return element.session != parsedMessage.session;
-                })
+                userlist: state.userlist.filter((element) => {
+                    let other = element.session != parsedMessage.session;
+                    if(!other) username = element.username;
+                    return other;
+                }),
+                pingLookup: {...state.pingLookup,
+                    [username.toLowerCase().replace(/\s/g, '')] : state.pingLookup[username.toLowerCase().replace(/\s/g, '')] - 1
+                }
             }
         })
         filterTyping(parsedMessage.session);
@@ -592,6 +641,10 @@ export class Room extends Component {
             }
         })
         this.websocket.close();
+    }
+
+    nextRestartAvailable = (parsedMessage) => {
+        alert(`Restart failed. VM has been restarted recently.\nNext restart available at ${moment(parsedMessage.time).format('h:mm A')}`)
     }
 
     roomSettings = (parsedMessage) => {
@@ -651,7 +704,6 @@ export class Room extends Component {
         this.websocket = new WebSocket(wsProtocol + '://' + location.host + '/player/' + room);
         this.websocket.onmessage = (message) => {
             var parsedMessage = JSON.parse(message.data);
-            console.log(parsedMessage)
             switch (parsedMessage.action) {
                 case 'keepalive':
                     break;
@@ -739,6 +791,9 @@ export class Room extends Component {
                 case 'leave':
                     this.leave(parsedMessage);
                     break;
+                case 'nextRestartAvailable':
+                    this.nextRestartAvailable(parsedMessage);
+                    break;
                 case 'drop_remote':
                     this.setState((state) => {
                         return {
@@ -782,6 +837,12 @@ export class Room extends Component {
                             console.log("Successful iceCandidate")
                         }
                     });
+                    break;
+                case 'stop_stream':
+                    this.pauseVideo(false,true);
+                    break;
+                case 'start_stream':
+                    this.pauseVideo(false,false);
                     break;
                 default:
                     console.log('Unknown action: ', parsedMessage);
@@ -916,17 +977,18 @@ export class Room extends Component {
                     </DefaultButton>
                 </InfoScreen>}
             {!this.isBanned() && <Fragment>
-                {!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && <div><Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={true} fullscreen={state.fullscreen} hasRemote={state.remote} updateRoomState={this.updateRoomState} /></div>}
+                {!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && <div><Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={true} smallPfp={state.smallPfp} fullscreen={state.fullscreen} hasRemote={state.remote} updateRoomState={this.updateRoomState} /></div>}
                 <div id="videoWrapper" class="videoWrapper">
                     <VideoControls state={state} sendMessage={this.sendMessage} pauseVideo={this.pauseVideo} updateRoomState={this.updateRoomState} />
                     <div id="pagetoolbar" class={state.fullscreen ? "toolbarFullscreen" : ""}>
-                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} startVideo={this.webrtc_start.bind(this)} stopVideo={this.webrtc_stop.bind(this)} permissions={state.permissions} />
-                        {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} updateRoomState={this.updateRoomState} />}
+                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} pauseVideo={this.pauseVideo} permissions={state.permissions} />
+                        {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} smallPfp={state.smallPfp} updateRoomState={this.updateRoomState} />}
                     </div>
                 </div>
-                {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions} />}
-                {state.profileModal && <ProfileModal state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} setAppState={this.props.setAppState} profile={this.props.profile} />}
+                {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions} pingLookup={state.pingLookup}/>}
+                {state.UserRoomSettings && <UserRoomSettings state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} updateProfile={this.props.updateProfile} setAppState={this.props.setAppState} profile={this.props.profile} legacyDesign={this.props.legacyDesign}/>}
                 {state.hoverText && <UserHoverName state={state} />}
+                {!state.userlistHidden  && <a tabindex="-1" id="copyright" href="/license" target="_blank" class={state.userlistOnLeft ? "left" : "bottom"}>Copyright (C) 2022 Vorlent</a>}
             </Fragment>}
         </Fragment>
     }

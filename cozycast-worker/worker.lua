@@ -352,6 +352,11 @@ function start_server()
     if os.getenv("DUCKDNS_DOMAIN") ~= "" then
         server = os.getenv("DUCKDNS_DOMAIN")
     end
+
+    if os.getenv("LOCAL_WORKER") ~= "" then
+        server="cozycast-server"
+    end
+
     print("env "..os.getenv("COZYCAST_ROOM"))
     local room = os.getenv("COZYCAST_ROOM") or "default"
     local room_key = os.getenv("COZYCAST_WORKER_KEY") or "no_key"

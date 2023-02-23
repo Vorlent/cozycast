@@ -41,12 +41,13 @@ services:
         build: ../cozycast-worker
         image: cozycast-worker
         networks:
-            - cozycast
+            - internal
         shm_size: 2g
         environment:
             COZYCAST_WORKER_KEY: $COZYCAST_WORKER_KEY
             COZYCAST_IP: $COZYCAST_IP
             DUCKDNS_DOMAIN: $DUCKDNS_DOMAIN
+            LOCAL_WORKER: $LOCAL_WORKER
             COZYCAST_ROOM: default
             FORCE_HTTPS: $FORCE_HTTPS
         volumes:
@@ -55,8 +56,10 @@ services:
     cozycast-server:
         build: ../cozycast-server
         image: cozycast-server
+        container_name: cozycast-server
         networks:
             - cozycast
+            - internal
         ports:
             - "80:80"
             - "443:443"
@@ -86,3 +89,4 @@ services:
         image: cozycast-certbot
 networks:
     cozycast:
+    internal:

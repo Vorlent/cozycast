@@ -41,7 +41,9 @@ class App extends Component {
         this.state = {
             legacyDesign: localStorage.hasOwnProperty('legacyDesign') ? localStorage.getItem("legacyDesign") == 'true' : false,
             profile: {
-                admin: false
+                admin: false,
+                nickname: "Anonymous",
+                pingName: "anonymous"
             },
             loginCompleted: false,
             loggedIn: false,
@@ -53,7 +55,7 @@ class App extends Component {
     }
 
     componentDidUpdate(){
-        console.log(this.state);
+        //console.log(this.state);
     }
 
     logout = () => {
@@ -63,7 +65,7 @@ class App extends Component {
 
     fetchMisc = () => {
         fetch("/api/misc").then((e) => e.json()).then((e) => {
-            this.setState(state => { return { registerWithInviteOnly: e.registerWithInviteOnly, message: e.message } })
+            this.setState(state => { return { registerWithInviteOnly: e.registerWithInviteOnly, message: e.message == null ? "" : e.message } })
         });
     }
 
@@ -84,6 +86,7 @@ class App extends Component {
                                     admin: e.admin,
                                     nickname: e.nickname,
                                     nameColor: e.nameColor,
+                                    pingName: e.nickname.replace(/\s/g, '').toLowerCase(),
                                     verified: (e.verified || e.admin)
                                 },
                                 loggedIn: true
@@ -129,6 +132,7 @@ class App extends Component {
                                     avatarUrl: e.avatarUrl,
                                     admin: e.admin,
                                     nickname: e.nickname,
+                                    pingName: e.nickname.replace(/\s/g, '').toLowerCase(),
                                     nameColor: e.nameColor
                                 },
                                 loggedIn: true
@@ -151,7 +155,9 @@ class App extends Component {
                 case TokenStatus.EXPIRED:
                     this.setState({
                         loggedIn: false, profile: {
-                            admin: false
+                            admin: false,
+                            nickname: "Anonymous",
+                            pingName: "anonymous"
                         }
                     });
                 default:
@@ -175,7 +181,7 @@ class App extends Component {
             </Match>
             <Router onChange={this.checkIfLoggedOut}>
                 <RoomList path="/" profile={this.state.profile} roomPerms={state.roomPerms} loggedIn={state.loggedIn} message={this.state.message}/>
-                <Room path="/room/:roomId" setAppState={this.setState.bind(this)} profile={this.state.profile}/>
+                <Room path="/room/:roomId" setAppState={this.setState.bind(this)} profile={this.state.profile} updateProfile={this.updateProfile.bind(this)} legacyDesign={this.state.legacyDesign}/>
                 <Invite path="/invite/:code" updatePermissions={this.updatePermissions.bind(this)} setAppState={this.setState.bind(this)} />
                 <Login path="/login/" loggedIn={this.state.loggedIn} logout={this.logout.bind(this)} login={this.login.bind(this)} inviteCode={this.state.inviteCode} />
                 <Register path="/register" inviteCode={this.state.inviteCode} setAppState={this.setState.bind(this)}/>

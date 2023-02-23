@@ -94,7 +94,7 @@ case $1 in
         sudo -E docker-compose -p cozycast -f docker-compose.yml -f docker-compose.dev.yml up -d
         coturn_add_kurento_user
         liquibase_update
-        (sudo -E docker exec -i cozycast_cozycast-server_1 sh dev.sh) &
+        (sudo -E docker exec -i cozycast-server sh dev.sh) &
         exit;
         ;;
     db)
@@ -126,7 +126,7 @@ case $1 in
                 if test -f "$RELOAD_TRIGGER"; then
                     echo "$RELOAD_TRIGGER exists."
                     ./cozycast ssl keystore
-                    echo "sudo docker restart cozycast_cozycast-server_1"
+                    echo "sudo docker restart cozycast-server"
                     sudo rm -rf $RELOAD_TRIGGER
                 fi
                 exit

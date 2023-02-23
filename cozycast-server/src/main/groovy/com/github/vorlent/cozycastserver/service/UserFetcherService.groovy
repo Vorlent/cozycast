@@ -20,6 +20,7 @@ class UserFetcherService implements UserFetcher {
 
     @Override
     UserState findByUsername(@NotBlank @NonNull String username) {
-        userGormService.findByUsername(username) as UserState
+        String lowerUsername = username.toLowerCase();
+        userGormService.findByUsername(lowerUsername) as UserState
     }
 }

@@ -15,6 +15,7 @@ import com.github.vorlent.cozycastserver.UserState
 import com.github.vorlent.cozycastserver.domain.ChatMessage
 import com.github.vorlent.cozycastserver.domain.RoomPermission
 import com.github.vorlent.cozycastserver.domain.User
+import com.github.vorlent.cozycastserver.domain.RoomPersistence
 import com.github.vorlent.cozycastserver.service.RoomPermissionGormService
 
 import java.time.format.DateTimeFormatter
@@ -229,6 +230,11 @@ class AuthenticationEvent {
 class UnauthorizedEvent {
     String action = "unauthorized"
     String message
+}
+
+class NextRestartAvailable {
+    String action = "nextRestartAvailable"
+    String time
 }
 
 class PasteEvent {
@@ -639,7 +645,8 @@ class WebsocketRoomService {
                                         oldValue.lastTimeSeen = ZonedDateTime.now(ZoneId.of("UTC")); 
                                         oldValue.active = true;
                                         oldValue.muted = jsonMessage.muted;
-                                        oldValue.admin = user.isAdmin()
+                                        oldValue.admin = admin;
+                                        oldValue.verified = verified;
                                         oldValue.invited = invited;
                                         oldValue.remote_permission = remote_permission;
                                         oldValue.image_permission = image_permission;
@@ -656,7 +663,8 @@ class WebsocketRoomService {
                                         lastTimeSeen: ZonedDateTime.now(ZoneId.of("UTC")),
                                         active: true,
                                         muted: jsonMessage.muted,
-                                        admin: user.isAdmin(),
+                                        admin: admin,
+                                        verified: verified,
                                         invited: invited,
                                         remote_permission: remote_permission,
                                         image_permission: image_permission,
@@ -750,6 +758,7 @@ class WebsocketRoomService {
                         image: it.image,
                         type: it.type,
                         username: it.username,
+                        anonymous: it.anonymous,
                         session: it.session,
                         nameColor: it.nameColor,
                         timestamp: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'")
@@ -803,6 +812,23 @@ class WebsocketRoomService {
             sendMessage(session, new PickupRemoteEvent(
                 session: room.sessionToName.get(room.remote),
                 has_remote: room.remote == session.getId()))
+        }
+    }
+
+    private void updateProfile(Room room, WebSocketSession session, String username){
+        UserState user = userFetcher.findByUsername(username);
+        if(user != null){
+            UserSession userSession = room.users.get(username);
+            if(userSession){
+                room.users.computeIfPresent(username,(key, oldValue) -> {
+                        oldValue.nickname = user.getNickname();
+                        oldValue.avatarUrl = user.getAvatarUrl();
+                        oldValue.nameColor = user.getNameColor();
+                        oldValue.lastTimeSeen = ZonedDateTime.now(ZoneId.of("UTC")); 
+                        oldValue.active = true;
+                    return oldValue;});
+                updateUser(room,null,userSession);
+            }
         }
     }
 
@@ -909,8 +935,20 @@ class WebsocketRoomService {
     private void restartWorker(Room room, WebSocketSession session, Map jsonMessage,String username) {
         UserSession user = room.users.get(username)
         if(user.admin) {
+            log.info "Admin restarting worker"
+            room.restartByAdmin()
             sendMessage(room.worker?.websocket, new RestartWorkerEvent())
+        } else if(user.verified){
+            if(room.restartByUser()){
+                log.info "Verified user restarting worker"
+                sendMessage(room.worker?.websocket, new RestartWorkerEvent());
+            } else {
+                String timeWhenRestartAvail = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(room.lastRestarted.plusHours(1));
+                sendMessage(session, new NextRestartAvailable(time: timeWhenRestartAvail))
+                log.info "Verified user failed to restarting worker $timeWhenRestartAvail" 
+            }
         }
+        else log.info "User with missing permissions tried to restart worker"
     }
 
     private void saveRoomSettings(Room room, WebSocketSession session, Map jsonMessage,String username) {
@@ -972,6 +1010,19 @@ class WebsocketRoomService {
                     room.videoSettings.audioBitrate = bitrates[jsonMessage.audioBitrate.toString()]
                 }
             }
+            RoomPersistence.withTransaction{
+                RoomPersistence roomPers = RoomPersistence.get(room.name);
+                if(roomPers != null){
+                    roomPers.desktopWidth = room.videoSettings.desktopWidth;
+                    roomPers.desktopHeight = room.videoSettings.desktopHeight;
+                    roomPers.scaleWidth = room.videoSettings.scaleWidth;
+                    roomPers.scaleHeight = room.videoSettings.scaleHeight;
+                    roomPers.framerate = room.videoSettings.framerate;
+                    roomPers.videoBitrate = room.videoSettings.videoBitrate;
+                    roomPers.audioBitrate = room.videoSettings.audioBitrate;
+                    roomPers.save(flush: true);
+                }
+            }
             sendMessage(room.worker?.websocket, new UpdateWorkerSettingsEvent(settings: room.videoSettings, restart: true))
         } else {
             sendMessage(session, new CozycastError(message: "Not authorized"))
@@ -1018,6 +1069,18 @@ class WebsocketRoomService {
                 default_remote_permission: room.default_remote_permission,
                 default_image_permission: room.default_image_permission
             )
+            RoomPersistence.withTransaction{
+                RoomPersistence roomPers = RoomPersistence.get(room.name);
+                if(roomPers != null){
+                    roomPers.accountOnly = room.accountOnly;
+                    roomPers.verifiedOnly = room.verifiedOnly;
+                    roomPers.inviteOnly = room.inviteOnly;
+                    roomPers.centerRemote = room.centerRemote;
+                    roomPers.default_remote_permission = room.default_remote_permission;
+                    roomPers.default_image_permission = room.default_image_permission;
+                    roomPers.save(flush: true);
+                }
+            }
             room.users.each { key, roomUser ->
             if(roomUser != null) {
                 if((room.accountOnly && roomUser.anonymous) || (room.inviteOnly && !roomUser.invited)){
@@ -1193,6 +1256,9 @@ class WebsocketRoomService {
                         break;
                     case "typing":
                         typing(currentRoom, session, jsonMessage, username)
+                        break;
+                    case "updateprofile":
+                        updateProfile(currentRoom, session, username)
                         break;
                     case "chatmessage":
                         chatmessage(currentRoom, session, jsonMessage, username)

@@ -26,10 +26,11 @@ class RegisterService {
     boolean register(@Email String email, @NotBlank String username,
                   @NotBlank String rawPassword, boolean admin) {
 
-       User user = userGormService.findByUsername(username)
+       String lowerUsername = username.toLowerCase();
+       User user = userGormService.findByUsername(lowerUsername)
        if (!user) {
            final String encodedPassword = passwordEncoder.encode(rawPassword)
-           user = userGormService.save(email, username, username, encodedPassword, admin)
+           user = userGormService.save(email, lowerUsername, username, encodedPassword, admin)
            return true;
        } else return false;
     }

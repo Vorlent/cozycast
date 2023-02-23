@@ -216,4 +216,82 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="13" author="vorlent">
+        <dropColumn tableName="users">
+            <column name="refresh_token"/>
+            <column name="token_revoked"/>
+            <column name="token_created"/>
+        </dropColumn>
+        <createTable tableName="refresh_token">
+            <column name="id" type="varchar(64)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="username" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="refresh_token" type="varchar(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="token_revoked" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="token_created" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="14" author="vorlent">
+        <createTable tableName="room_persistence">
+            <column name="name" type="varchar(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="account_only" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="verified_only" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="invite_only" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="center_remote" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="default_remote_permission" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="default_image_permission" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="desktop_width" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="desktop_height" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="scale_width" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="scale_height" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="framerate" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="video_bitrate" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="audio_bitrate" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
 </databaseChangeLog>

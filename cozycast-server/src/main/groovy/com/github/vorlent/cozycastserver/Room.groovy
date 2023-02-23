@@ -1,8 +1,21 @@
 package com.github.vorlent.cozycastserver
 
 import java.util.concurrent.ConcurrentHashMap
+import java.time.format.DateTimeFormatter
+import java.time.ZonedDateTime
+import java.time.ZoneId
 
 import io.micronaut.websocket.CloseReason
+
+import com.github.vorlent.cozycastserver.domain.RoomPersistence
+
+class StopStreamEvent {
+    String action = "stop_stream"
+}
+
+class StartStreamEvent {
+    String action = "start_stream"
+}
 
 class Room {
     String name
@@ -27,6 +40,42 @@ class Room {
         audioBitrate: "96k"
     )
 
+    ZonedDateTime lastRestarted = ZonedDateTime.now(ZoneId.of("UTC"));
+
+    Room(RoomPersistence roomPersistence){
+        this.name = roomPersistence.name;
+        this.accountOnly = roomPersistence.accountOnly
+        this.verifiedOnly = roomPersistence.verifiedOnly
+        this.inviteOnly = roomPersistence.inviteOnly
+        this.centerRemote = roomPersistence.centerRemote
+        this.default_remote_permission = roomPersistence.default_remote_permission
+        this.default_image_permission = roomPersistence.default_image_permission
+
+        this.videoSettings = new VideoSettings(
+            desktopWidth: roomPersistence.desktopWidth,
+            desktopHeight: roomPersistence.desktopHeight,
+            scaleWidth: roomPersistence.scaleWidth,
+            scaleHeight: roomPersistence.scaleHeight,
+            framerate: roomPersistence.framerate,
+            videoBitrate: roomPersistence.videoBitrate,
+            audioBitrate: roomPersistence.audioBitrate
+        )
+    }
+
+    Room(){};
+
+    def restartByUser(){
+        if(ZonedDateTime.now(ZoneId.of("UTC")).minusHours(1) > lastRestarted){
+            lastRestarted = ZonedDateTime.now(ZoneId.of("UTC"));
+            return true;
+        }
+        else return false;
+    }
+
+    def restartByAdmin(){
+        lastRestarted = ZonedDateTime.now(ZoneId.of("UTC"));
+    }
+
     def close(restart = false) {
         worker?.close()
         users.each { key, user ->
@@ -39,6 +88,36 @@ class Room {
                         } catch(IOException e) {
                             e.printStackTrace()
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    def stopStream() {
+        worker?.close()
+        worker = null
+        users.each { key, user ->
+            if(user != null) {
+                user.connections.each {sessionId, connection ->
+                    connection.webRtcEndpoint?.release();
+                    if(connection.webSocketSession) {
+                        connection.webSocketSession.send(new StopStreamEvent()).subscribe({arg -> ""})
+                    }
+                }
+            }
+        }
+    }
+
+    def startStream(WorkerSession workerNew = null) {
+        worker?.close()
+        worker = workerNew
+        users.each { key, user ->
+            if(user != null) {
+                user.connections.each {sessionId, connection ->
+                    connection.webRtcEndpoint?.release();
+                    if(connection.webSocketSession) {
+                        connection.webSocketSession.send(new StartStreamEvent()).subscribe({arg -> ""})
                     }
                 }
             }

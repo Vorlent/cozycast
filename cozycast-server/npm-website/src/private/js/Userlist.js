@@ -11,12 +11,12 @@ export class Userlist extends Component {
             this.props.showUsernames !== nextProps.showUsernames ||
             this.props.isLeft !== nextProps.isLeft ||
             this.props.fullscreen !== nextProps.fullscreen ||
-            this.props.remote !== nextProps.remote;
+            this.props.remote !== nextProps.remote ||
+            this.props.smallPfp !== nextProps.smallPfp;
     }
 
-    render({userlist, showUsernames, isLeft, updateRoomState, fullscreen, hasRemote}) {
-        return <Fragment>
-            <div id="userlist" class={`userlist ${showUsernames ? "big" : "small"} ${isLeft ? "left" : "bottom"} ${fullscreen ? "fullscreenUserlist" : ""} ${hasRemote ? " hasRemote": ""}`} >
+    render({userlist, showUsernames, isLeft, updateRoomState, fullscreen, hasRemote, smallPfp}) {
+        return <div id="userlist" class={`userlist ${smallPfp ? "smallPfp" : ""} ${showUsernames ? "big" : "small"} ${isLeft ? "left" : "bottom"} ${fullscreen ? "fullscreenUserlist" : ""} ${hasRemote ? " hasRemote": ""}`} >
                 {userlist.map(user => {
                 let background = {'background-image': `url(${user.url})`};
                 if(user.anonymous) background['background-color'] = user.nameColor + "99"
@@ -28,12 +28,10 @@ export class Userlist extends Component {
                             <img class={`mutedDot ${user.muted? "": "noDisplay"}`} src="/svg/headphone-slash.svg"></img>
                             <img class={`remoteIcon ${user.remote? "": "noDisplay"}`} src="/svg/remote.svg"></img>
                         </div>
-                        {showUsernames && !isLeft && <div class={`${user.active? "": "isAway"} userprofileName`}>{user.username}</div>}
+                        {showUsernames && !(smallPfp && isLeft) && <div class={`${user.active? "": "isAway"} userprofileName`}>{user.username}</div>}
                     </div>
                     }
                 })}
             </div>
-            <a tabindex="-1" id="copyright" href="/license" target="_blank" class={isLeft ? "left" : "bottom"}>Copyright (C) 2022 Vorlent</a>
-        </Fragment>
     }
 }

@@ -11,11 +11,7 @@ interface UserGormService {
 
     User findByUsername(String username)
 
-    User findByRefreshToken(String refreshToken)
-
     User findById(Serializable id)
-
-    User updateRefreshTokenAndTokenCreated(String id, String refreshToken, ZonedDateTime tokenCreated)
 
     User updateNickname(String id, String nickname)
 

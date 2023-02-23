@@ -6,12 +6,14 @@ import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Size;
 import javax.validation.constraints.Pattern;
 
+//\x21-\x7E\xA1-\xAC\xAE-\xFF
+
 @Introspected
 class AccountUpdate{
 
     @NotBlank(message = "Nickname cannot be blank")
     @Size(min = 1, max = 12, message  = "Nickname must be between 1 and 12 characters")
-    @Pattern(regexp = "[^ ](?:.?[^ ])*", message = "No leading or trailing spaces and only one space at a time")
+    @Pattern(regexp = "[\u0021-\u007E\u00A1-\u00AC\u00AE-\u00FF](?: ?[\u0021-\u007E\u00A1-\u00AC\u00AE-\u00FF])*", message = "No leading or trailing spaces and only one space at a time. Also some special characters are excluded")
     String nickname
 
     @NotBlank(message = "Name Color cannot be blank")

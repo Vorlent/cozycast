@@ -49,26 +49,6 @@ export class Controls extends Component {
     }
 
     
-    pauseVideo = (e) => {
-        let updatedPaused = !this.props.state.videoPaused;
-        if(updatedPaused) {
-            var videoElement = document.getElementById('video');
-            videoElement.pause();
-            this.props.stopVideo();
-        } else {
-            var videoElement = document.getElementById('video');
-            videoElement.play();
-            this.props.startVideo();
-        }
-        if(this.props.state.showIfMuted) {
-            this.props.sendMessage({
-                action : 'userMuted',
-                muted: this.props.state.muted || updatedPaused
-            });
-        }
-        this.props.updateRoomState({videoPaused: updatedPaused})
-    }
-
     toggleRoomSettings = () => {
         if(this.props.state.roomSidebar != SidebarState.SETTINGS) {
             this.props.updateRoomState({roomSidebar: SidebarState.SETTINGS})
@@ -134,7 +114,7 @@ export class Controls extends Component {
 
     shouldComponentUpdate(nextProps, nextState){
         return this.props.state.userlistHidden !== nextProps.state.userlistHidden ||
-        this.props.state.profileModal !== nextProps.state.profileModal ||
+        this.props.state.UserRoomSettings !== nextProps.state.UserRoomSettings ||
         this.props.state.remote !== nextProps.state.remote ||
         this.props.state.videoPaused !== nextProps.state.videoPaused ||
         this.props.state.fullscreen !== nextProps.state.fullscreen ||
@@ -157,7 +137,7 @@ export class Controls extends Component {
                     </div>
                 </Button>
                 }
-                <Button enabled={state.videoPaused} onclick={this.pauseVideo}
+                <Button enabled={state.videoPaused} onclick={this.props.pauseVideo}
                     title={state.videoPaused ? 'Pause' : 'Play'} style="buttonSmall">
                     <img class="video-control-icon" src={state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}/>
                 </Button>
@@ -179,8 +159,8 @@ export class Controls extends Component {
                         title={state.userlistHidden ? 'Show Users' : 'Hide Users'} style="buttonSmall optional">
                         <img class="video-control-icon" src={state.userlistOnLeft||state.fullscreen? state.userlistHidden ? '/svg/chevron-right.svg' : '/svg/chevron-left.svg' : state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}/>
                     </Button>
-                    <Button enabled={state.profileModal}
-                            onclick={() => this.props.updateRoomState({profileModal: true})} style="buttonSmall">
+                    <Button enabled={state.UserRoomSettings}
+                            onclick={() => this.props.updateRoomState({UserRoomSettings: true})} style="buttonSmall">
                             <img class="video-control-icon" src="/svg/settings.svg"/>
                         </Button>
                     <Button enabled={false} onclick={() => route('/',true)} style="buttonBig">Rooms</Button>
