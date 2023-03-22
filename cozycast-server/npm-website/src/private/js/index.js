@@ -35,11 +35,26 @@ export function queryParams(params) {
         .join('&');
 }
 
+function switchDesign(newDesign){
+    let design;
+    switch (newDesign) {
+        case 'legacyDesign':
+            design = 'legacyDesign';
+            break;
+        case 'defaultDesign':
+        default:
+            design = 'defaultDesign';
+            break;
+    }
+    return design;
+}
+
 class App extends Component {
     constructor(props) {
+        let design = switchDesign(localStorage.getItem("design"));
         super(props);
         this.state = {
-            legacyDesign: localStorage.hasOwnProperty('legacyDesign') ? localStorage.getItem("legacyDesign") == 'true' : false,
+            design: design,
             profile: {
                 admin: false,
                 nickname: "Anonymous",
@@ -56,6 +71,12 @@ class App extends Component {
 
     componentDidUpdate(){
         //console.log(this.state);
+    }
+
+    updateDesign = (newDesign) => {
+        let design = switchDesign(newDesign);
+        localStorage.setItem("design", design);
+        this.setState({design: design});
     }
 
     logout = () => {
@@ -167,10 +188,10 @@ class App extends Component {
 
     render(_, state) {
         if (!this.state.loginCompleted)
-            return <div id="pagecontent" class={state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}>
+            return <div id="pagecontent" class={state.design + state.design == "defaultDesign" ? " noiseBackground" : ""}>
                 <InfoScreen message={"Connecting to CozyCast..."} submessage={"If this takes too long please refresh"} legacyDesign={state.legacyDesign} />
             </div>
-        return <div id="pagecontent" class={state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}>
+        return <div id="pagecontent" class={state.design  + (state.design == "defaultDesign" ? " noiseBackground" : " ")}>
             <Match path="/">{({ matches, path, url }) => {
                 if (url.startsWith('/room')) {
                     return;
@@ -181,7 +202,7 @@ class App extends Component {
             </Match>
             <Router onChange={this.checkIfLoggedOut}>
                 <RoomList path="/" profile={this.state.profile} roomPerms={state.roomPerms} loggedIn={state.loggedIn} message={this.state.message}/>
-                <Room path="/room/:roomId" setAppState={this.setState.bind(this)} profile={this.state.profile} updateProfile={this.updateProfile.bind(this)} legacyDesign={this.state.legacyDesign}/>
+                <Room path="/room/:roomId" setAppState={this.setState.bind(this)} profile={this.state.profile} updateProfile={this.updateProfile.bind(this)} design={this.state.design} updateDesign={this.updateDesign.bind(this)}/>
                 <Invite path="/invite/:code" updatePermissions={this.updatePermissions.bind(this)} setAppState={this.setState.bind(this)} />
                 <Login path="/login/" loggedIn={this.state.loggedIn} logout={this.logout.bind(this)} login={this.login.bind(this)} inviteCode={this.state.inviteCode} />
                 <Register path="/register" inviteCode={this.state.inviteCode} setAppState={this.setState.bind(this)}/>

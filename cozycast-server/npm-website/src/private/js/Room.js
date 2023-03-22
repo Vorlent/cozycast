@@ -986,9 +986,9 @@ export class Room extends Component {
                     </div>
                 </div>
                 {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions} pingLookup={state.pingLookup}/>}
-                {state.UserRoomSettings && <UserRoomSettings state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} updateProfile={this.props.updateProfile} setAppState={this.props.setAppState} profile={this.props.profile} legacyDesign={this.props.legacyDesign}/>}
+                {state.UserRoomSettings && <UserRoomSettings state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} updateProfile={this.props.updateProfile} setAppState={this.props.setAppState} profile={this.props.profile} design={this.props.design} updateDesign={this.props.updateDesign}/>}
                 {state.hoverText && <UserHoverName state={state} />}
-                {!state.userlistHidden  && <a tabindex="-1" id="copyright" href="/license" target="_blank" class={state.userlistOnLeft ? "left" : "bottom"}>Copyright (C) 2022 Vorlent</a>}
+                {!state.userlistHidden  && !state.fullscreen && <a tabindex="-1" id="copyright" href="/license" target="_blank" class={state.userlistOnLeft ? "left" : "bottom"}>Copyright (C) 2022 Vorlent</a>}
             </Fragment>}
         </Fragment>
     }

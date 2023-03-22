@@ -10,7 +10,7 @@ export class UserRoomSettings extends Component {
         this.state = {
             muteChatNotification: props.state.muteChatNotification,
             showUsernames: props.state.showUsernames,
-            legacyDesign: props.legacyDesign,
+            design: props.design,
             showIfMuted: props.state.showIfMuted,
             userlistOnLeft: props.state.userlistOnLeft,
             transparentChat: props.state.transparentChat,
@@ -55,29 +55,29 @@ export class UserRoomSettings extends Component {
             transparentChat: this.state.transparentChat,
             smallPfp: this.state.smallPfp,
         })
-        this.props.setAppState({
-            legacyDesign: this.state.legacyDesign
-        })
-
+        this.props.updateDesign(this.state.design);
         localStorage.setItem("muteChatNotification", this.state.muteChatNotification);
         localStorage.setItem("showUsernames", this.state.showUsernames);
-        localStorage.setItem("legacyDesign", this.state.legacyDesign);
         localStorage.setItem("showIfMuted", this.state.showIfMuted);
         localStorage.setItem("userlistOnLeft", this.state.userlistOnLeft);
         localStorage.setItem("transparentChat", this.state.transparentChat);
         localStorage.setItem("smallPfp", this.state.smallPfp);
-        this.closeProfile()
     }
 
     onSubmit = e => {
         e.preventDefault();
         this.saveProfile();
+        //this.closeProfile();
     }
 
     toggle = (e, name) => {
         let checked = this.state[name];
         if (checked === undefined) return;
         this.setState({ [name]: !checked })
+    }
+
+    selectDesignChoice = (e) => {
+        this.setState({design: e.target.value});
     }
 
 
@@ -142,8 +142,14 @@ export class UserRoomSettings extends Component {
                     <div onclick={() => this.setState(state => {return {openSettings: {...state.openSettings, design: !state.openSettings.design}}})} class={`settingsMenu ${state.openSettings.design ? "open" : ""}`}>Design</div>
                     {state.openSettings.design && 
                     <div class = "subSettings">
-                            <div><input class="modal-username" type="checkbox" id="legacyDesign" onClick={e => this.toggle(e, 'legacyDesign')}
-                                name="legacyDesign" checked={this.state.legacyDesign} /> <label for="legacyDesign">Use Legacy Design</label>
+                            <div>
+                                <input class="modal-username" type="checkbox" style={{visibility: "hidden"}}/> <label for="design">Design</label>
+                                <select id="design" name="design" style={{'margin-left': "1em"}}
+                                    value={this.state.design}
+                                    onChange={this.selectDesignChoice}>
+                                    <option value="defaultDesign">Default</option>
+                                    <option value="legacyDesign">Legacy</option>
+                                </select>
                             </div>
                             <div><input class="modal-username" type="checkbox" id="transparentChat" onClick={e => this.toggle(e, 'transparentChat')}
                                 name="transparentChat" checked={this.state.transparentChat} /> <label for="transparentChat">Fullscreen Transparent Chat</label>
@@ -151,8 +157,10 @@ export class UserRoomSettings extends Component {
                     </div> }
                     {profile.verified && <div class="settingsMenu" onclick={this.confirmRestart}>Restart VM</div>}
                 </div>
-
-                <button class="btn btn-primary btnStandard" type="summit" >Save</button>
+                <div class="confirmButton">
+                    <button class="btn btn-danger btnStandard" type="submit">Apply</button>
+                    <button class="btn btn-primary btnStandard" type="button" onclick={this.closeProfile}>Close</button>
+                </div>
             </form>
             }
             {this.state.profileUpdateMode &&
