@@ -112,19 +112,6 @@ export class Controls extends Component {
         }
     }
 
-    shouldComponentUpdate(nextProps, nextState){
-        return this.props.state.userlistHidden !== nextProps.state.userlistHidden ||
-        this.props.state.UserRoomSettings !== nextProps.state.UserRoomSettings ||
-        this.props.state.remote !== nextProps.state.remote ||
-        this.props.state.videoPaused !== nextProps.state.videoPaused ||
-        this.props.state.fullscreen !== nextProps.state.fullscreen ||
-        this.props.state.muted !== nextProps.state.muted ||
-        this.props.state.volume !== nextProps.state.volume ||
-        this.props.state.roomSidebar  !== nextProps.state.roomSidebar ||
-        this.props.state.admin  !== nextProps.state.admin ||
-        this.props.permissions !== nextProps.permissions;
-    }
-
     render({state, permissions}){
         let middle = <div class={`subControls ${state.fullscreen ? "fullscreenRemote" : ""}`}>
                 <Button enabled={false} onclick={this.dropRemoteAndCenter} 
@@ -140,6 +127,10 @@ export class Controls extends Component {
                 <Button enabled={state.videoPaused} onclick={this.props.pauseVideo}
                     title={state.videoPaused ? 'Pause' : 'Play'} style="buttonSmall">
                     <img class="video-control-icon" src={state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}/>
+                </Button>
+                <Button enabled={this.props.design == "lightDesign"}
+                               onclick={e =>this.props.sendMessage({action : 'light_theme'})} style="buttonSmall optional">
+                        <img class="video-control-icon" src="/svg/light.svg"/>
                 </Button>
                 <Button enabled={state.fullscreen}
                     title="Fullscreen" onclick={this.toggleFullscreen} style="buttonSmall">

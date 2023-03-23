@@ -457,6 +457,23 @@ export class Room extends Component {
 
     }
 
+    tempCount = 0;
+    pushTempMessage= (tempMessage) =>{
+        this.setState((state) => {
+            return {
+                newMessage: true,
+                chatMessages: [...state.chatMessages, {
+                    id: 'tempMessage-ID-' + this.tempCount,
+                    tempMessage: true,
+                    timestamp: moment().format('h:mm A'),
+                    content: tempMessage,
+                    data: [{id: 'tempMessage-ID:' + this.tempCount}]
+                }]
+            }
+        });
+        this.tempCount += 1;
+    }
+
     rapidPing = (times) => {
         if(times > 0){
             var audio = new Audio('/audio/pop.wav');
@@ -692,6 +709,11 @@ export class Room extends Component {
         }
     }
 
+    enableLightTheme = (parsedMessage) =>{
+        this.props.updateDesign('lightDesign');
+        this.pushTempMessage(parsedMessage.username + ' enabled light theme');
+    }
+
     keepAlive;
     connect = (room, bearerToken) => {
         if (this.isBanned()) {
@@ -730,6 +752,9 @@ export class Room extends Component {
                     break
                 case 'ban':
                     this.ban(parsedMessage)
+                    break;
+                case 'enableLight':
+                    this.enableLightTheme(parsedMessage);
                     break;
                 case 'room_settings':
                     this.roomSettings(parsedMessage)
@@ -981,8 +1006,8 @@ export class Room extends Component {
                 <div id="videoWrapper" class="videoWrapper">
                     <VideoControls state={state} sendMessage={this.sendMessage} pauseVideo={this.pauseVideo} updateRoomState={this.updateRoomState} />
                     <div id="pagetoolbar" class={state.fullscreen ? "toolbarFullscreen" : ""}>
-                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} pauseVideo={this.pauseVideo} permissions={state.permissions} />
-                        {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} smallPfp={state.smallPfp} updateRoomState={this.updateRoomState} />}
+                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} pauseVideo={this.pauseVideo} permissions={state.permissions} design={this.props.design}/>
+                        {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} smallPfp={state.smallPfp} updateRoomState={this.updateRoomState}/>}
                     </div>
                 </div>
                 {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions} pingLookup={state.pingLookup}/>}

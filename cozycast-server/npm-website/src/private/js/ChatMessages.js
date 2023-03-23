@@ -64,10 +64,18 @@ export class ChatMessages extends Component {
     clickImage = (type, href) => {
         this.props.setChatState({ type: type, href: href, imageModal: true })
     }
+ 
+
 
     render({ chatMessages, session, profile }) {
         return <div id="messages" onscroll={this.chatScroll}>
             {chatMessages.map(message =>
+                message.tempMessage ? <div class="message" key={message.id} id={message.id}>
+                        <div class="subMessage">
+                            <div class="hoverInfo top">{message.timestamp}</div>
+                            <div class="temp-chat-text">{message.content} </div>
+                        </div>
+                 </div> :
                 <div class="message" key={message.data[0].id + message.data.length} id={message.data[0].id}>
                     <div class="username" style={{ color: message.nameColor }}>{message.username}
                     <div class="real-username">{message.anonymous ? `Anon(${message.session.substr(0, 4)})` : message.session}</div>

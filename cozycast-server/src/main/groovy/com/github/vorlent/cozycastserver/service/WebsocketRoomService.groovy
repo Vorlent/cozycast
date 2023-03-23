@@ -282,6 +282,11 @@ class CurrentRoomSettingsEvent {
     Boolean default_image_permission
 }
 
+class EnableLightEvent {
+    String action = "enableLight"
+    String username
+}
+
 import jakarta.inject.Singleton
 
 @Slf4j
@@ -1181,6 +1186,17 @@ class WebsocketRoomService {
         
     }
 
+    private void lightTheme (Room room, String sessionId, String username){
+        UserSession user = room.users.get(username);
+        room.users.each { key, value ->
+            value.connections.each {sessionIdKey, connection ->
+                if (connection.webSocketSession != null) {
+                    sendMessage(connection.webSocketSession, new EnableLightEvent(username: user.nickname))
+                }
+            }
+        }
+    }
+
     private void onIceCandidate(Room room, String sessionId, Map jsonMessage, String username) {
         UserSession user = room.users.get(username)
 
@@ -1268,6 +1284,9 @@ class WebsocketRoomService {
                         break;
                     case "editmessage":
                         editmessage(currentRoom, session, jsonMessage, username)
+                        break;
+                    case "light_theme":
+                        lightTheme(currentRoom, sessionId, username)
                         break;
                     //case "changeusername":
                     //    changeusername(currentRoom, session, jsonMessage)

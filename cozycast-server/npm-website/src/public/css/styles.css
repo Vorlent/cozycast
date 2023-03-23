@@ -12,6 +12,12 @@
     --chat-size: max(12%,15em);
 }
 
+.fullscreenSidebar{
+    --cozyTextColor: white;
+    --cozyTextColor70: rgba(255, 255, 255, 0.7);
+    --cozyTextMisc: lightgray;
+}
+
 .legacyDesign{
     --cozycast-noise: none;
     --cozyColor: black;
@@ -23,7 +29,16 @@
     --cozyScrollThumb: #1f2530;
     --cozyHighContrast: #a6afbf;
     --cozySelect:#686d78;
-    --cozySvgFilter: invert(33%) sepia(10%) saturate(1119%) hue-rotate(182deg) brightness(94%) contrast(87%);
+
+    --cozyTextColor: white;
+    --cozyTextColor70: rgba(255, 255, 255, 0.7);
+    --cozyTextMisc: lightgray;
+
+    --cozyMessageBackground: rgba(0, 0, 0, 0.3);
+    --cozyMessageShadow: 0 0 4px black inset;
+
+    --cozySvgFilter: invert(67%) sepia(10%) saturate(1119%) hue-rotate(182deg) brightness(94%) contrast(87%);
+    --cozyIconChange: none;
 }
 
 .defaultDesign{
@@ -37,7 +52,44 @@
     --cozyScrollThumb: #235;
     --cozyHighContrast: #5566aa;
     --cozySelect:#337ab7;
-    --cozySvgFilter: invert(37%) sepia(61%) saturate(457%) hue-rotate(191deg) brightness(95%) contrast(90%);
+
+    --cozyTextColor: white;
+    --cozyTextColor70: rgba(255, 255, 255, 0.7);
+    --cozyTextMisc: lightgray;
+
+    --cozyMessageBackground: rgba(0, 0, 0, 0.3);
+    --cozyMessageShadow: 0 0 4px black inset;
+    
+    --cozySvgFilter: invert(63%) sepia(61%) saturate(457%) hue-rotate(191deg) brightness(95%) contrast(90%);
+    --cozyIconChange: none;
+}
+
+.defaultDesign > *{
+    background: fixed repeat top left var(--cozycast-noise);
+}
+
+
+.lightDesign{
+    --cozycast-noise: none;
+    --cozyColor: #242424;
+    --cozyColorMenu: #fdfdfd;
+    --cozyColorAccent: #d2d2d2;
+    --cozyButton: #dbdbdb;
+    --cozyButtonAccent: #868686;
+    --cozyScrollbar: #b9b9b9;
+    --cozyScrollThumb: #fff;
+    --cozyHighContrast: #333;
+    --cozySelect: #fff;
+
+    --cozyTextColor: black;
+    --cozyTextColor70: rgba(34, 22, 22, 0.97);
+    --cozyTextMisc: #393939;
+
+    --cozyMessageBackground: rgba(0, 0, 0, 0.05);
+    --cozyMessageShadow: 0 0 1px rgba(0, 0, 0, 0.15) inset;
+
+    --cozySvgFilter: invert(40%);
+    --cozyIconChange: invert(90%);
 }
 
 ::-webkit-scrollbar {
@@ -145,7 +197,7 @@ html, body, #pagecontent, #videosizer {
     padding: 0.05em 0.3em;
     font-weight: bold;
     height: auto;
-    color: white;
+    color: var(--cozyTextColor);
 }
 
 .editMode:hover{
@@ -154,7 +206,7 @@ html, body, #pagecontent, #videosizer {
 
 .messageEditBadge{
     font-size: 0.6em;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--cozyTextColor70);
 }
 
 #pagetoolbar {
@@ -253,8 +305,10 @@ html, body, #pagecontent, #videosizer {
     height: 30px;
 }
 
+.userlist.smallPfp .mutedDotIcon,
 .userlist.smallPfp .mutedDot,
-.userlist.smallPfp .remoteIcon{
+.userlist.smallPfp .remoteIcon,
+.userlist.smallPfp .remoteIconIcon{
     height: 12px;
     width: 12px;
 }
@@ -336,7 +390,7 @@ html, body, #pagecontent, #videosizer {
 
 
 .btn {
-    color: white;
+    color: var(--cozyTextColor);
     border-radius: 0.2em;
     transition: background-color 0.2s;
 }
@@ -380,7 +434,7 @@ button{
 
 #copyright {
     position: absolute;
-    color: lightgray;
+    color: var(--cozyTextMisc);
     font-size: .5em;
     left: 3px;
     bottom: 3px;
@@ -391,11 +445,11 @@ button{
 }
 
 .message {
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: var(--cozyMessageBackground);
     margin-top: 10px;
     padding-top: .5em;
     border-radius: .2em;
-    box-shadow: 0 0 4px black inset;
+    box-shadow: var(--cozyMessageShadow);
 }
 
 .subMessage:last-of-type {
@@ -421,7 +475,7 @@ button{
 .deleteMessageButton {
     z-index: 2;
     position: absolute;
-    color: #fff;
+    color: var(--cozyTextColor);
     font-weight: bold;
     border: none;
     background-color: var(--cozyButton);
@@ -443,6 +497,7 @@ button{
     padding: 15%;
     width: 100%;
     height: 100%;
+    filter: var(--cozyIconChange)
 }
 
 
@@ -460,7 +515,7 @@ button{
 }
 
 #chat, .chat-link, .chat-link:hover  {
-    color: white;
+    color: var(--cozyTextColor);
 }
 
 .username {
@@ -480,7 +535,7 @@ button{
     position: absolute;
     background-color: var(--cozyColorMenu);
     border-radius: 0.2em;
-    color: white;
+    color: var(--cozyTextColor);
     user-select: none;
     pointer-events: none;
     top: -0.2em;
@@ -497,7 +552,7 @@ button{
 .timestamp {
     font-weight: 300;
     font-size: 0.8em;
-    color: lightgray;
+    color: var(--cozyTextMisc);
     margin-right: 0.5em;
     float: right;
 }
@@ -524,7 +579,7 @@ button{
 .lastSeen{
     font-weight: 300;
     font-size: 0.7em;
-    color: lightgray;
+    color: var(--cozyTextMisc);
 }
 
 #messages {
@@ -658,11 +713,17 @@ button{
 .chat-deleted {
     text-align: center;
     font-style: italic;
-    color: #ffffff80;
+    color: var(--cozyTextColor70);
+}
+
+.temp-chat-text {
+    font-size: 0.75em;
+    font-style: italic;
+    text-align: center;
 }
 
 .chatbox-textarea {
-    color: white;
+    color: var(--cozyTextColor);
     background-color: transparent;
     resize: none;
     width: 100%;
@@ -701,7 +762,7 @@ button{
 }
 
 .image-uploader-button:hover {
-    background-color: white;
+    background-color: black;
     border-radius: 5px;
 }
 
@@ -719,7 +780,7 @@ button{
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    color: white;
+    color: var(--cozyTextColor);
     margin-left: 5px;
     margin-right: 5px;
 }
@@ -729,10 +790,17 @@ button{
     bottom:0px;
     height: 20px;
     width: 20px;
+    background-color: var(--cozyOrange);
     border-radius: 50%;
     display: inline-block;
     position: absolute;
     pointer-events: none;
+}
+
+.remoteIconIcon {
+    height: 20px;
+    width: 20px;
+    filter: var(--cozyIconChange);
 }
 
 .remote {
@@ -803,7 +871,7 @@ input[type=range]::-webkit-slider-thumb {
     display: flex;
     justify-content: center;
     flex-direction: column;
-    color: white;
+    color: var(--cozyTextColor);
 }
 
 .play-button img {
@@ -876,7 +944,7 @@ input[type=range]::-webkit-slider-thumb {
 
 .imageModal .modal-close:hover {
     background-color: var(--cozyOrange);
-    color: white;
+    color: var(--cozyTextColor);
 }
 
 .modal {
@@ -889,7 +957,7 @@ input[type=range]::-webkit-slider-thumb {
     border: 1px solid black;
     border-radius: 1em;
     box-shadow: 0 0 1em black;
-    color: #fff;
+    color: var(--cozyTextColor);
     min-width: min(600px,95vw);
 }
 
@@ -914,7 +982,7 @@ input[type=range]::-webkit-slider-thumb {
 
 .modal-close {
     width: 1.5em; height: 1.5em;
-    color: #fff;
+    color: var(--cozyTextColor);
     font-weight: bold;
     border: none;
     background-color: rgba(0, 0, 0, 0.3);
@@ -940,8 +1008,8 @@ input[type=range]::-webkit-slider-thumb {
 
 .modal-username {
     border-radius: 5px;
-    background: #fff;
-    border: 1px solid #fff;
+    background: var(--cozyTextColor);
+    border: 1px solid var(--cozyTextColor);
     padding: 5px;
 }
 
@@ -1028,6 +1096,12 @@ input[type=range]::-webkit-slider-thumb {
     right: 0;
 }
 
+.mutedDotIcon{
+    height: 20px;
+    width: 20px;
+    filter: var(--cozyIconChange);
+}
+
 .mutedDot{
     height: 20px;
     width: 20px;
@@ -1091,7 +1165,7 @@ input[type=range]::-webkit-slider-thumb {
     padding-left: 0.1em;
     padding-right: 0.2em;
     border-radius: 0.2em;
-    color: #000;
+    color: black;
     text-shadow: none;
 }
 
@@ -1189,6 +1263,7 @@ input[type=range]::-webkit-slider-thumb {
     width: 25px;
     margin: auto auto;
     vertical-align: middle;
+    filter: var(--cozyIconChange)
 }
 /*  Room.js End */
 
@@ -1211,7 +1286,7 @@ input[type=range]::-webkit-slider-thumb {
 	font-size: 24px;
 	line-height: 56px;
 	font-weight: 400;
-	color: #FFF;
+	color: var(--cozyTextColor);
 }
 
 .header nav {
@@ -1228,7 +1303,7 @@ input[type=range]::-webkit-slider-thumb {
 	text-align: center;
 	background: rgba(255,255,255,0);
 	text-decoration: none;
-	color: #FFF;
+	color: var(--cozyTextColor);
 	will-change: background-color;
 }
 
@@ -1267,7 +1342,7 @@ input[type=range]::-webkit-slider-thumb {
 /* Accounts.js Start*/
 
 .accountListBackground {
-    color: white;
+    color: var(--cozyTextColor);
     background: var(--cozyColorMenu);
     width: 100%;
     height: 100%;
@@ -1316,7 +1391,7 @@ input[type=range]::-webkit-slider-thumb {
 .standardInputField{
     background: var(--cozyColorAccent) var(--cozycast-noise);
     margin-bottom: 1em;
-    color: white;
+    color: var(--cozyTextColor);
     border: none;
     padding: 0.6em;
     font-size: 1.1em;
@@ -1413,7 +1488,7 @@ input[type=range]::-webkit-slider-thumb {
 .headerRooms{
     background-color: var(--cozyColorAccent, #235);
     display: flex;
-    color: white;
+    color: var(--cozyTextColor);
     justify-content: center;
     position: absolute;
     width: 100%;
@@ -1436,7 +1511,7 @@ input[type=range]::-webkit-slider-thumb {
 
 .room-list-background {
     background-color: var(--cozyColorMenu,#123);
-    color: white;
+    color: var(--cozyTextColor);
     height: 100%;
     width: 100%;
     display: flex;
@@ -1473,7 +1548,7 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .room-list-entry-name{
-    color: white;
+    color: var(--cozyTextColor);
     margin-left: 0.2em;
     margin-right: 0.5em;
     font-weight: bold;
@@ -1514,7 +1589,7 @@ input[type=range]::-webkit-slider-thumb {
     grid-area: sidebar;
     display: flex;
     flex-direction: column;
-    color: white;
+    color: var(--cozyTextColor);
     background-color: var(--cozyColorMenu);
 }
 
@@ -1559,7 +1634,7 @@ input[type=range]::-webkit-slider-thumb {
 
 .admin-background {
     background-color: var(--cozyColorMenu,#123);
-    color: white;
+    color: var(--cozyTextColor);
     height: 100%;
     width: 100%;
     display: flex;
@@ -1568,7 +1643,7 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .center-background {
-    color: white;
+    color: var(--cozyTextColor);
     height: 100%;
     width: 100%;
     display: flex;
@@ -1579,7 +1654,7 @@ input[type=range]::-webkit-slider-thumb {
 .admin-modal {
     border: 1px solid black;
     border-radius: 1em;
-    background: var(--cozyColorMenu,#123) var(--noise);
+    background: var(--cozyColorMenu,#123) var(--cozycast-noise);
     margin: 0 auto;
     padding: 10px;
     display: flex;
@@ -1596,7 +1671,7 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .admin-entry-name a {
-    color: white;
+    color: var(--cozyTextColor);
 }
 
 .admin-entry-usercount {
@@ -1632,7 +1707,7 @@ input[type=range]::-webkit-slider-thumb {
 	grid-area: video;
 	position: relative;
     background-color: var(--cozyColorMenu,#123);
-    color: #fff;
+    color: var(--cozyTextColor);
     display: flex;
 }
 
@@ -1869,8 +1944,8 @@ input[type=range]::-webkit-slider-thumb {
 .loadingDots, .loadingDots::before, .loadingDots::after {
     width: calc(var(--dotSize) - 2px);
     height: calc(var(--dotSize) - 2px);
-    background-color: white;
-    color: white;
+    background-color: var(--cozyTextColor);
+    color: var(--cozyTextColor);
     animation: dotFlashing .9s infinite alternate;
 }
 
@@ -1898,10 +1973,10 @@ input[type=range]::-webkit-slider-thumb {
  
 @keyframes dotFlashing {
   0% {
-      background-color: white;
+      background-color: var(--cozyTextColor);
   }
   15%{
-      background-color: white;
+      background-color: var(--cozyTextColor);
   }
   100% {
       background-color: transparent;
@@ -1921,7 +1996,7 @@ input[type=range]::-webkit-slider-thumb {
     transition: opacity 0.15s ease;
     pointer-events: none;
     font-size: 1.1em;
-    color: white;
+    color: var(--cozyTextColor);
 }
 
 .hoverInfoScript::before{
@@ -2108,7 +2183,17 @@ input[type=range]::-webkit-slider-thumb {
         width: 12px;
     }
 
+    .mutedDotIcon{
+        height: 12px;
+        width: 12px;
+    }
+
     .remoteIcon{
+        height: 12px;
+        width: 12px;
+    }
+
+    .remoteIconIcon{
         height: 12px;
         width: 12px;
     }

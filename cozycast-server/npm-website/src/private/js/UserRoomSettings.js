@@ -66,7 +66,14 @@ export class UserRoomSettings extends Component {
 
     onSubmit = e => {
         e.preventDefault();
-        this.saveProfile();
+        if(this.props.design == 'lightDesign' && this.state.design != 'lightDesign'){
+            if(confirm("You are about to disable light theme.\nAre you sure you want to do that?")){
+                if(confirm("To confirm your action please press cancel.")){
+                }
+                else this.saveProfile();
+            }
+        }
+        else this.saveProfile();
         //this.closeProfile();
     }
 
@@ -149,6 +156,7 @@ export class UserRoomSettings extends Component {
                                     onChange={this.selectDesignChoice}>
                                     <option value="defaultDesign">Default</option>
                                     <option value="legacyDesign">Legacy</option>
+                                    <option value="lightDesign">Light</option>
                                 </select>
                             </div>
                             <div><input class="modal-username" type="checkbox" id="transparentChat" onClick={e => this.toggle(e, 'transparentChat')}

@@ -217,7 +217,7 @@ export class ChatInput extends Component {
                     {this.props.permissions.imagePermission && this.props.profile.username &&
                     <div class="image-uploader-button-wrapper">
                         <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange={this.openConfirmWindow} ref={this.refImageUploadFile}/>
-                        {this.state.chatBox.length == 0 && <Fragment><img class="image-uploader-button" src="/svg/screenshot.svg" onclick={this.screenshot}/><img class="image-uploader-button" src="/svg/image_upload.svg" onclick={this.openPictureUpload}/></Fragment>}
+                        {this.state.chatBox.length == 0 && <Fragment><img class="image-uploader-button" src="/svg/screen_shot.svg" onclick={this.screenshot}/><img class="image-uploader-button" src="/svg/imageupload.svg" onclick={this.openPictureUpload}/></Fragment>}
                     </div>
                     }
                 </div>

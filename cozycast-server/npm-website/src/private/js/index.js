@@ -41,6 +41,9 @@ function switchDesign(newDesign){
         case 'legacyDesign':
             design = 'legacyDesign';
             break;
+        case 'lightDesign':
+            design = 'lightDesign';
+            break;
         case 'defaultDesign':
         default:
             design = 'defaultDesign';
@@ -188,10 +191,10 @@ class App extends Component {
 
     render(_, state) {
         if (!this.state.loginCompleted)
-            return <div id="pagecontent" class={state.design + state.design == "defaultDesign" ? " noiseBackground" : ""}>
-                <InfoScreen message={"Connecting to CozyCast..."} submessage={"If this takes too long please refresh"} legacyDesign={state.legacyDesign} />
+            return <div id="pagecontent" class={state.design}>
+                <InfoScreen message={"Connecting to CozyCast..."} submessage={"If this takes too long please refresh"} />
             </div>
-        return <div id="pagecontent" class={state.design  + (state.design == "defaultDesign" ? " noiseBackground" : " ")}>
+        return <div id="pagecontent" class={state.design}>
             <Match path="/">{({ matches, path, url }) => {
                 if (url.startsWith('/room')) {
                     return;
