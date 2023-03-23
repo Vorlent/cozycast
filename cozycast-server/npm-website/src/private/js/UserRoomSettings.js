@@ -149,8 +149,11 @@ export class UserRoomSettings extends Component {
                     <div onclick={() => this.setState(state => {return {openSettings: {...state.openSettings, design: !state.openSettings.design}}})} class={`settingsMenu ${state.openSettings.design ? "open" : ""}`}>Design</div>
                     {state.openSettings.design && 
                     <div class = "subSettings">
+                            <div><input class="modal-username" type="checkbox" id="transparentChat" onClick={e => this.toggle(e, 'transparentChat')}
+                                name="transparentChat" checked={this.state.transparentChat} /> <label for="transparentChat">Fullscreen Transparent Chat</label>
+                            </div>
                             <div>
-                                <input class="modal-username" type="checkbox" style={{visibility: "hidden"}}/> <label for="design">Design</label>
+                                <input class="modal-username" type="checkbox" style={{visibility: "hidden"}}/> <label for="design">Theme</label>
                                 <select id="design" name="design" style={{'margin-left': "1em"}}
                                     value={this.state.design}
                                     onChange={this.selectDesignChoice}>
@@ -158,9 +161,6 @@ export class UserRoomSettings extends Component {
                                     <option value="legacyDesign">Legacy</option>
                                     <option value="lightDesign">Light</option>
                                 </select>
-                            </div>
-                            <div><input class="modal-username" type="checkbox" id="transparentChat" onClick={e => this.toggle(e, 'transparentChat')}
-                                name="transparentChat" checked={this.state.transparentChat} /> <label for="transparentChat">Fullscreen Transparent Chat</label>
                             </div>
                     </div> }
                     {profile.verified && <div class="settingsMenu" onclick={this.confirmRestart}>Restart VM</div>}
