@@ -20,6 +20,7 @@ export class RoomSettings extends Component {
             framerate: this.props.state.roomSettings.framerate,
             videoBitrate: this.props.state.roomSettings.videoBitrate,
             audioBitrate: this.props.state.roomSettings.audioBitrate,
+            remote_ownership: this.props.state.roomSettings.remote_ownership,
             default_image_permission: this.props.state.roomSettings.default_image_permission,
             default_remote_permission: this.props.state.roomSettings.default_remote_permission,
             banModal: false,
@@ -55,6 +56,7 @@ export class RoomSettings extends Component {
             framerate: this.props.state.roomSettings.framerate,
             videoBitrate: this.props.state.roomSettings.videoBitrate,
             audioBitrate: this.props.state.roomSettings.audioBitrate,
+            remote_ownership: this.props.state.roomSettings.remote_ownership,
             default_image_permission: this.props.state.roomSettings.default_image_permission,
             default_remote_permission: this.props.state.roomSettings.default_remote_permission,
             banModal: false,
@@ -78,6 +80,7 @@ export class RoomSettings extends Component {
     sendRoomAccess = () => {
         this.props.sendMessage({
             action: 'room_access_save',
+            remote_ownership: "" + this.state.remote_ownership,
             default_image_permission: "" + this.state.default_image_permission,
             default_remote_permission: "" + this.state.default_remote_permission,
             accessType: this.state.accessType,
@@ -180,6 +183,12 @@ export class RoomSettings extends Component {
                     <input type="checkbox" checked={state.default_remote_permission}
                         onclick={() => this.setState(state => { return { default_remote_permission: !state.default_remote_permission } })} />
                     default remote permission
+                </label>
+
+                <label>
+                    <input type="checkbox" checked={state.remote_ownership}
+                        onclick={() => this.setState(state => { return { remote_ownership: !state.remote_ownership } })} />
+                    remote ownership
                 </label>
 
                 <label>

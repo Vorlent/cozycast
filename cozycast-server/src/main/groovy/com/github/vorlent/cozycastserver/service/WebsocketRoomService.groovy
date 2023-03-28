@@ -278,6 +278,7 @@ class CurrentRoomSettingsEvent {
     Boolean verifiedOnly 
     Boolean inviteOnly 
     Boolean centerRemote 
+    Boolean remote_ownership
     Boolean default_remote_permission
     Boolean default_image_permission
 }
@@ -742,6 +743,7 @@ class WebsocketRoomService {
             verifiedOnly : room.verifiedOnly,
             inviteOnly : room.inviteOnly,
             centerRemote : room.centerRemote,
+            remote_ownership: room.remote_ownership,
             default_remote_permission: room.default_remote_permission,
             default_image_permission: room.default_image_permission
         ))
@@ -908,6 +910,7 @@ class WebsocketRoomService {
     }
 
     private void pickupremote(Room room, WebSocketSession session, String username) {
+        if(room.remote_ownership && room.remote) return;
         UserSession user = room.users.get(username)
         if(!(user.remote_permission || room.default_remote_permission)) return
         room.remote = session.getId()
@@ -921,8 +924,8 @@ class WebsocketRoomService {
         sendMessage(room.worker?.websocket, new ResetKeyboardEvent())
     }
 
-    private void dropremote(Room room, WebSocketSession session, Map jsonMessage,String username) {
-        if(room.centerRemote || jsonMessage.center) {
+    private void dropremote(Room room, Map jsonMessage,String username) {
+        if(room.centerRemote || jsonMessage?.center) {
             sendMessage(room.worker?.websocket, new MouseMoveEvent(
                 mouseX: room.videoSettings.desktopWidth / 2,
                 mouseY: room.videoSettings.desktopHeight / 2))
@@ -1044,6 +1047,9 @@ class WebsocketRoomService {
             if(jsonMessage.default_image_permission){
                 room.default_image_permission = jsonMessage.default_image_permission == "true"
             }
+            if(jsonMessage.remote_ownership){
+                room.remote_ownership = jsonMessage.remote_ownership == "true"
+            }
             if(jsonMessage.accessType) {
                 if(jsonMessage.accessType == "public") {
                     room.inviteOnly = false
@@ -1071,6 +1077,7 @@ class WebsocketRoomService {
                 verifiedOnly : room.verifiedOnly,
                 inviteOnly : room.inviteOnly,
                 centerRemote : room.centerRemote,
+                remote_ownership: room.remote_ownership,
                 default_remote_permission: room.default_remote_permission,
                 default_image_permission: room.default_image_permission
             )
@@ -1167,6 +1174,9 @@ class WebsocketRoomService {
         String username = room.sessionToName.remove(sessionId)
         if(!username) return;
         UserSession user = room.users.get(username)
+        if(room.remote == sessionId) {
+            dropremote(room, null ,username);
+        }
         user?.release(sessionId);
         int size = -1;
         room.users.computeIfPresent(username, (key,value) -> {value.connections.remove(sessionId); size = value.connections.size(); return value;})
@@ -1322,7 +1332,7 @@ class WebsocketRoomService {
                         pickupremote(currentRoom, session, username)
                         break;
                     case "drop_remote":
-                        dropremote(currentRoom, session, jsonMessage, username)
+                        dropremote(currentRoom, jsonMessage, username)
                         break;
                     case "worker_restart":
                         restartWorker(currentRoom, session, jsonMessage, username)

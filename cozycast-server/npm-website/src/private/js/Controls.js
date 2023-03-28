@@ -101,6 +101,7 @@ export class Controls extends Component {
     }
     
     remote = () => {
+        if(this.props.disabledRemote) return;
         if(this.props.state.remote) {
             this.props.sendMessage({
                 action : 'drop_remote'
@@ -119,8 +120,8 @@ export class Controls extends Component {
                     <img class="video-control-icon" src="/svg/crosshair.svg"/>
                 </Button>
                 {permissions.remotePermission && <Button enabled={state.remote} onclick={this.remote} style="buttonSmall" title="remote">
-                    <div class="video-control-icon">
-                    <RemoteIcon enabled={state.remoteUsed && false}/>
+                    <div class={`video-control-icon`}>
+                    <RemoteIcon enabled={!this.props.disabledRemote}/>
                     </div>
                 </Button>
                 }
@@ -129,7 +130,7 @@ export class Controls extends Component {
                     <img class="video-control-icon" src={state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}/>
                 </Button>
                 <Button enabled={this.props.design == "lightDesign"}
-                               onclick={e =>this.props.sendMessage({action : 'light_theme'})} style="buttonSmall optional">
+                               onclick={e => {if(this.props.design != "lightDesign") this.props.sendMessage({action : 'light_theme'}) }} style="buttonSmall optional">
                         <img class="video-control-icon" src="/svg/light.svg"/>
                 </Button>
                 <Button enabled={state.fullscreen}

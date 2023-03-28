@@ -98,6 +98,7 @@ export class Room extends Component {
                 audioBitrate: 96,
                 accessType: "public",
                 centerRemote: false,
+                remote_ownership: false,
                 default_image_permission: true,
                 default_remote_permission: true
 
@@ -674,6 +675,7 @@ export class Room extends Component {
                     ...this.roomSettings,
                     accessType: a,
                     centerRemote: parsedMessage.centerRemote,
+                    remote_ownership: parsedMessage.remote_ownership,
                     default_remote_permission: parsedMessage.default_remote_permission,
                     default_image_permission: parsedMessage.default_image_permission
                 },
@@ -1006,7 +1008,7 @@ export class Room extends Component {
                 <div id="videoWrapper" class="videoWrapper">
                     <VideoControls state={state} sendMessage={this.sendMessage} pauseVideo={this.pauseVideo} updateRoomState={this.updateRoomState} />
                     <div id="pagetoolbar" class={state.fullscreen ? "toolbarFullscreen" : ""}>
-                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} pauseVideo={this.pauseVideo} permissions={state.permissions} design={this.props.design}/>
+                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} pauseVideo={this.pauseVideo} permissions={state.permissions} design={this.props.design} disabledRemote={this.state.remoteUsed && this.state.roomSettings.remote_ownership}/>
                         {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} smallPfp={state.smallPfp} updateRoomState={this.updateRoomState}/>}
                     </div>
                 </div>

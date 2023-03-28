@@ -22,12 +22,13 @@ class Room {
     final ConcurrentHashMap<String, UserSession> users = new ConcurrentHashMap<>()
     final ConcurrentHashMap<String, String> sessionToName = new ConcurrentHashMap<>()
     WorkerSession worker
-    String remote
+    String remote = null
     String title
     Boolean accountOnly = false
     Boolean verifiedOnly = false
     Boolean inviteOnly = false
     Boolean centerRemote = false
+    Boolean remote_ownership = false
     Boolean default_remote_permission = false
     Boolean default_image_permission = false
     VideoSettings videoSettings = new VideoSettings(
