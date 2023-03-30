@@ -2167,6 +2167,14 @@ input[type=range]::-webkit-slider-thumb {
     .sidebar.fullscreenSidebar .image-uploader{
         opacity: 1;
     }
+
+    .profileHexColorContainer {
+        margin-left: none;
+    }
+
+    .profileHexColorContainer .react-colorful {
+        width: 260px;
+    }
 }
 
 @media only screen and (max-width: 780px) and (orientation: landscape){
@@ -2176,6 +2184,11 @@ input[type=range]::-webkit-slider-thumb {
 
     .landscapeOptional{
         display: none;
+    }
+
+    .profileHexColorContainer {
+        margin: 0;
+        margin-left: 0.5rem;
     }
 }
 
