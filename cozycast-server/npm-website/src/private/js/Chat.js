@@ -21,7 +21,6 @@ export class Chat extends Component {
         }
         return <div id="chat">
             {this.state.imageModal && <ImageModal type={this.state.type} href={this.state.href} setChatState={this.setState.bind(this)}/>}
-            {this.state.historyMode && <div class="history-mode-indicator">Old messages</div>}
             <ChatMessages sendMessage={this.props.sendMessage} historyMode={this.state.historyMode} 
                 chatMessages={this.props.state.chatMessages} session={this.props.state.session} 
                 newMessage={this.props.state.newMessage} setChatState={this.setState.bind(this)}

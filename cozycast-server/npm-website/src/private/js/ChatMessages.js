@@ -5,8 +5,11 @@ export class ChatMessages extends Component {
     chatScroll = () => {
         var messages = document.getElementById("messages");
         //chrome fix for scrollTopMax
-        var scrollTop = messages.scrollTopMax ? messages.scrollTopMax : messages.scrollHeight - messages.clientHeight;
-        var activateHistoryMode = 0.3 * messages.offsetHeight < scrollTop - messages.scrollTop
+        //var scrollTop = messages.scrollTopMax ? messages.scrollTopMax : messages.scrollHeight - messages.clientHeight;
+        //var activateHistoryMode = 0.3 * messages.offsetHeight < scrollTop - messages.scrollTop
+        var activateHistoryMode = messages.scrollHeight - (messages.scrollTop + messages.clientHeight) > 50
+        console.log(activateHistoryMode)
+
         if (this.props.historyMode != activateHistoryMode) {
             this.props.setChatState({ historyMode: activateHistoryMode })
         }
@@ -24,8 +27,14 @@ export class ChatMessages extends Component {
         }
     }
 
+    leaveHistoryMode = () => {
+        var messages = document.getElementById("messages");
+        messages.scrollTop = messages.scrollHeight;
+        this.props.setChatState({ historyMode: false });
+    }
+
     shouldComponentUpdate(nextProps, nextState) {
-        return this.props.chatMessages !== nextProps.chatMessages || this.props.pingLookup !== nextProps.pingLookup;
+        return this.props.chatMessages !== nextProps.chatMessages || this.props.pingLookup !== nextProps.pingLookup || this.props.historyMode != nextProps.historyMode;
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -64,11 +73,11 @@ export class ChatMessages extends Component {
     clickImage = (type, href) => {
         this.props.setChatState({ type: type, href: href, imageModal: true })
     }
- 
-
 
     render({ chatMessages, session, profile }) {
-        return <div id="messages" onscroll={this.chatScroll}>
+        return <Fragment>
+            {this.props.historyMode && <div class="history-mode-badge" onclick={this.leaveHistoryMode}></div>}
+            <div id="messages" onscroll={this.chatScroll}>
             {chatMessages.map(message =>
                 message.tempMessage ? <div class="message" key={message.id} id={message.id}>
                         <div class="subMessage">
@@ -117,5 +126,6 @@ export class ChatMessages extends Component {
                 </div>
             )}
         </div>
+        </Fragment>
     }
 }
