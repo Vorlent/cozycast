@@ -130,7 +130,7 @@ export class Controls extends Component {
                     <img class="video-control-icon" src={state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}/>
                 </Button>
                 <Button enabled={this.props.design == "lightDesign"}
-                               onclick={e => {if(this.props.design != "lightDesign") this.props.sendMessage({action : 'light_theme'}) }} style="buttonSmall optional">
+                               onclick={e => {if(this.props.design != "lightDesign") this.props.sendMessage({action : 'light_theme'}) }} style="buttonSmall">
                         <img class="video-control-icon" src="/svg/light.svg"/>
                 </Button>
                 <Button enabled={state.fullscreen}

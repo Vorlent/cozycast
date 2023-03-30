@@ -1422,6 +1422,20 @@ input[type=range]::-webkit-slider-thumb {
     margin-bottom: 1em;
 }
 
+.profileDataEdit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profileUpperData{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 .profileTextInfoContainer{
     display: flex;
     width: 50%;
@@ -1468,7 +1482,10 @@ input[type=range]::-webkit-slider-thumb {
     border-radius: 0.3em;
     margin: 0.5em;
     border: 1px solid var(--cozyColorAccent);
+    background-color: var(--cozyColorMenu); 
+    color: var(--cozyTextColor);
 }
+    
 
 /* Accounts.js End*/
 
@@ -1653,6 +1670,7 @@ input[type=range]::-webkit-slider-thumb {
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: auto;
 }
 
 .admin-modal {
@@ -2151,7 +2169,24 @@ input[type=range]::-webkit-slider-thumb {
     }
 }
 
+@media only screen and (max-width: 780px) and (orientation: landscape){
+    .profileDataEdit{
+        flex-direction: row;
+    }
+
+    .landscapeOptional{
+        display: none;
+    }
+}
+
+
 @media only screen and (max-width: 780px){
+
+    .avatar.big{
+        height: 8em;
+        width: 8em;
+
+    }
 
     #userlist {
         height: 2.8em;

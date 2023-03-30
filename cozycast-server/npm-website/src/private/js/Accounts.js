@@ -79,7 +79,7 @@ export class Accounts extends Component {
                                     <DefaultButton enabled={account.admin} onclick={() => this.updateUser(account.username, !account.admin, account.verified)}>{account.admin ? 'Remove Admin' : 'Make Admin'}</DefaultButton>
                                 </td>
                                 <td class="tableCenter">
-                                    <DefaultButton enabled={!account.admin} onclick={() => this.deleteUser(account.username)}>{account.admin ? 'Cant delete Admin' : 'Delete'}</DefaultButton>
+                                    <DefaultButton enabled={!account.admin} onclick={() => this.deleteUser(account.username)}>{account.admin ? 'Can\'t delete Admin' : 'Delete'}</DefaultButton>
                                 </td>
                             </Fragment>
 
