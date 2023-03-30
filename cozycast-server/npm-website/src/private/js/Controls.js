@@ -152,10 +152,12 @@ export class Controls extends Component {
                         <img class="video-control-icon" src={state.userlistOnLeft||state.fullscreen? state.userlistHidden ? '/svg/chevron-right.svg' : '/svg/chevron-left.svg' : state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}/>
                     </Button>
                     <Button enabled={state.UserRoomSettings}
-                            onclick={() => this.props.updateRoomState({UserRoomSettings: true})} style="buttonSmall">
-                            <img class="video-control-icon" src="/svg/settings.svg"/>
-                        </Button>
-                    <Button enabled={false} onclick={() => route('/',true)} style="buttonBig">Rooms</Button>
+                        onclick={() => this.props.updateRoomState({UserRoomSettings: true})} style="buttonSmall">
+                        <img class="video-control-icon" src="/svg/settings.svg"/>
+                    </Button>
+                    <Button enabled={false} onclick={() => route('/',true)} style="buttonSmall">
+                        <img class="video-control-icon" src="/svg/home.svg"/>
+                    </Button>
                 </div>
                 {middle}
                 <div class="subControls">
