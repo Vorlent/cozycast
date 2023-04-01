@@ -115,8 +115,12 @@ export class Controls extends Component {
 
     render({state, permissions}){
         let middle = <div class={`subControls ${state.fullscreen ? "fullscreenRemote" : ""}`}>
+                <Button enabled={this.props.design == "lightDesign"}
+                               onclick={e => {if(this.props.design != "lightDesign") this.props.sendMessage({action : 'light_theme'}) }} style="buttonSmall">
+                <img class="video-control-icon" src="/svg/light.svg"/>
+                </Button>
                 <Button enabled={false} onclick={this.dropRemoteAndCenter} 
-                    title="Drop and center Remote" style={`buttonSmall optional ${state.remote ? "" :"remoteHidden"}`}>
+                    title="Drop and center Remote" style={`buttonSmall optional ${state.remote ? "" :"hidden"}`}>
                     <img class="video-control-icon" src="/svg/crosshair.svg"/>
                 </Button>
                 {permissions.remotePermission && <Button enabled={state.remote} onclick={this.remote} style="buttonSmall" title="remote">
@@ -128,10 +132,6 @@ export class Controls extends Component {
                 <Button enabled={state.videoPaused} onclick={this.props.pauseVideo}
                     title={state.videoPaused ? 'Pause' : 'Play'} style="buttonSmall">
                     <img class="video-control-icon" src={state.videoPaused ? '/svg/play_button.svg' : '/svg/pause_button.svg'}/>
-                </Button>
-                <Button enabled={this.props.design == "lightDesign"}
-                               onclick={e => {if(this.props.design != "lightDesign") this.props.sendMessage({action : 'light_theme'}) }} style="buttonSmall">
-                        <img class="video-control-icon" src="/svg/light.svg"/>
                 </Button>
                 <Button enabled={state.fullscreen}
                     title="Fullscreen" onclick={this.toggleFullscreen} style="buttonSmall">

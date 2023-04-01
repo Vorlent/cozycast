@@ -36,6 +36,7 @@
 
     --cozyMessageBackground: rgba(0, 0, 0, 0.3);
     --cozyMessageShadow: 0 0 4px black inset;
+    --cozyMessageHover: rgba(255, 255, 255, 0.05);
 
     --cozySvgFilter: invert(67%) sepia(10%) saturate(1119%) hue-rotate(182deg) brightness(94%) contrast(87%);
     --cozyIconChange: none;
@@ -59,6 +60,7 @@
 
     --cozyMessageBackground: rgba(0, 0, 0, 0.3);
     --cozyMessageShadow: 0 0 4px black inset;
+    --cozyMessageHover: rgba(255, 255, 255, 0.05);
     
     --cozySvgFilter: invert(63%) sepia(61%) saturate(457%) hue-rotate(191deg) brightness(95%) contrast(90%);
     --cozyIconChange: none;
@@ -87,6 +89,7 @@
 
     --cozyMessageBackground: rgba(0, 0, 0, 0.05);
     --cozyMessageShadow: 0 0 1px rgba(0, 0, 0, 0.15) inset;
+    --cozyMessageHover: rgba(0, 0, 0, 0.05);
 
     --cozySvgFilter: invert(40%);
     --cozyIconChange: invert(90%);
@@ -465,7 +468,7 @@ button{
 }
 
 .subMessage:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: var(--cozyMessageHover);
 }
 
 .subMessage:hover > .deleteMessageButton{
