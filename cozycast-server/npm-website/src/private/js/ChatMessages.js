@@ -33,7 +33,10 @@ export class ChatMessages extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        return this.props.chatMessages !== nextProps.chatMessages || this.props.pingLookup !== nextProps.pingLookup || this.props.historyMode != nextProps.historyMode;
+        return this.props.chatMessages !== nextProps.chatMessages || 
+        this.props.pingLookup !== nextProps.pingLookup || 
+        this.props.historyMode != nextProps.historyMode ||
+        this.props.showLeaveJoinMsg != nextProps.showLeaveJoinMsg;
     }
 
     componentDidMount(){
@@ -77,17 +80,13 @@ export class ChatMessages extends Component {
         this.props.setChatState({ type: type, href: href, imageModal: true })
     }
 
-    render({ chatMessages, session, profile }) {
-        return <Fragment>
-            {this.props.historyMode && <div class="history-mode-badge" onclick={this.leaveHistoryMode}></div>}
-            <div id="messages" onscroll={this.chatScroll}>
+    render({ chatMessages, session, profile,showLeaveJoinMsg }) {
+        return <div id="messages" onscroll={this.chatScroll}>
                 {chatMessages.map(message =>
-                    message.tempMessage ? <div class="message" key={message.id} id={message.id}>
-                        <div class="subMessage">
-                            <div class="hoverInfo top">{message.timestamp}</div>
-                            <div class="temp-chat-text">{message.content} </div>
-                        </div>
-                    </div> :
+                    message.tempMessage ? showLeaveJoinMsg ? <div class="message temp-message" key={message.id} id={message.id}>
+                        <div class="hoverInfo left">{message.timestamp}</div>
+                        <div class="temp-chat-text">{message.content} </div>
+                    </div> : null:
                         <div class="message" key={message.data[0].id + message.data.length} id={message.data[0].id}>
                             <div class="username" style={{ color: message.nameColor }}>{message.username}
                                 <div class="real-username">{message.anonymous ? `Anon(${message.session.substr(0, 4)})` : message.session}</div>
@@ -128,7 +127,7 @@ export class ChatMessages extends Component {
                             }
                         </div>
                 )}
-            </div>
-        </Fragment>
+                {this.props.historyMode && <div class="history-mode-badge" onclick={this.leaveHistoryMode}></div>}
+        </div>
     }
 }

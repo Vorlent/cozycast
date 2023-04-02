@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if test -z "$ACTIVATE_SUDO"; then
-    echo "no sudo"
+    echo "/entrypoint.sh: no sudo"
 else
     echo "${UNAME} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${UNAME}
     chmod 0440 /etc/sudoers.d/${UNAME}
@@ -22,6 +22,7 @@ sudo chown cozycast:cozycast /home/cozycast
 eval $(luarocks path --bin)
 
 function restart {
+    echo "/entrypoint.sh: restarting"
     if [ -f "/worker.pid" ]; then
         kill -9 $(cat /worker.pid)
         rm /worker.pid

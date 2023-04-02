@@ -11,7 +11,12 @@ fi
 sudo -u cozycast ffmpeg $OPTIONS &
 
 FFMPEG_PID=$!
-echo "$FFMPEG_PID" >> /home/cozycast/ffmpeg.pid
+if [ $? -eq 0 ]; then
+    echo "$FFMPEG_PID" > /home/cozycast/ffmpeg.pid
+else
+    echo "ffmpeg command failed"
+    exit 1
+fi
 
 # Notes:
 # -f alsa -ac 2 -i pulse

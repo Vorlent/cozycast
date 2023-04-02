@@ -467,12 +467,22 @@ button{
     padding-left: 1em;
 }
 
+.message.temp-message:hover,
 .subMessage:hover {
     background-color: var(--cozyMessageHover);
 }
 
 .subMessage:hover > .deleteMessageButton{
     visibility: visible;
+}
+
+.temp-message {
+    padding-bottom: 0.2em;
+}
+
+.message.temp-message{
+    padding-top: 0.2em;
+    position: relative;
 }
 
 .deleteMessageButton {
@@ -593,6 +603,8 @@ button{
     overflow-y: overlay;
     overflow-x: hidden;
     word-break: break-word;
+    position: relative;
+    box-sizing: border-box;
 }
 
 .sidebar.fullscreenSidebar{
@@ -654,10 +666,6 @@ button{
 .showChat.fullscreenSidebar .message {
     opacity: 1;
     transition: opacity 0s;
-}
-
-.fullscreenSidebar .history-mode-badge{
-    min-width: calc(100% - 2.4em);
 }
 
 .showChat.fullscreenSidebar .message,
@@ -1209,18 +1217,18 @@ input[type=range]::-webkit-slider-thumb {
 
 .history-mode-badge {
     background-color: var(--cozyOrange);
-    bottom: 5em;
-    position: absolute;
+    bottom: 0.5em;
+    position: sticky;
     z-index: 3;
-    min-width: calc(var(--chat-size) - 2.4em);
-    max-width: calc(var(--chat-size) - 2.4em);
-    margin-left: 1.2em;
+    width: 75%;
+    margin-left: 12.5%;
     text-align: center;
     border-radius: 5px;
     border: solid transparent 0.30em;
     color: black;
     cursor: pointer;
     font-weight: bold;
+    font-size: 0.7em;
 }
 
 .history-mode-badge:hover{
@@ -2134,6 +2142,7 @@ input[type=range]::-webkit-slider-thumb {
     pointer-events: none;
 }
 
+.temp-message:hover .hoverInfo,
 .subMessage:hover .hoverInfo{
     visibility: visible;
     opacity: 1;
@@ -2175,6 +2184,18 @@ input[type=range]::-webkit-slider-thumb {
     left: 110%;
 }
 
+/*left*/
+
+.hoverInfo.left{
+    right: 0.5em;
+    top: 0.35em;
+}
+
+.hoverInfo.left::before{
+    display: none;
+}
+
+
 /* hover tooltips END*/
 
 @media only screen and (max-width: 780px) and (orientation: portrait){
@@ -2214,9 +2235,6 @@ input[type=range]::-webkit-slider-thumb {
         width: 260px;
     }
 
-    .history-mode-badge{
-        min-width: calc(100% - 2.4em);
-    }
 }
 
 @media only screen and (max-width: 780px) and (orientation: landscape){

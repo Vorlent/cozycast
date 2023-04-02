@@ -102,11 +102,13 @@ local keyboard_web_to_xdo = {
     ["Backspace"] = "BackSpace",
 }
 
+local debugCozy = false
+
 local pressed_keys = {}
 
 function wait_for_pulseaudio()
     while true do
-        print("wait_for_pulseaudio ")
+        print("worker.lua: wait_for_pulseaudio ")
         local pgrep = io.popen('pgrep "pulseaudio" -c', 'r')
         local stdout = pgrep:read("*a")
         local count = tonumber(stdout)
@@ -166,17 +168,23 @@ function capture(data, ws)
       options_string = options_string.." "..options[i]
     end
 
-    print ("/capture.sh "..options_string)
+    if debugCozy then
+        print ("worker.lua: /capture.sh "..options_string)
+    end
+
+    print("worker.lua: start capture")
     os.execute ("/capture.sh "..options_string)
     repeat
         local file, error = io.open("/home/cozycast/sdp_answer", "rb")
         if file then
             local content = file:read "*a"
-            print (content);
-            print(lunajson.encode{
-                action = "sdpAnswer",
-                content = content
-            })
+            if debugCozy then
+                print ("worker.lua: "..content);
+                print("worker.lua: "..lunajson.encode{
+                    action = "sdpAnswer",
+                    content = content
+                })
+            end
             ws:send(lunajson.encode{
                 action = "sdpAnswer",
                 content = content
@@ -274,9 +282,29 @@ function worker.scroll_down()
     libxdo.xdo_click_window(xdo, 0, 5);
 end
 
+local active_vm_flag = false
+
+function start_vm() 
+    print("worker.lua: starting vm width: "..video_settings.desktop_width,", height:"..video_settings.desktop_height)
+
+    os.execute ("Xvfb $DISPLAY -screen 0 "..video_settings.desktop_width.."x"..video_settings.desktop_height.."x24 -nolisten tcp & echo $! >> /worker.pid")
+    os.execute ("sudo -u cozycast pulseaudio --kill")
+    os.execute ("sudo -u cozycast pulseaudio & echo $! >> /worker.pid")
+    os.execute ("sudo -u cozycast xfce4-session & echo $! >> /worker.pid")
+    os.execute("sleep 5")
+
+    xdo = libxdo.xdo_new(nil)
+
+    print("worker.lua: Started VM")
+end
+
 function onmessage(ws, data)
     if data.type == "sdpOffer" then
-        print("sdpOffer")
+        print("worker.lua: sdpOffer")
+        if not active_vm_flag then 
+            start_vm()
+            active_vm_flag = true
+        end
         capture(data, ws)
         return true
     end
@@ -319,12 +347,18 @@ function onmessage(ws, data)
         return true
     end
     if data.action == "worker_restart" then
-        print "Worker restart requested..."
+        print "worker.lua: Worker restart requested..."
         os.execute("echo '' >> /worker.restart")
         return true
     end
     if data.action == "worker_update_settings" then
-        print "Updating video settings and restarting worker..."
+        print "worker.lua: Updating video settings"
+
+        local new_desktop_dimension = false
+
+        if active_vm_flag and (video_settings.desktop_width ~= data.settings.desktopWidth or video_settings.desktop_height ~= data.settings.desktopHeight) then
+            new_desktop_dimension = true
+        end
 
         video_settings.scale_width = data.settings.scaleWidth
         video_settings.scale_height = data.settings.scaleHeight
@@ -333,8 +367,11 @@ function onmessage(ws, data)
         video_settings.frame_rate = data.settings.framerate
         video_settings.video_bitrate = data.settings.videoBitrate
         video_settings.audio_bitrate = data.settings.audioBitrate
+
         if data.restart then
-            ws:close()
+            print "worker.lua: Worker restart with settings update requested..."
+            os.execute("echo '' >> /worker.restart")
+            --ws:close()
         end
         return true
     end
@@ -346,7 +383,7 @@ function onmessage(ws, data)
 end
 
 function start_server()
-    print("Starting Worker")
+    print("worker.lua: Starting Worker")
 
     local server = os.getenv("COZYCAST_IP")
     if os.getenv("DUCKDNS_DOMAIN") ~= "" then
@@ -357,15 +394,15 @@ function start_server()
         server="cozycast-server"
     end
 
-    print("env "..os.getenv("COZYCAST_ROOM"))
+    print("worker.lua: env "..os.getenv("COZYCAST_ROOM"))
     local room = os.getenv("COZYCAST_ROOM") or "default"
     local room_key = os.getenv("COZYCAST_WORKER_KEY") or "no_key"
-    local url = "ws://"..server.."/worker/"..room.."/"..room_key
+    local url = "ws://"..server.."/worker/"..room.."/"
     if os.getenv("FORCE_HTTPS") == "true" then
-        url = "wss://"..server.."/worker/"..room.."/"..room_key
+        url = "wss://"..server.."/worker/"..room.."/"
     end
-    print("Connecting to "..url.. " Room: "..room)
-    local ws = websocket.new_from_uri(url)
+    print("worker.lua: Connecting to "..url.. " Room: "..room)
+    local ws = websocket.new_from_uri(url..room_key)
     ws:connect()
 
     io.stdout:flush()
@@ -373,7 +410,7 @@ function start_server()
     while true do
         local msg, error, errno = ws:receive(5)
         if errno == 107 or errno == 32 or (not msg and not error and not errno) then
-            print("Could not connect to "..url)
+            print("worker.lua: Could not connect to "..url)
             return
         end
         if errno == 110 then -- timeout
@@ -387,7 +424,7 @@ function start_server()
                 if error == "text" then
                     local data = lunajson.decode(msg)
                     if not onmessage(ws, data) then
-                        print("Unknown message: "..msg)
+                        print("worker.lua: Unknown message: "..msg)
                         print(error)
                         print(errno)
                     end
@@ -406,16 +443,10 @@ function start_server()
 
     ws:close()
 end
-os.execute ("Xvfb $DISPLAY -screen 0 "..video_settings.desktop_width.."x"..video_settings.desktop_height.."x24 -nolisten tcp & echo $! >> /worker.pid")
-os.execute ("sudo -u cozycast pulseaudio --kill")
-os.execute ("sudo -u cozycast pulseaudio & echo $! >> /worker.pid")
-os.execute ("sudo -u cozycast xfce4-session & echo $! >> /worker.pid")
-os.execute("sleep 1")
-xdo = libxdo.xdo_new(nil)
+
 while true do
     print(pcall(start_server))
-    print("Restarting lua worker in 5 seconds")
+    print("worker.lua: Restarting lua worker in 5 seconds")
     os.execute("sleep 5")
 end
 libxdo.xdo_free(xdo)
-

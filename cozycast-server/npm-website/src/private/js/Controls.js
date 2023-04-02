@@ -39,7 +39,7 @@ export class Controls extends Component {
     toggleMute = () => {
         let updatedMuted = !this.props.state.muted;
         localStorage.setItem("muted",updatedMuted);
-        if(this.props.state.showIfMuted) {
+        if(this.props.state.userSettings.showIfMuted) {
             this.props.sendMessage({
                 action : 'userMuted',
                 muted: updatedMuted || this.props.state.videoPaused
@@ -115,12 +115,8 @@ export class Controls extends Component {
 
     render({state, permissions}){
         let middle = <div class={`subControls ${state.fullscreen ? "fullscreenRemote" : ""}`}>
-                <Button enabled={this.props.design == "lightDesign"}
-                               onclick={e => {if(this.props.design != "lightDesign") this.props.sendMessage({action : 'light_theme'}) }} style="buttonSmall">
-                <img class="video-control-icon" src="/svg/light.svg"/>
-                </Button>
                 <Button enabled={false} onclick={this.dropRemoteAndCenter} 
-                    title="Drop and center Remote" style={`buttonSmall optional ${state.remote ? "" :"hidden"}`}>
+                    title="Drop and center Remote" style={`buttonSmall optional ${state.remote ? "" :"remoteHidden"}`}>
                     <img class="video-control-icon" src="/svg/crosshair.svg"/>
                 </Button>
                 {permissions.remotePermission && <Button enabled={state.remote} onclick={this.remote} style="buttonSmall" title="remote">

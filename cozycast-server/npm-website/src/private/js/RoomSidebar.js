@@ -7,8 +7,8 @@ import { SidebarState} from './index.js'
 
 export class RoomSidebar extends Component {
 
-    render({ roomId, state }) {
-        return <div id="sidebar" class={`sidebar ${state.fullscreen && state.transparentChat ? "fullscreenSidebar showChat" : ""} ${state.remote ? "hasRemote" : ""}`}>
+    render({ roomId, state ,transparentChat }) {
+        return <div id="sidebar" class={`sidebar ${state.fullscreen && transparentChat ? "fullscreenSidebar showChat" : ""} ${state.remote ? "hasRemote" : ""}`}>
                 {state.roomToken && <div class="cozycast-pagetitle">
                         <span class="cozycast-titletext">{roomId}</span>
                     </div>

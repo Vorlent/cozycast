@@ -54,6 +54,7 @@ export class Room extends Component {
     constructor(props) {
         super(props);
         //state setup
+        let userSettings = JSON.parse(localStorage.getItem("userSettings"));
         let volume = parseInt(localStorage.getItem("volume"));
         if (!isNaN(volume)) volume = Math.max(Math.min(volume, 100), 0);
         else volume = 100;
@@ -81,6 +82,7 @@ export class Room extends Component {
             remote: false,
             remoteUsed: false,
             volume: volume,
+            muted: localStorage.hasOwnProperty('muted') ? localStorage.getItem("muted") == 'true' : false,
             videoPaused: true,
             videoLoading: false,
             viewPort: {
@@ -116,14 +118,15 @@ export class Room extends Component {
                 days: []
             },
             userlistHidden: false,
-            smallPfp: localStorage.hasOwnProperty('smallPfp') ? localStorage.getItem("smallPfp") == 'true' : false,
-            muteChatNotification: localStorage.hasOwnProperty('muteChatNotification') ? localStorage.getItem("muteChatNotification") == 'true' : true,
-            showUsernames: localStorage.hasOwnProperty('showUsernames') ? localStorage.getItem("showUsernames") == 'true' : true,
-            muted: localStorage.hasOwnProperty('muted') ? localStorage.getItem("muted") == 'true' : false,
-            showIfMuted: localStorage.hasOwnProperty('showIfMuted') ? localStorage.getItem("showIfMuted") == 'true' : false,
-            userlistOnLeft: localStorage.hasOwnProperty('userlistOnLeft') ? localStorage.getItem("userlistOnLeft") == 'true' : false,
-            transparentChat: localStorage.hasOwnProperty('transparentChat') ? localStorage.getItem("transparentChat") == 'true' : true
+            userSettings:{
+                muteChatNotification: true,
+                showUsernames: true,
+                transparentChat: true,
+                showLeaveJoinMsg: true,
+                ...userSettings
+            }
         };
+        console.log(this.state.userSettings)
         //bind function so they can be passed down as props
         this.pauseVideo = this.pauseVideo.bind(this)
         this.sendMessage = this.sendMessage.bind(this)
@@ -216,7 +219,7 @@ export class Room extends Component {
             videoElement.play();
             this.webrtc_start();
         }
-        if (this.state.showIfMuted) {
+        if (this.state.userSettings.showIfMuted) {
             this.sendMessage({
                 action: 'userMuted',
                 muted: this.state.muted || updatedPaused
@@ -400,6 +403,7 @@ export class Room extends Component {
                 forceChatScroll: true
             }
         })
+        this.pushTempMessage(`${this.props.profile.nickname} joined`)
     }
 
     chatmessage = (parsedMessage, skip_notifications) => {
@@ -447,7 +451,7 @@ export class Room extends Component {
         if(mention > 0){
             this.rapidPing(mention);
         }
-        else if (this.state.historyMode || !this.state.muteChatNotification && document.hidden && parsedMessage.session !== this.state.session) {
+        else if (!this.state.userSettings.muteChatNotification && document.hidden && parsedMessage.session !== this.state.session) {
             var audio = new Audio('/audio/pop.wav');
             audio.play();
         }
@@ -485,6 +489,7 @@ export class Room extends Component {
 
     join = (parsedMessage) => {
         //this.leave(parsedMessage)
+        this.pushTempMessage(`${parsedMessage.username} joined`)
         var targetName = parsedMessage.username.toLowerCase().replace(/\s/g, '');
         this.setState(state => {
             return {
@@ -648,6 +653,7 @@ export class Room extends Component {
                 }
             }
         })
+        this.pushTempMessage(`${username} left`)
         filterTyping(parsedMessage.session);
     }
 
@@ -711,11 +717,6 @@ export class Room extends Component {
         }
     }
 
-    enableLightTheme = (parsedMessage) =>{
-        this.props.updateDesign('lightDesign');
-        this.pushTempMessage(parsedMessage.username + ' enabled light theme');
-    }
-
     keepAlive;
     connect = (room, bearerToken) => {
         if (this.isBanned()) {
@@ -754,9 +755,6 @@ export class Room extends Component {
                     break
                 case 'ban':
                     this.ban(parsedMessage)
-                    break;
-                case 'enableLight':
-                    this.enableLightTheme(parsedMessage);
                     break;
                 case 'room_settings':
                     this.roomSettings(parsedMessage)
@@ -910,7 +908,7 @@ export class Room extends Component {
         this.sendMessage({
             action: 'join',
             token: bearerToken,
-            muted: (this.state.showIfMuted ? this.state.muted : false)
+            muted: (this.state.userSettings.showIfMuted ? this.state.muted : false)
         });
     }
 
@@ -1004,18 +1002,18 @@ export class Room extends Component {
                     </DefaultButton>
                 </InfoScreen>}
             {!this.isBanned() && <Fragment>
-                {!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && <div><Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={true} smallPfp={state.smallPfp} fullscreen={state.fullscreen} hasRemote={state.remote} updateRoomState={this.updateRoomState} /></div>}
+                {!state.userlistHidden && (state.fullscreen || state.userSettings.userlistOnLeft) && <div><Userlist showUsernames={state.userSettings.showUsernames} userlist={state.userlist} isLeft={true} smallPfp={state.userSettings.smallPfp} fullscreen={state.fullscreen} hasRemote={state.remote} updateRoomState={this.updateRoomState} /></div>}
                 <div id="videoWrapper" class="videoWrapper">
                     <VideoControls state={state} sendMessage={this.sendMessage} pauseVideo={this.pauseVideo} updateRoomState={this.updateRoomState} />
                     <div id="pagetoolbar" class={state.fullscreen ? "toolbarFullscreen" : ""}>
-                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} pauseVideo={this.pauseVideo} permissions={state.permissions} design={this.props.design} disabledRemote={this.state.remoteUsed && this.state.roomSettings.remote_ownership}/>
-                        {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} smallPfp={state.smallPfp} updateRoomState={this.updateRoomState}/>}
+                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} pauseVideo={this.pauseVideo} permissions={state.permissions} disabledRemote={this.state.remoteUsed && this.state.roomSettings.remote_ownership}/>
+                        {!state.userlistHidden && !state.fullscreen && !state.userSettings.userlistOnLeft && <Userlist showUsernames={state.userSettings.showUsernames} userlist={state.userlist} isLeft={false} smallPfp={state.userSettings.smallPfp} updateRoomState={this.updateRoomState}/>}
                     </div>
                 </div>
-                {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions} pingLookup={state.pingLookup}/>}
-                {state.UserRoomSettings && <UserRoomSettings state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} updateProfile={this.props.updateProfile} setAppState={this.props.setAppState} profile={this.props.profile} design={this.props.design} updateDesign={this.props.updateDesign}/>}
+                {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} transparentChat={state.userSettings.transparentChat} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions} pingLookup={state.pingLookup}/>}
+                {state.UserRoomSettings && <UserRoomSettings state={state} userSettings={state.userSettings} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} updateProfile={this.props.updateProfile} setAppState={this.props.setAppState} profile={this.props.profile} design={this.props.design} updateDesign={this.props.updateDesign}/>}
                 {state.hoverText && <UserHoverName state={state} />}
-                {!state.userlistHidden  && !state.fullscreen && <a tabindex="-1" id="copyright" href="/license" target="_blank" class={state.userlistOnLeft ? "left" : "bottom"}>Copyright (C) 2022 Vorlent</a>}
+                {!state.userlistHidden  && !state.fullscreen && <a tabindex="-1" id="copyright" href="/license" target="_blank" class={state.userSettings.userlistOnLeft ? "left" : "bottom"}>Copyright (C) 2022 Vorlent</a>}
             </Fragment>}
         </Fragment>
     }
