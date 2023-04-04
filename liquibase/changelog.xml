@@ -294,4 +294,18 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="15" author="vorlent">
+        <addColumn tableName="room_persistence">
+            <column name="remote_ownership" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="room_permission">
+            <column name="trusted" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+    </changeSet>
+
 </databaseChangeLog>

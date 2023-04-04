@@ -16,6 +16,7 @@ import { typing, filterTyping, clearTyping } from './ChatInput.js'
 import { TokenStatus, getToken } from './Authentication'
 import { InfoScreen } from './InfoScreen.js';
 import { DefaultButton } from './DefaultButton.js'
+import { Button } from './Button.js'
 
 
 var favicon = new Favico({
@@ -70,6 +71,7 @@ export class Room extends Component {
                 imagePermission: false
             },
             permissions: {
+                trusted: false,
                 remotePermission: false,
                 imagePermission: false
             },
@@ -77,6 +79,7 @@ export class Room extends Component {
             pingLookup: {},
             roomlist: [],
             chatMessages: [],
+            userlistadmin: [],
             newMessage: false,
             forceChatScroll: false,
             remote: false,
@@ -103,7 +106,6 @@ export class Room extends Component {
                 remote_ownership: false,
                 default_image_permission: true,
                 default_remote_permission: true
-
             },
             session: null,
             windowTitle: "CozyCast: Low latency screen capture via WebRTC",
@@ -126,7 +128,6 @@ export class Room extends Component {
                 ...userSettings
             }
         };
-        console.log(this.state.userSettings)
         //bind function so they can be passed down as props
         this.pauseVideo = this.pauseVideo.bind(this)
         this.sendMessage = this.sendMessage.bind(this)
@@ -403,7 +404,6 @@ export class Room extends Component {
                 forceChatScroll: true
             }
         })
-        this.pushTempMessage(`${this.props.profile.nickname} joined`)
     }
 
     chatmessage = (parsedMessage, skip_notifications) => {
@@ -678,7 +678,7 @@ export class Room extends Component {
             if (parsedMessage.inviteOnly) a = 'invite';
             return {
                 roomSettings: {
-                    ...this.roomSettings,
+                    ...state.roomSettings,
                     accessType: a,
                     centerRemote: parsedMessage.centerRemote,
                     remote_ownership: parsedMessage.remote_ownership,
@@ -686,8 +686,9 @@ export class Room extends Component {
                     default_image_permission: parsedMessage.default_image_permission
                 },
                 permissions: {
-                    remotePermission: state.personalPermissions.remotePermission || parsedMessage.default_remote_permission,
-                    imagePermission: state.personalPermissions.imagePermission || parsedMessage.default_image_permission
+                    ...state.permissions,
+                    remotePermission: state.personalPermissions.remotePermission || state.permissions.trusted || parsedMessage.default_remote_permission,
+                    imagePermission: state.personalPermissions.imagePermission || state.permissions.trusted || parsedMessage.default_image_permission
                 }
             }
         })
@@ -741,8 +742,10 @@ export class Room extends Component {
                                 imagePermission: parsedMessage.imagePermission
                             },
                             permissions: {
-                                remotePermission: parsedMessage.remotePermission || state.roomSettings.default_remote_permission,
-                                imagePermission: parsedMessage.imagePermission || state.roomSettings.default_image_permission
+                                anonymous: parsedMessage.anonymous,
+                                trusted: parsedMessage.trusted,
+                                remotePermission: parsedMessage.trusted || parsedMessage.remotePermission || state.roomSettings.default_remote_permission,
+                                imagePermission: parsedMessage.trusted || parsedMessage.imagePermission || state.roomSettings.default_image_permission
                             }
                         }
                     })
@@ -788,9 +791,29 @@ export class Room extends Component {
                     if (parsedMessage.messages) {
                         this.chatHistory(parsedMessage.messages)
                     }
+                    this.pushTempMessage(`${this.props.profile.nickname} joined`)
                     break;
                 case 'receivemessage':
                     this.chatmessage(parsedMessage);
+                    break;
+                case 'user_list_info':
+                    this.setState(state => { return {userlistadmin: parsedMessage.users}})
+                    break;
+                case 'updatePermission':
+                    this.setState(state => {
+                        return {
+                            personalPermissions: {
+                                remotePermission: parsedMessage.remotePermission,
+                                imagePermission: parsedMessage.imagePermission
+                            },
+                            permissions: {
+                                ...state.permissions,
+                                trusted: parsedMessage.trusted,
+                                remotePermission: parsedMessage.trusted || parsedMessage.remotePermission || state.roomSettings.default_remote_permission,
+                                imagePermission: parsedMessage.trusted || parsedMessage.imagePermission || state.roomSettings.default_image_permission
+                            }
+                        }
+                    })
                     break;
                 case 'deletemessage':
                     this.deletemessage(parsedMessage);
@@ -1011,7 +1034,7 @@ export class Room extends Component {
                     </div>
                 </div>
                 {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} transparentChat={state.userSettings.transparentChat} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions} pingLookup={state.pingLookup}/>}
-                {state.UserRoomSettings && <UserRoomSettings state={state} userSettings={state.userSettings} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} updateProfile={this.props.updateProfile} setAppState={this.props.setAppState} profile={this.props.profile} design={this.props.design} updateDesign={this.props.updateDesign}/>}
+                {state.UserRoomSettings && <UserRoomSettings state={state} permissions={state.permissions} userSettings={state.userSettings} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} updateProfile={this.props.updateProfile} setAppState={this.props.setAppState} profile={this.props.profile} design={this.props.design} updateDesign={this.props.updateDesign}/>}
                 {state.hoverText && <UserHoverName state={state} />}
                 {!state.userlistHidden  && !state.fullscreen && <a tabindex="-1" id="copyright" href="/license" target="_blank" class={state.userSettings.userlistOnLeft ? "left" : "bottom"}>Copyright (C) 2022 Vorlent</a>}
             </Fragment>}

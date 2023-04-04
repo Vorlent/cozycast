@@ -49,6 +49,7 @@ class Room {
         this.verifiedOnly = roomPersistence.verifiedOnly
         this.inviteOnly = roomPersistence.inviteOnly
         this.centerRemote = roomPersistence.centerRemote
+        this.remote_ownership = roomPersistence.remote_ownership
         this.default_remote_permission = roomPersistence.default_remote_permission
         this.default_image_permission = roomPersistence.default_image_permission
 
@@ -64,6 +65,14 @@ class Room {
     }
 
     Room(){};
+
+    def getUserInfo() {
+        List<UserSessionInfo> userSessionInfoList = users.values().stream()
+        .map({ userSession -> new UserSessionInfo(userSession) })
+        .collect()
+        return userSessionInfoList;
+    }
+
 
     def restartByUser(){
         if(ZonedDateTime.now(ZoneId.of("UTC")).minusHours(1) > lastRestarted){

@@ -74,7 +74,7 @@ export class UserRoomSettings extends Component {
 
     backgroundProfileUpdate = createRef();
     backgroundSettings = createRef();
-    render({profile },state) {
+    render({profile, permissions },state) {
         return <div class="modal-background" ref={this.backgroundSettings} onmousedown={(e) => {if(e.target == this.backgroundSettings.current) this.closeProfile()}}>
             {!this.state.profileUpdateMode &&
             <form class="profile modal" onSubmit={this.onSubmit}>
@@ -136,7 +136,7 @@ export class UserRoomSettings extends Component {
                                 </select>
                             </div>
                     </div> }
-                    {profile.verified && <div class="settingsMenu" onclick={this.confirmRestart}>Restart VM</div>}
+                    {permissions.trusted && <div class="settingsMenu" onclick={this.confirmRestart}>Restart VM</div>}
                 </div>
                 <div class="confirmButton">
                     <button class="btn btn-danger btnStandard" type="submit">Apply</button>

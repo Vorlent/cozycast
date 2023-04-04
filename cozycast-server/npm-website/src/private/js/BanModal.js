@@ -6,12 +6,8 @@ export class BanModal extends Component {
         super(props);
         this.state = {
             expiration: "unlimited",
-            selectedUser: null
+            selectedUser: props.banTarget
         }
-    }
-
-    selectUser = (e) => {
-        this.setState({selectedUser: e.target.value})
     }
     
     selectExpiration = (e) => {
@@ -19,10 +15,8 @@ export class BanModal extends Component {
     }
     
     banUser(e) {
-        var token = localStorage.getItem("adminToken");
         this.props.sendMessage({
             action : 'ban',
-            token: this.props.state.roomToken,
             session: this.state.selectedUser,
             expiration: this.state.expiration
         });
@@ -44,23 +38,12 @@ export class BanModal extends Component {
                 <div class="ban modal">
                     <div class="title">
                         <div>
-                            Ban User
+                            Ban/Kick
                         </div>
                         <button type="button" class="modal-close" onclick={this.closeBanModal}>X</button>
                     </div>
                     <div class="modal-row">
-                        <div class="modal-label">
-                            User
-                        </div>
-                        <select id="settings-desktop-resolution"
-                            value={this.state.selectedUser}
-                            onChange={e => this.selectUser(e)}>
-
-                          <option value={null} >Select a User</option>
-                          {state.userlist.map(user => 
-                              <option value={user.session}>{user.username + `(${user.session})`}</option>
-                          )}
-                        </select>
+                        User: {this.state.selectedUser}
                     </div>
                     <div class="modal-row">
                         <div class="modal-label">

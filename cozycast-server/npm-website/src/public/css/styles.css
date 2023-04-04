@@ -1699,6 +1699,28 @@ input[type=range]::-webkit-slider-thumb {
     font-size: 2em;
 }
 
+.modulate-absolute{
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    padding: 4em;
+    box-sizing: border-box;
+    z-index: 10;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modulate-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--cozyColorMenu,#123);
+    padding: 2em;
+    border-radius: 1em;
+}
+
 .admin-background {
     background-color: var(--cozyColorMenu,#123);
     color: var(--cozyTextColor);

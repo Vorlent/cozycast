@@ -24,6 +24,7 @@ class UserSession {
     Boolean invited
     Boolean admin = false
     Boolean verified = false
+    Boolean trusted = false
     Boolean remote_permission = false
     Boolean image_permission = false
     ZonedDateTime lastTimeSeen
