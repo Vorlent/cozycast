@@ -70,7 +70,6 @@
     background: fixed repeat top left var(--cozycast-noise);
 }
 
-
 .lightDesign{
     --cozycast-noise: none;
     --cozyColor: #242424;
@@ -143,6 +142,7 @@ html, body, #pagecontent, #videosizer {
     display: flex;
     width: 100%;
     overflow-y: hidden;
+    background: var(--cozyColorMenu);
 }
 
 #pagecontent > *{
@@ -152,6 +152,107 @@ html, body, #pagecontent, #videosizer {
 .noiseBackground > *{
     background: fixed repeat top left var(--cozycast-noise);
 }
+
+/* Default List */
+
+.default-list-background {
+    background-color: var(--cozyColorMenu);
+    padding: 1rem;
+  }
+  
+  .default-list {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--cozyTextColor);
+    box-shadow: 0px 0px 9px rgba(0, 0, 0, 0.7);
+  }
+
+  .default-list input {
+    background: var(--cozyColorAccent) var(--cozycast-noise);
+    color: var(--cozyTextColor);
+    border: none;
+    height: 2em;
+    vertical-align: middle;
+  }
+
+  .default-list input[type="checkbox"] {
+    width: 1.4em;
+  }
+
+  .default-list th {
+    text-align: left;
+    padding: 15px 20px 15px 10px;
+    background-color: var(--cozyButton);
+    color: var(--cozyTextColor);
+    font-weight: bold;
+    border: 1px solid var(--cozyButton);
+  }
+  
+  .default-list td {
+    padding: 10px;
+    border-left: 1px solid var(--cozyButton);
+    border-right: 1px solid var(--cozyButton);
+  }
+
+  .default-list tr:last-child {
+    border-bottom: 1px solid var(--cozyButton);
+  }
+  
+  .default-list-table-center {
+    text-align: center;
+  }
+  
+  .default-list-element:nth-child(even) {
+    background-color: var(--cozyMessageBackground);
+  }
+  
+  .default-list-element:hover {
+    background-color: var(--cozyMessageHover);
+  }
+  
+  .default-list-avatar-container-header {
+    width: 64px;
+  }
+  
+  .default-list-avatar-image-header {
+    vertical-align: middle;
+    width: 100%;
+    height: auto;
+    border-radius: 50%;
+  }
+  
+  .default-list-name,
+  .default-list-nickname,
+  .default-list-color {
+    font-size: 0.9rem;
+  }
+
+  .default-list-name{
+    font-weight: bold;
+  }
+
+/* Default list end */
+
+
+/* Admin page start */
+
+.admin-page-background{
+    padding-top: 130px;
+    width: 100%;
+    overflow: auto;
+}
+
+.admin-page-content{
+    max-width: max-content;
+    margin: 0 auto;
+}
+
+#admin-page-header{
+    top: 56px;
+    box-shadow: 0px 4px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Admin page end */
 
 .videoWrapper {
     width: 100%;
@@ -1376,6 +1477,7 @@ input[type=range]::-webkit-slider-thumb {
     float: right;
 }
 
+.avatarContainerHeader.inNav.active,
 .avatarContainerHeader.inNav:hover{
 	background: var(--cozyButtonAccent, #048);
 }
@@ -1569,11 +1671,11 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .misc-settings{
-    width: 90%;
     display: flex;
     flex-direction: column;
     gap: 2em;
     align-items: center;
+    color: var(--cozyTextColor)
 }
 
 .room-list-background {
@@ -1719,6 +1821,8 @@ input[type=range]::-webkit-slider-thumb {
     background-color: var(--cozyColorMenu,#123);
     padding: 2em;
     border-radius: 1em;
+    max-width: max-content;
+    margin: auto;
 }
 
 .admin-background {
@@ -2219,6 +2323,49 @@ input[type=range]::-webkit-slider-thumb {
 
 
 /* hover tooltips END*/
+
+/* Whisper start */
+
+.message-sender {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    background-color: var(--cozyColorMenu);
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message-sender__input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.message-sender__button {
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background-color: var(--cozyButton);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.message-sender__button:hover {
+    background-color: var(--cozyButtonAccent);
+}
+
+/* Whisper end */
 
 @media only screen and (max-width: 780px) and (orientation: portrait){
     #pagecontent {

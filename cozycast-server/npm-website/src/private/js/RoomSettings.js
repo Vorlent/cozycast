@@ -10,6 +10,9 @@ import { PermissionManager } from './PermissionManager.js'
 
 import { Modulate } from './Modulate.js'
 import { RoomAdminUserlist } from './RoomAdminUserlist.js'
+import { InviteManager } from './InviteManager.js'
+import { Whisper } from './Whisper.js'
+import { DefaultButton } from './DefaultButton.js'
 
 export class RoomSettings extends Component {
     constructor(props) {
@@ -72,6 +75,7 @@ export class RoomSettings extends Component {
             remote_ownership: "" + this.state.roomSettings.remote_ownership,
             default_image_permission: "" + this.state.roomSettings.default_image_permission,
             default_remote_permission: "" + this.state.roomSettings.default_remote_permission,
+            hidden_to_unauthorized: "" + this.state.roomSettings.hidden_to_unauthorized,
             accessType: this.state.roomSettings.accessType,
             centerRemote: this.state.roomSettings.centerRemote
         });
@@ -127,13 +131,20 @@ export class RoomSettings extends Component {
 
     closePermissionModal = () => {
         this.setState({
-            permissionModal: false
+            permissionModal: false,
+            allroompermissionModal: false
         })
     }
 
-    closeAllRoomPermissionModal = () => {
+    closeInviteModal = () => {
         this.setState({
-            allroompermissionModal: false
+            inviteViewModal: false
+        })
+    }
+
+    closeWhisperModal = () => {
+        this.setState({
+            whisperModal: false
         })
     }
 
@@ -141,16 +152,25 @@ export class RoomSettings extends Component {
         return <div id="settings" class="roomSettingsContainer">
             {this.state.inviteModal && <InviteModal state={this.props.state} roomId={this.props.state.roomId} updateSettingsState={this.updateSettingsState} sendMessage={this.props.sendMessage} />}
             {this.state.banModal && <BanModal state={this.props.state} updateSettingsState={this.updateSettingsState} sendMessage={this.props.sendMessage} />}
-            {this.state.permissionModal && <Modulate title="Current User Management" closeCallback={this.closePermissionModal}>
-                <RoomAdminUserlist 
-                    userlistadmin={this.props.state.userlistadmin} 
-                    sendMessage={this.props.sendMessage}
-                    default_image_permission={this.props.state.roomSettings.default_image_permission}
-                    default_remote_permission={this.props.state.roomSettings.default_remote_permission}
-                    />
+            {this.state.permissionModal && 
+                <Modulate title="User Management" closeCallback={this.closePermissionModal}>
+                    <DefaultButton onclick={() => this.setState( ({allroompermissionModal}) => ({allroompermissionModal: !allroompermissionModal}))}>
+                        {state.allroompermissionModal ? 'All Users' : 'Current Users'}
+                    </DefaultButton>
+                    {!state.allroompermissionModal && <RoomAdminUserlist 
+                        userlistadmin={this.props.state.userlistadmin} 
+                        sendMessage={this.props.sendMessage}
+                        default_image_permission={this.props.state.roomSettings.default_image_permission}
+                        default_remote_permission={this.props.state.roomSettings.default_remote_permission}
+                        />
+                    }
+                    {state.allroompermissionModal && <PermissionManager room={this.props.state.roomId}/>}
                 </Modulate>}
-            {state.allroompermissionModal && <Modulate title="All Room Users" closeCallback={this.closeAllRoomPermissionModal}>
-                <PermissionManager room={this.props.state.roomId}/>
+            {state.inviteViewModal && <Modulate title="Invites" closeCallback={this.closeInviteModal}>
+                <InviteManager room={this.props.state.roomId}/>
+                </Modulate>}
+            {state.whisperModal && <Modulate title="Whisper" closeCallback={this.closeWhisperModal}>
+                <Whisper sendMessage={this.props.sendMessage} userlist={this.props.state.userlist}></Whisper>
                 </Modulate>}
 
             <div class="roomSettingCategory">
@@ -163,7 +183,11 @@ export class RoomSettings extends Component {
                     <option value="authenticated">Users</option>
                     <option value="invite">Invited Users only</option>
                 </select>
-
+                <label>
+                    <input type="checkbox" checked={state.roomSettings.hidden_to_unauthorized}
+                        onclick={() => this.toggleRoomSettings('hidden_to_unauthorized')} />
+                    Hidden To Unauthorized
+                </label>
                 <label>
                     <input type="checkbox" checked={state.roomSettings.default_image_permission}
                         onclick={() => this.toggleRoomSettings('default_image_permission')} />
@@ -211,10 +235,13 @@ export class RoomSettings extends Component {
                     Restart
                 </Button>
                 <Button style={"maxHeightButton"} onclick={e => this.openPermissionModal(this.props.state.roomId)}>
-                    Current User Management
+                    User Management
                 </Button>
-                <Button style={"maxHeightButton"} onclick={e => this.setState({allroompermissionModal: true })}>
-                    All Room Users
+                <Button style={"maxHeightButton"} onclick={e => this.setState({inviteViewModal: true })}>
+                    Invite Management
+                </Button>
+                <Button style={"maxHeightButton"} onclick={e => this.setState({whisperModal: true })}>
+                    Whisper User
                 </Button>
             </div>
             <div  class="roomSettingCategory">

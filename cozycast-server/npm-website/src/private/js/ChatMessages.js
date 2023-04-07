@@ -118,6 +118,8 @@ export class ChatMessages extends Component {
                                                 </div>
                                             case "deleted":
                                                 return <div class="chat-deleted">deleted </div>;
+                                            case "whisper":
+                                                return <div class="chat-deleted">{msg.message}</div>;
                                             default: return <div>Looks like something went wrong!</div>
                                         }
                                     })}

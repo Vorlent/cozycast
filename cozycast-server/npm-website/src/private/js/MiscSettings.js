@@ -39,27 +39,50 @@ export class MiscSettings extends Component {
         }).then(e => this.refresh())
     }
 
+    updateSettings = () => {
+        if (this.state.message != this.props.message) {
+            this.updateMessage();
+        }
+        if (this.state.registerWithInviteOnly != this.props.registerWithInviteOnly) {
+            this.updateFlag();
+        }
+    };
+
     render({ }, state) {
-        return <div class="admin-background">
+        return (
             <div class="misc-settings">
-                <div style={{ width: "90%" }}>
-                    <label for="messageInput">
-                        Message
-                    </label>
+                <div style={{ width: '90%' }}>
+                    <label for="messageInput">Message</label>
                     <div>
-                        <textarea rows="3" class="modal-username standardInputField" type="text" id="messageInput"
-                            onInput={e => this.setState({ message: e.target.value })}
-                            name="message" value={state.message} />
+                        <textarea
+                            rows="3"
+                            class="modal-username standardInputField"
+                            type="text"
+                            id="messageInput"
+                            onInput={(e) => this.setState({ message: e.target.value })}
+                            name="message"
+                            value={state.message}
+                        />
                     </div>
                 </div>
-                <DefaultButton enabled={true} onclick={this.updateMessage}>Save message</DefaultButton>
                 <label>
-                    <input type="checkbox" checked={state.registerWithInviteOnly}
-                        onclick={() => this.setState(state => { return { registerWithInviteOnly: !state.registerWithInviteOnly } })} />
+                    <input
+                        type="checkbox"
+                        checked={state.registerWithInviteOnly}
+                        onclick={() =>
+                            this.setState((state) => {
+                                return { registerWithInviteOnly: !state.registerWithInviteOnly };
+                            })
+                        }
+                    />
                     Invite required for register
                 </label>
-                <DefaultButton enabled={true} onclick={this.updateFlag}>Save invite setting</DefaultButton>
+                <div>
+                    <DefaultButton enabled={true} onclick={this.updateSettings}>
+                        Update Settings
+                    </DefaultButton>
+                </div>
             </div>
-        </div>
+        );
     }
 }

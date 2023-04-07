@@ -308,4 +308,17 @@
 
     </changeSet>
 
+    <changeSet id="16" author="vorlent">
+        <addColumn tableName="room_persistence">
+            <column name="hidden_to_unauthorized" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="room_invite">
+            <column name="temporary" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

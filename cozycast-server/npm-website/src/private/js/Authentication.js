@@ -27,6 +27,27 @@ export async function authFetch(path, body = {})  {
     return response;
 }
 
+export async function optAuthFetch(path, body = {})  {
+    let resp = await updateAccessToken();
+    if (resp != TokenStatus.VALID) {
+        let response = await fetch(path,body);
+        return response;
+    }
+
+    let authBody = body;
+    authBody["headers"] = {...body["headers"],Authorization: "Bearer " + access_token.token}
+    let response = await fetch(path,authBody);
+    if(response.status == 401) {
+        let respRetry = await updateAccessToken(true);
+        if (respRetry != TokenStatus.VALID) {
+            return respRetry;
+        }
+        authBody["headers"]["Authorization"] = "Bearer " + access_token.token
+        response = await fetch(path,authBody)
+    }
+    return response;
+}
+
 export async function getToken() {
     let resp = await updateAccessToken();
     if (resp != TokenStatus.VALID) {

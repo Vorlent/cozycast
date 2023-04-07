@@ -16,7 +16,6 @@ import { typing, filterTyping, clearTyping } from './ChatInput.js'
 import { TokenStatus, getToken } from './Authentication'
 import { InfoScreen } from './InfoScreen.js';
 import { DefaultButton } from './DefaultButton.js'
-import { Button } from './Button.js'
 
 
 var favicon = new Favico({
@@ -94,19 +93,7 @@ export class Room extends Component {
             },
             roomSidebar: SidebarState.CHAT,
             workerStatus: WorkerStatus.STARTED,
-            roomSettings: {
-                workerStarted: true,
-                desktopResolution: 720,
-                streamResolution: 720,
-                framerate: 25,
-                videoBitrate: 1000,
-                audioBitrate: 96,
-                accessType: "public",
-                centerRemote: false,
-                remote_ownership: false,
-                default_image_permission: true,
-                default_remote_permission: true
-            },
+            roomSettings: {},
             session: null,
             windowTitle: "CozyCast: Low latency screen capture via WebRTC",
             historyMode: false,
@@ -345,7 +332,9 @@ export class Room extends Component {
             }
         }
 
-        if (parsedMessage.type == "video") {
+        if (parsedMessage.type == "whisper") {
+            queuedMessages.push({ "type": "whisper", message: msg });
+        } else if (parsedMessage.type == "video") {
             queuedMessages.push({ "type": "video", "href": parsedMessage.image });
         } else if (parsedMessage.type == "image") {
             queuedMessages.push({ "type": "image", "href": parsedMessage.image });
@@ -679,11 +668,8 @@ export class Room extends Component {
             return {
                 roomSettings: {
                     ...state.roomSettings,
-                    accessType: a,
-                    centerRemote: parsedMessage.centerRemote,
-                    remote_ownership: parsedMessage.remote_ownership,
-                    default_remote_permission: parsedMessage.default_remote_permission,
-                    default_image_permission: parsedMessage.default_image_permission
+                    ...parsedMessage,
+                    accessType: a
                 },
                 permissions: {
                     ...state.permissions,
@@ -931,6 +917,7 @@ export class Room extends Component {
         this.sendMessage({
             action: 'join',
             token: bearerToken,
+            access: this.props.matches.access,
             muted: (this.state.userSettings.showIfMuted ? this.state.muted : false)
         });
     }

@@ -8,6 +8,7 @@ class UserSessionInfo {
     String nickname
     String avatarUrl
     String nameColor
+    String tempInviteName
     Boolean anonymous
     Boolean invited
     Boolean admin
@@ -23,6 +24,7 @@ class UserSessionInfo {
         this.avatarUrl = userSession.avatarUrl
         this.nameColor = userSession.nameColor
         this.nickname = userSession.nickname
+        this.tempInviteName =userSession.tempInviteName
         this.anonymous = userSession.anonymous
         this.invited = userSession.invited
         this.admin = userSession.admin

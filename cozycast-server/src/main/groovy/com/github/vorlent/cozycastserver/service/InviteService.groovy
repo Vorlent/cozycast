@@ -38,8 +38,7 @@ class InviteService {
             if(!inv) {
                 return false;
             }
-            if(inv.isExpired()) {
-                inv.delete()
+            if(inv.isExpired() || inv.temporary) {
                 return false;
             } else {
                 inv.uses += 1
@@ -71,14 +70,28 @@ class InviteService {
         }
     }
 
+    def access(String code) {
+        RoomInvite.withTransaction {
+            def inv = RoomInvite.get(code)
+            if(!inv) {
+                return false;
+            }
+            if(inv.isExpired() || !inv.temporary) {
+                return false;
+            } else {
+                inv.uses += 1;
+                return [remote_permission: inv.remote_permission, image_permission: inv.remote_permission, name: inv.inviteName];
+            }
+        }
+    }
+
     boolean checkInvite(String code) {
         RoomInvite.withTransaction {
             def inv = RoomInvite.get(code)
             if(!inv) {
                 return false;
             }
-            if(inv.isExpired()) {
-                inv.delete()
+            if(inv.isExpired() || inv.temporary) {
                 return false;
             } else {
                 return true;
@@ -86,7 +99,21 @@ class InviteService {
         }
     }
 
-    String create(String room, Integer maxUses, Integer expiration, boolean remotePermission, boolean imagePermission, String inviteName) {
+    def checkAccess(String code) {
+        RoomInvite.withTransaction {
+            def inv = RoomInvite.get(code)
+            if(!inv) {
+                return false;
+            }
+            if(inv.isExpired() || !inv.temporary) {
+                return false;
+            } else {
+                return [name: inv.room];
+            }
+        }
+    }
+
+    String create(String room, Integer maxUses, Integer expiration, boolean remotePermission, boolean imagePermission, String inviteName, boolean temporary) {
         def expirationDate = null
         if(expiration > 0) {
             expirationDate = ZonedDateTime.now(ZoneId.of("UTC"))
@@ -103,7 +130,8 @@ class InviteService {
                 expiration: expirationDate,
                 remote_permission: remotePermission,
                 image_permission: imagePermission,
-                inviteName: inviteName)
+                inviteName: inviteName,
+                temporary: temporary)
             invite.id = code
             invite.save()
             return code;

@@ -18,6 +18,7 @@ class RoomInvite {
     boolean remote_permission
     boolean image_permission
     ZonedDateTime expiration
+    boolean temporary
     String inviteName
 
     static String generateCode() {

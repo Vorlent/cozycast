@@ -11,6 +11,7 @@ export class PermissionManager extends Component {
         "remote_permission": false,
         "image_permission": false,
         "userId": "",
+        inviteName: "",
         trusted: false
     }
 
@@ -29,13 +30,7 @@ export class PermissionManager extends Component {
     }
 
     refresh(){
-        let apiName;
-        if(this.state.room){
-            apiName = `/api/permission/${this.state.room}`
-        }
-        else {
-            apiName = "/api/permission/all"
-        }
+        const apiName = this.state.room ? `/api/permission/${this.state.room}` : '/api/permission/all';
 
         authFetch(apiName).then(e => {
             switch(e){
@@ -69,59 +64,111 @@ export class PermissionManager extends Component {
         }).then(e => this.refresh())
     }
 
-    filterPermissions = (room,userId,field,value) => {
-        let newPerms = this.state.permissions.filter(perm => {if(perm.userId == userId && perm.room == room) {perm[field] = value} return perm});
-        this.setState(state => {return {permissions: newPerms}});
-    }
+    filterPermissions = (room, userId, field, value) => {
+        const newPerms = this.state.permissions.map((perm) => {
+            if (perm.userId === userId && perm.room === room) {
+                return { ...perm, [field]: value };
+            }
+            return perm;
+        });
+        this.setState((state) => ({ permissions: newPerms }));
+    };
 
-    render({profile} , state) {
-        return <div class="accountListBackground">
-        <table class="accountList">
-            <tr>
-                <td>room</td>
-                <td>user</td>
-                <td>banned</td>
-                <td>trusted</td>
-                <td>invited</td>
-                <td>remote permission</td>
-                <td>image permission</td>
-            </tr>
-            <tr class="accountElement accountElementSpecial">
-                {this.props.room ? 
-                    <td class="inviteColumn">{this.props.room}</td> : 
-                    <td class="inviteColumn"><input value={state.newPerm.room} oninput={(e) => this.setState(state => {return {newPerm: {...state.newPerm, room: e.target.value}}})}></input></td>
+
+    NewPermissionRow = (state, setState, updatePerm, defaultPerms) => {
+        const {room: currentRoom, newPerm} = state
+        const {room, userId, banned, trusted, invited, inviteName ,remote_permission, image_permission } = newPerm
+
+        const onInputChange = (e) => {
+            setState(({newPerm}) => ({
+                newPerm: { ...newPerm, [e.target.name]: e.target.value },
+            }));
+        };
+
+        const onCheckboxToggle = (e) => {
+            setState(({newPerm}) => ({
+                newPerm: { ...newPerm, [e.target.name]: e.target.checked},
+            }));
+        };
+
+        return (
+            <tr className="default-list-element">
+                {currentRoom ?
+                    <td>{room}</td> :
+                    <td><input name="room" value={room} oninput={onInputChange}></input></td>
                 }
-                <td class="inviteColumn"><input value={state.newPerm.userId} oninput={(e) => this.setState(state => {return {newPerm: {...state.newPerm, userId: e.target.value}}})}></input></td>
-                <td class="inviteColumn"><input type="checkbox" checked={state.newPerm.banned}  onclick={() => this.setState(state => {return {newPerm: {...state.newPerm, banned: !state.newPerm.banned}}})}></input></td>
-                <td class="inviteColumn"><input type="checkbox" checked={state.newPerm.trusted} onclick={() => this.setState(state => {return {newPerm: {...state.newPerm, trusted: !state.newPerm.trusted}}})}></input></td>
-                <td class="inviteColumn"><input type="checkbox" checked={state.newPerm.invited || state.newPerm.trusted} onclick={() => this.setState(state => {return {newPerm: {...state.newPerm, invited: !state.newPerm.invited}}})}></input></td>
-                <td class="inviteColumn"><input type="checkbox" checked={state.newPerm.remote_permission || state.newPerm.trusted}  onclick={() => this.setState(state => {return {newPerm: {...state.newPerm, remote_permission: !state.newPerm.remote_permission}}})}></input></td>
-                <td class="inviteColumn"><input type="checkbox" checked={state.newPerm.image_permission || state.newPerm.trusted}  onclick={() => this.setState(state => {return {newPerm: {...state.newPerm, image_permission: !state.newPerm.image_permission}}})}></input></td>
+                <td><input name="userId" value={userId} oninput={onInputChange}></input></td>
+                <td><input name="banned" type="checkbox" checked={banned} onclick={onCheckboxToggle}></input></td>
+                <td><input name="trusted" type="checkbox" checked={trusted} onclick={onCheckboxToggle}></input></td>
+                <td><input name="invited" type="checkbox" checked={invited || trusted} onclick={onCheckboxToggle}></input></td>
+                <td><input name="inviteName" value={inviteName} oninput={onInputChange}></input></td>
+                <td><input name="remote_permission" type="checkbox" checked={remote_permission || trusted} onclick={onCheckboxToggle}></input></td>
+                <td><input name="image_permission" type="checkbox" checked={image_permission || trusted} onclick={onCheckboxToggle}></input></td>
                 <td class="tableCenter">
-                    <DefaultButton enabled={true} onclick={() => this.updatePerm(this.state.newPerm)}>Create</DefaultButton>
+                    <DefaultButton enabled={true} onclick={() => updatePerm(newPerm)}>Create</DefaultButton>
                 </td>
                 <td class="tableCenter">
-                    <DefaultButton enabled={true} onclick={() => this.setState({newPerm: {...this.defaultPerms}})}>Clear</DefaultButton>
+                    <DefaultButton enabled={true} onclick={() => setState({ newPerm: { ...defaultPerms } })}>Clear</DefaultButton>
                 </td>
             </tr>
-            {state.permissions.map(perm => 
-            <tr class="accountElement">
-                <td class="inviteColumn">{perm.room}</td>
-                <td class="inviteColumn">{perm.userId}</td>
-                <td class="inviteColumn"><input onclick={()=> this.filterPermissions(perm.room, perm.userId, "banned", !perm.banned)} type="checkbox" checked={perm.banned}></input></td>
-                <td class="inviteColumn"><input onclick={()=> this.filterPermissions(perm.room, perm.userId, "trusted", !perm.trusted)} type="checkbox" checked={perm.trusted}></input></td>
-                <td class="inviteColumn"><input onclick={()=> this.filterPermissions(perm.room, perm.userId, "invited", !perm.invited)} type="checkbox" checked={perm.invited || perm.trusted}/>{perm.inviteName}</td>
-                <td class="inviteColumn"><input onclick={()=> this.filterPermissions(perm.room, perm.userId, "remote_permission", !perm.remote_permission)} type="checkbox" checked={perm.remote_permission|| perm.trusted}></input></td>
-                <td class="inviteColumn"><input onclick={()=> this.filterPermissions(perm.room, perm.userId, "image_permission", !perm.image_permission)} type="checkbox" checked={perm.image_permission|| perm.trusted}></input></td>
-                <td class="tableCenter">
-                    <DefaultButton enabled={true} 
-                    onclick={() => {this.updatePerm(perm)}}>Update</DefaultButton>
+        );
+    };
+
+    PermissionRow = (perm, filterPermissions, updatePerm, deletePerm) => {
+        const {room, userId, banned, trusted, invited, inviteName ,remote_permission, image_permission } = perm;
+
+        const onCheckboxToggle = (e) => {
+            filterPermissions(room, userId, e.target.name, e.target.checked);
+        };
+
+        return (
+            <tr className="default-list-element">
+                <td>{room}</td>
+                <td>{userId}</td>
+                <td><input name="banned" onclick={onCheckboxToggle} type="checkbox" checked={banned}></input></td>
+                <td><input name="trusted" onclick={onCheckboxToggle} type="checkbox" checked={trusted}></input></td>
+                <td><input name="invited" onclick={onCheckboxToggle} type="checkbox" checked={invited || trusted} /></td>
+                <td>{inviteName}</td>
+                <td><input name="remote_permission" onclick={onCheckboxToggle} type="checkbox" checked={remote_permission || trusted}></input></td>
+                <td><input name="image_permission" onclick={onCheckboxToggle} type="checkbox" checked={image_permission || trusted}></input></td>
+                <td class="default-list-table-center">
+                    <DefaultButton enabled={true}
+                        onclick={() => { updatePerm(perm) }}>Update</DefaultButton>
                 </td>
-                <td class="tableCenter">
-                    <DefaultButton enabled={true} onclick={() => this.deletePerm(perm.room,perm.userId)}>Delete</DefaultButton>
+                <td class="default-list-table-center">
+                    <DefaultButton enabled={true} onclick={() => deletePerm(room, userId)}>Delete</DefaultButton>
                 </td>
-            </tr>)}
-        </table>
-        </div>
+            </tr>
+        );
+    };
+
+    render(props, state) {
+        return (
+            <div className="default-list-background">
+                <table className="default-list">
+                    <thead>
+                        <tr>
+                            <th>Room</th>
+                            <th>User</th>
+                            <th>Banned</th>
+                            <th>Trusted</th>
+                            <th>Invited</th>
+                            <th>Invite Name</th>
+                            <th>Remote</th>
+                            <th>Images</th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {this.NewPermissionRow(this.state,this.setState.bind(this),this.updatePerm.bind(this),this.defaultPerms)}
+
+                        {state.permissions.map((perm) => (
+                            this.PermissionRow(perm, this.filterPermissions,this.updatePerm.bind(this),this.deletePerm.bind(this))
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
     }
 }

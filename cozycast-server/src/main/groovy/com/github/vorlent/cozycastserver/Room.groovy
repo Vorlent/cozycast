@@ -27,6 +27,7 @@ class Room {
     Boolean accountOnly = false
     Boolean verifiedOnly = false
     Boolean inviteOnly = false
+    Boolean hidden_to_unauthorized = false
     Boolean centerRemote = false
     Boolean remote_ownership = false
     Boolean default_remote_permission = false
@@ -50,6 +51,7 @@ class Room {
         this.inviteOnly = roomPersistence.inviteOnly
         this.centerRemote = roomPersistence.centerRemote
         this.remote_ownership = roomPersistence.remote_ownership
+        this.hidden_to_unauthorized = roomPersistence.hidden_to_unauthorized
         this.default_remote_permission = roomPersistence.default_remote_permission
         this.default_image_permission = roomPersistence.default_image_permission
 
