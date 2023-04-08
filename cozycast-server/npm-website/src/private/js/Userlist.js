@@ -25,8 +25,13 @@ export class Userlist extends Component {
                         onMouseover={e => showHover(e,user.username,isLeft ? "right" : "top",showUsernames,user.active,updateRoomState)} onMouseout={e => hideHover(updateRoomState)}>
                             <div class={`image avatar ${user.active? "": "isAway"}`} style={background}/>
                             {user.remote && <div class="orangeCircle"></div>}
-                            <img class={`mutedDot ${user.muted? "": "noDisplay"}`} src="/svg/headphone-slash.svg"></img>
-                            <img class={`remoteIcon ${user.remote? "": "noDisplay"}`} src="/svg/remote.svg"></img>
+                            <div class={`mutedDot ${user.muted? "": "noDisplay"}`}>
+                                <img class="mutedDotIcon" src="/svg/headphone-slash.svg"></img>
+                            </div>
+                            <div class={`remoteIcon ${user.remote? "": "noDisplay"}`} >
+                                <img class="remoteIconIcon" src="/svg/remoteAlpha.svg"></img>
+                            </div>
+                            
                         </div>
                         {showUsernames && !(smallPfp && isLeft) && <div class={`${user.active? "": "isAway"} userprofileName`}>{user.username}</div>}
                     </div>

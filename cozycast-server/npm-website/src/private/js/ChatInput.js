@@ -206,7 +206,7 @@ export class ChatInput extends Component {
     render(_,state) {
         return <Fragment>
             {this.state.screenshotModal && <ScreenshotModal href={this.state.currentScreenshot} sendMessage={this.props.sendMessage} setChatState={this.setState.bind(this)}></ScreenshotModal>}
-            <ConfirmUpload sendFile={this.state.sendFile} pasteFile={this.state.pasteFile} clear={this.clearFile} sendMessage={this.props.sendMessage} screenshot={this.state.screenshotModal}/>
+            <ConfirmUpload sendFile={this.state.sendFile} pasteFile={this.state.pasteFile} clear={this.clearFile} sendMessage={this.props.sendMessage} screenshot={this.state.screenshotModal} anonymous={this.props.permissions.anonymous}/>
             <div id="chatbox" onclick={() => this.refChatboxText.current.focus()}>
                 {this.state.editTarget && <button class="editMode" onclick={this.exitEdit}>End Edit</button>}
                 <div class={`image-uploader ${this.state.chatBox.length != 0 ? "hasText" : ""}`}>
@@ -214,10 +214,10 @@ export class ChatInput extends Component {
                         <textarea id="chat-textbox" ref={this.refChatboxText} value={this.state.chatBox} class="chatbox-textarea" oninput={this.chatInput} onkeypress={this.chatEnter} onpaste={this.openConfirmWindowPaste}>
                         </textarea>
                     </div>
-                    {this.props.permissions.imagePermission && this.props.profile.username &&
+                    {this.props.permissions.imagePermission && !this.props.permissions.anonymous &&
                     <div class="image-uploader-button-wrapper">
                         <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp" onchange={this.openConfirmWindow} ref={this.refImageUploadFile}/>
-                        {this.state.chatBox.length == 0 && <Fragment><img class="image-uploader-button" src="/svg/screenshot.svg" onclick={this.screenshot}/><img class="image-uploader-button" src="/svg/image_upload.svg" onclick={this.openPictureUpload}/></Fragment>}
+                        {this.state.chatBox.length == 0 && <Fragment><img class="image-uploader-button" src="/svg/screen_shot.svg" onclick={this.screenshot}/><img class="image-uploader-button" src="/svg/imageupload.svg" onclick={this.openPictureUpload}/></Fragment>}
                     </div>
                     }
                 </div>

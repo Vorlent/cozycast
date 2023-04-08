@@ -16,26 +16,25 @@ export class Accounts extends Component {
     }
 
     refresh() {
-        authFetch("/api/profile/all").then(e => {
+        authFetch('/api/profile/all').then((e) => {
             switch (e) {
                 case TokenStatus.NO_TOKEN:
-                    console.log("not logged in")
-                    break;
                 case TokenStatus.EXPIRED:
-                    console.log("not logged in")
+                    console.log('not logged in');
                     break;
                 default:
-                    e.json().then(e => {
+                    e.json().then((e) => {
                         console.log(e);
-                        this.setState(state => { return { accounts: e } })
-                    })
+                        this.setState((state) => ({ accounts: e }));
+                    });
             }
-        }
-        )
+        });
     }
 
     deleteUser(username) {
-        authFetch(`/api/profile/${username}`, { method: "DELETE" }).then(e => this.refresh())
+        if(confirm("Are you sure you want to delete " + username)){
+            authFetch(`/api/profile/${username}`, { method: "DELETE" }).then(e => this.refresh())
+        }
     }
 
     updateUser(username, admin, verified) {
@@ -52,41 +51,70 @@ export class Accounts extends Component {
     }
 
     render({ profile }, state) {
-        return <div class="accountListBackground">
-            <table class="accountList">
-                <tr>
-                    <td></td>
-                    <td>username</td>
-                    <td>nickname</td>
-                    <td>color</td>
-                    <td class="tableCenter">verified</td>
-                    <td class="tableCenter">admin</td>
-                    <td class="tableCenter">delete</td>
-                </tr>
-                {state.accounts.map(account =>
-                    <tr class="accountElement">
-                        <td class="avatarContainerHeader"><img src={account.avatarUrl} class="avatarImageHeader"></img></td>
-                        <td class="accountName">{account.username}</td>
-                        <td class="accountName">{account.nickname}</td>
-                        <td class="accountName">{account.nameColor}</td>
-                        <td class="tableCenter" ><DefaultButton enabled={account.verified} onclick={() => this.updateUser(account.username, account.admin, !account.verified)}>
-                            {account.verified ? "verified" : "Not verified"}</DefaultButton>
-                        </td>
-                        {
-                            profile.username != account.username &&
-                            <Fragment>
-                                <td class="tableCenter">
-                                    <DefaultButton enabled={account.admin} onclick={() => this.updateUser(account.username, !account.admin, account.verified)}>{account.admin ? 'Remove Admin' : 'Make Admin'}</DefaultButton>
+        return (
+            <div class="default-list-background">
+                <table class="default-list">
+                    <tr>
+                        <th>Avatar</th>
+                        <th>Username</th>
+                        <th>Nickname</th>
+                        <th>Color</th>
+                        <th class="default-list-table-center">Verified</th>
+                        <th class="default-list-table-center">Admin</th>
+                        <th class="default-list-table-center">Delete</th>
+                    </tr>
+                    <tbody>
+                        {state.accounts.map((account) => (
+                            <tr class="default-list-element">
+                                <td class="default-list-avatar-container-header">
+                                    <img src={account.avatarUrl} class="default-list-avatar-image-header"></img>
                                 </td>
-                                <td class="tableCenter">
-                                    <DefaultButton enabled={!account.admin} onclick={() => this.deleteUser(account.username)}>{account.admin ? 'Cant delete Admin' : 'Delete'}</DefaultButton>
+                                <td class="default-list-name">{account.username}</td>
+                                <td class="default-list-nickname">{account.nickname}</td>
+                                <td class="default-list-color">
+                                    <span style={{ backgroundColor: account.nameColor, width: '10px', height: '10px', display: 'inline-block', marginRight: '5px', borderRadius: '2px' }}></span>
+                                    {account.nameColor}
                                 </td>
-                            </Fragment>
 
-                        }
-                        {profile.username == account.username && <Fragment><td class="tableCenter" >(you)</td><td class="tableCenter">(you)</td></Fragment>}
-                    </tr>)}
-            </table>
-        </div>
+                                <td class="default-list-table-center">
+                                    <DefaultButton
+                                        enabled={account.verified}
+                                        onclick={() => this.updateUser(account.username, account.admin, !account.verified)}
+                                    >
+                                        {account.verified ? 'verified' : 'Not verified'}
+                                    </DefaultButton>
+                                </td>
+                                {profile.username != account.username && (
+                                    <Fragment>
+                                        <td class="default-list-table-center">
+                                            <DefaultButton
+                                                enabled={account.admin}
+                                                onclick={() => this.updateUser(account.username, !account.admin, account.verified)}
+                                            >
+                                                {account.admin ? 'Remove Admin' : 'Make Admin'}
+                                            </DefaultButton>
+                                        </td>
+                                        <td class="default-list-table-center">
+                                            <DefaultButton
+                                                enabled={!account.admin}
+                                                onclick={() => this.deleteUser(account.username)}
+                                            >
+                                                {account.admin ? "Disabled" : 'Delete'}
+                                            </DefaultButton>
+                                        </td>
+                                    </Fragment>
+                                )}
+                                {profile.username == account.username && (
+                                    <Fragment>
+                                        <td class="default-list-table-center">(you)</td>
+                                        <td class="default-list-table-center">(you)</td>
+                                    </Fragment>
+                                )}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
     }
 }

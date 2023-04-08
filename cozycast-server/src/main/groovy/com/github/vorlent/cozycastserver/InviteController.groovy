@@ -56,6 +56,14 @@ class InviteController {
         return HttpResponse.status(HttpStatus.NOT_FOUND)   
     }
 
+    @Secured(SecurityRule.IS_ANONYMOUS)
+    @Get("/access/{code}")
+    Object checkTempInvite(String code) {
+        def name = inviteService.checkAccess(code)
+        if(name) return name
+        return HttpResponse.status(HttpStatus.NOT_FOUND)   
+    }
+
     @Secured("ROLE_ADMIN")
     @Get("/new")
     Object create(@NotBlank @QueryValue("room") String room,
@@ -63,9 +71,10 @@ class InviteController {
         @QueryValue(value = "expiration", defaultValue = "-1") Integer expiration,
         @QueryValue(value = "remotePermission", defaultValue = "false") boolean remotePermission,
         @QueryValue(value = "imagePermission", defaultValue = "false") boolean imagePermission,
+        @QueryValue(value = "temporary", defaultValue = "false") boolean temporary,
         @Nullable @QueryValue(value = "inviteName") String inviteName) {
         
-        String code = inviteService.create(room, maxUses, expiration, remotePermission, imagePermission, inviteName);
+        String code = inviteService.create(room, maxUses, expiration, remotePermission, imagePermission, inviteName, temporary);
         return [code: code]
     }
 

@@ -18,7 +18,9 @@ export class UserlistSidebar extends Component {
                  <div class="avatarContainer">
                     <div class="image avatar" style={{'background-image': `url(${user.url})`}}/>
                     <div class={`onlineDot ${user.active? "isOnline": "isInactive"}`}></div>
-                    <img class={`mutedDot ${user.muted? "": "noDisplay"}`} src="/svg/headphone-slash.svg"></img>
+                    <div class={`mutedDot ${user.muted? "": "noDisplay"}`}>
+                        <img class="mutedDotIcon" src="/svg/headphone-slash.svg"></img>
+                    </div>
                 </div>
                 <div class="usernameSidebar">
                     <div class="usernameList">{user.username}</div>

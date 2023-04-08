@@ -9,12 +9,15 @@ import { Room } from './Room.js'
 import { Register } from './Register.js'
 import { authFetch, TokenStatus, logOut, getToken } from './Authentication.js'
 import { Header } from './Header.js';
-import { Accounts } from './Accounts.js';
 import { Profile } from './Profile.js';
+import { InfoScreen } from './InfoScreen.js';
+import { Access } from './Access.js';
+
+import { Accounts } from './Accounts.js';
 import { InviteManager } from './InviteManager.js';
 import { PermissionManager } from './PermissionManager.js';
-import { InfoScreen } from './InfoScreen.js';
 import { MiscSettings } from './MiscSettings.js';
+import { AdminPage } from './AdminPage.js';
 
 export var SidebarState = {
     CHAT: "CHAT",
@@ -35,11 +38,29 @@ export function queryParams(params) {
         .join('&');
 }
 
+function switchDesign(newDesign){
+    let design;
+    switch (newDesign) {
+        case 'legacyDesign':
+            design = 'legacyDesign';
+            break;
+        case 'lightDesign':
+            design = 'lightDesign';
+            break;
+        case 'defaultDesign':
+        default:
+            design = 'defaultDesign';
+            break;
+    }
+    return design;
+}
+
 class App extends Component {
     constructor(props) {
+        let design = switchDesign(localStorage.getItem("design"));
         super(props);
         this.state = {
-            legacyDesign: localStorage.hasOwnProperty('legacyDesign') ? localStorage.getItem("legacyDesign") == 'true' : false,
+            design: design,
             profile: {
                 admin: false,
                 nickname: "Anonymous",
@@ -56,6 +77,12 @@ class App extends Component {
 
     componentDidUpdate(){
         //console.log(this.state);
+    }
+
+    updateDesign = (newDesign) => {
+        let design = switchDesign(newDesign);
+        localStorage.setItem("design", design);
+        this.setState({design: design});
     }
 
     logout = () => {
@@ -167,29 +194,30 @@ class App extends Component {
 
     render(_, state) {
         if (!this.state.loginCompleted)
-            return <div id="pagecontent" class={state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}>
-                <InfoScreen message={"Connecting to CozyCast..."} submessage={"If this takes too long please refresh"} legacyDesign={state.legacyDesign} />
+            return <div id="pagecontent" class={state.design}>
+                <InfoScreen message={"Connecting to CozyCast..."} submessage={"If this takes too long please refresh"} />
             </div>
-        return <div id="pagecontent" class={state.legacyDesign ? "legacyDesign" : "noiseBackground defaultDesign"}>
-            <Match path="/">{({ matches, path, url }) => {
-                if (url.startsWith('/room')) {
-                    return;
-                }
-                return <Header loggedIn={this.state.loggedIn} profile={this.state.profile} logout={this.logout.bind(this)} registerWithInviteOnly={this.state.registerWithInviteOnly}></Header>
+        return <div id="pagecontent" class={state.design}>
+            <Match path="/room/:">{({matches,url}) => {
+                if (matches) return;
+                return <Header url={url} loggedIn={state.loggedIn} profile={state.profile} logout={this.logout.bind(this)} registerWithInviteOnly={state.registerWithInviteOnly}></Header>
             }
             }
             </Match>
+
             <Router onChange={this.checkIfLoggedOut}>
                 <RoomList path="/" profile={this.state.profile} roomPerms={state.roomPerms} loggedIn={state.loggedIn} message={this.state.message}/>
-                <Room path="/room/:roomId" setAppState={this.setState.bind(this)} profile={this.state.profile} updateProfile={this.updateProfile.bind(this)} legacyDesign={this.state.legacyDesign}/>
+                <Room path="/room/:roomId" setAppState={this.setState.bind(this)} profile={this.state.profile} updateProfile={this.updateProfile.bind(this)} design={this.state.design} updateDesign={this.updateDesign.bind(this)}/>
                 <Invite path="/invite/:code" updatePermissions={this.updatePermissions.bind(this)} setAppState={this.setState.bind(this)} />
+                <Access path="/access/:code" />
                 <Login path="/login/" loggedIn={this.state.loggedIn} logout={this.logout.bind(this)} login={this.login.bind(this)} inviteCode={this.state.inviteCode} />
                 <Register path="/register" inviteCode={this.state.inviteCode} setAppState={this.setState.bind(this)}/>
-                <Accounts path="/accounts" profile={this.state.profile} />
                 <Profile path="/profile" profile={this.state.profile} setAppState={this.setState.bind(this)} updateProfile={this.updateProfile.bind(this)} />
-                <InviteManager path="/invites" profile={this.state.profile} />
-                <PermissionManager path="/permission" />
-                <MiscSettings path="/cozysettings" message={this.state.message} registerWithInviteOnly={this.state.registerWithInviteOnly} updateMisc={this.fetchMisc.bind(this)}/>
+
+                <AdminPage path="/accounts" profile={this.state.profile} />
+                <AdminPage path="/invites" profile={this.state.profile} />
+                <AdminPage path="/permission" />
+                <AdminPage path="/cozysettings" message={this.state.message} registerWithInviteOnly={this.state.registerWithInviteOnly} updateMisc={this.fetchMisc.bind(this)}/>
             </Router>
         </div>
             ;

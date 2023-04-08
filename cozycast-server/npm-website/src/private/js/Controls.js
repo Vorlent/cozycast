@@ -39,7 +39,7 @@ export class Controls extends Component {
     toggleMute = () => {
         let updatedMuted = !this.props.state.muted;
         localStorage.setItem("muted",updatedMuted);
-        if(this.props.state.showIfMuted) {
+        if(this.props.state.userSettings.showIfMuted) {
             this.props.sendMessage({
                 action : 'userMuted',
                 muted: updatedMuted || this.props.state.videoPaused
@@ -101,6 +101,7 @@ export class Controls extends Component {
     }
     
     remote = () => {
+        if(this.props.disabledRemote) return;
         if(this.props.state.remote) {
             this.props.sendMessage({
                 action : 'drop_remote'
@@ -112,19 +113,6 @@ export class Controls extends Component {
         }
     }
 
-    shouldComponentUpdate(nextProps, nextState){
-        return this.props.state.userlistHidden !== nextProps.state.userlistHidden ||
-        this.props.state.UserRoomSettings !== nextProps.state.UserRoomSettings ||
-        this.props.state.remote !== nextProps.state.remote ||
-        this.props.state.videoPaused !== nextProps.state.videoPaused ||
-        this.props.state.fullscreen !== nextProps.state.fullscreen ||
-        this.props.state.muted !== nextProps.state.muted ||
-        this.props.state.volume !== nextProps.state.volume ||
-        this.props.state.roomSidebar  !== nextProps.state.roomSidebar ||
-        this.props.state.admin  !== nextProps.state.admin ||
-        this.props.permissions !== nextProps.permissions;
-    }
-
     render({state, permissions}){
         let middle = <div class={`subControls ${state.fullscreen ? "fullscreenRemote" : ""}`}>
                 <Button enabled={false} onclick={this.dropRemoteAndCenter} 
@@ -132,8 +120,8 @@ export class Controls extends Component {
                     <img class="video-control-icon" src="/svg/crosshair.svg"/>
                 </Button>
                 {permissions.remotePermission && <Button enabled={state.remote} onclick={this.remote} style="buttonSmall" title="remote">
-                    <div class="video-control-icon">
-                    <RemoteIcon enabled={state.remoteUsed && false}/>
+                    <div class={`video-control-icon`}>
+                    <RemoteIcon enabled={!this.props.disabledRemote}/>
                     </div>
                 </Button>
                 }
@@ -160,10 +148,12 @@ export class Controls extends Component {
                         <img class="video-control-icon" src={state.userlistOnLeft||state.fullscreen? state.userlistHidden ? '/svg/chevron-right.svg' : '/svg/chevron-left.svg' : state.userlistHidden ? '/svg/chevron-up.svg' : '/svg/chevron-down.svg'}/>
                     </Button>
                     <Button enabled={state.UserRoomSettings}
-                            onclick={() => this.props.updateRoomState({UserRoomSettings: true})} style="buttonSmall">
-                            <img class="video-control-icon" src="/svg/settings.svg"/>
-                        </Button>
-                    <Button enabled={false} onclick={() => route('/',true)} style="buttonBig">Rooms</Button>
+                        onclick={() => this.props.updateRoomState({UserRoomSettings: true})} style="buttonSmall">
+                        <img class="video-control-icon" src="/svg/settings.svg"/>
+                    </Button>
+                    <Button enabled={false} onclick={() => route('/',true)} style="buttonSmall">
+                        <img class="video-control-icon" src="/svg/home.svg"/>
+                    </Button>
                 </div>
                 {middle}
                 <div class="subControls">

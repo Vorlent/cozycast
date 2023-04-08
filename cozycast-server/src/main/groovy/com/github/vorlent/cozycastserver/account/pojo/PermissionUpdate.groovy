@@ -21,6 +21,9 @@ class PermissionUpdate{
     @NotNull(message = "Must declare image permission")
     Boolean image_permission
 
+    @NotNull(message = "Must declare trusted")
+    Boolean trusted
+
     @NotNull(message = "Must declare room")
     String room
 

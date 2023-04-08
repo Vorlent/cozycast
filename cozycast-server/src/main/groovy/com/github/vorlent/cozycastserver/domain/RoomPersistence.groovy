@@ -17,6 +17,8 @@ class RoomPersistence implements GormEntity<RoomPersistence> {
     Boolean verifiedOnly = false
     Boolean inviteOnly = false
     Boolean centerRemote = false
+    Boolean remote_ownership = false
+    Boolean hidden_to_unauthorized = false
     Boolean default_remote_permission = false
     Boolean default_image_permission = false
 

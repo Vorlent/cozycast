@@ -3,6 +3,7 @@ package com.github.vorlent.cozycastserver
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
+import io.micronaut.http.annotation.Delete
 import io.micronaut.http.annotation.QueryValue
 import io.micronaut.http.annotation.Body
 import javax.validation.constraints.NotBlank
@@ -47,6 +48,16 @@ class PermissionController {
     }
 
     @Secured(["ROLE_ADMIN"])
+    @Get("/{roomQuery}")
+    ArrayList roomPerms(String roomQuery) {
+        ArrayList perms = null
+        RoomPermission.withTransaction {
+            perms = RoomPermission.findAllByRoom(roomQuery)
+        }
+        return perms;
+    }
+
+    @Secured(["ROLE_ADMIN"])
     @Post("/")
     Object editPerms(@Body @Valid PermissionUpdate permission) {
         User.withTransaction{
@@ -62,18 +73,38 @@ class PermissionController {
                         banned: permission.banned,
                         remote_permission: permission.remote_permission,
                         image_permission: permission.image_permission,
+                        trusted: permission.trusted,
                         bannedUntil : null
                     )
                 } else{
+                        perms.bannedUntil = permission.banned == perms.banned ? perms.bannedUntil : null
                         perms.invited = permission.invited
                         perms.banned = permission.banned
                         perms.remote_permission = permission.remote_permission
                         perms.image_permission = permission.image_permission
+                        perms.trusted = permission.trusted
                 }
                 perms.save();
                 return HttpResponse.status(HttpStatus.OK)
             }
         }
+    }
+
+    @Secured("ROLE_ADMIN")
+    @Delete("/{roomQuery}/{userQuery}")
+    Object deleteInvite(String roomQuery, String userQuery) {
+        User.withTransaction {
+            User user = User.get(userQuery)
+            if (user) {
+                RoomPermission.withCriteria {
+                    eq('user', user)
+                    eq('room', roomQuery)
+                }.each {
+                    it.delete()
+                }
+            }
+        }
+        return HttpResponse.status(HttpStatus.OK);
     }
 
     @Get("/")

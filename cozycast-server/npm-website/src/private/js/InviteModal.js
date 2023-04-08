@@ -11,6 +11,7 @@ export class InviteModal extends Component {
             expiration: 5,
             remotePermission: false,
             imagePermission: false,
+            temporary: false,
             inviteName: "",
             code: "Press Generate"
         }
@@ -45,14 +46,15 @@ export class InviteModal extends Component {
             expiration: this.state.expiration,
             remotePermission: this.state.remotePermission,
             imagePermission: this.state.imagePermission,
-            inviteName: this.state.inviteName
+            inviteName: this.state.inviteName,
+            temporary: this.state.temporary,
         }))
             .then((e) => {
                 if (e.status == 401) { return Promise.reject("Unauthorized"); }; e.json().then((e) => {
                     console.log(e)
-                    this.setState({
-                        code: location.host + '/invite/' + e.code
-                    })
+                    this.setState(({temporary}) => ({
+                        code: location.host + (temporary ? '/access/' : '/invite/') + e.code
+                    }))
                 })
             }).catch((error) => this.setState({ code: 'error: ' + error }));;
     }
@@ -73,6 +75,11 @@ export class InviteModal extends Component {
                         Invite Link
                     </div>
                     <button type="button" class="modal-close" onclick={this.closeInvite}>X</button>
+                </div>
+                <div class="modal-row">
+                    <input id="inviteRemotePermission" type="checkbox" checked={this.state.temporary}
+                        onclick={() => this.setState(({temporary}) => ({temporary: !temporary}))}></input>
+                    <label for="inviteRemotePermission">Temporary</label>
                 </div>
                 <div class="modal-row">
                     <input id="inviteRemotePermission" type="checkbox" checked={this.state.remotePermission}

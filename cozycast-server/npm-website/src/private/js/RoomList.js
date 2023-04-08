@@ -1,8 +1,9 @@
 import { Component, h, Fragment } from 'preact'
 import { InviteModal } from './InviteModal.js'
-import { authFetch} from './Authentication.js'
+import { authFetch, optAuthFetch} from './Authentication.js'
 import { route } from 'preact-router'
 import { DefaultButton } from './DefaultButton.js';
+
 
 export class RoomList extends Component {
     constructor(props){
@@ -22,9 +23,9 @@ export class RoomList extends Component {
     }
 
     refresh() {
-        fetch('/api/room').then((e) => e.json()).then((e) => {
+        optAuthFetch('/api/room').then((e) => e.json()).then((e) => {
             this.setState({
-                roomlist: e.map(room => ({ "id": room.id, "name": room.id, "userCount": room.userCount, "accountOnly": room.accountOnly,"verifiedOnly": room.verifiedOnly,"inviteOnly": room.inviteOnly}))
+                roomlist: e
             })
         });
     }
@@ -33,25 +34,12 @@ export class RoomList extends Component {
         this.refresh()
     }
 
-    canJoin(room) {
-        if(room.inviteOnly){
-            let perm = this.props.roomPerms.get(room.name);
-            if(!perm || perm.banned) return false;
-            return perm.invited;
-        }
-        if(room.accountOnly){
-            return this.props.loggedIn
-        }
-        return true;
-    }
-
-    render({profile,loggedIn,roomPerms}) {
+    render({profile}) {
     return <div class="roomManagement">
             <div class="room-list-background">
                 {this.state.inviteModal && <InviteModal roomId={this.state.currentRoom} updateSettingsState={this.setState.bind(this)}/>}
                 <div class="room-list">
                     <div class="room-message">{this.props.message.split("\n").map((message, index) => <Fragment>{index != 0 && <br />}{message}</Fragment>)}</div>
-                    <DefaultButton enabled={true} onclick={this.refresh.bind(this)} style="buttonRefresh">refresh</DefaultButton>
                     <div class="room-list-title">
                         Rooms
                     </div>
@@ -87,19 +75,20 @@ export class RoomList extends Component {
                                             </button></td>
                                     </Fragment>
                                 }
-                                <td><span class="room-list-entry-name">{room.name}</span>
+                                <td><span class="room-list-entry-name">{room.id}</span>
                                     {room.inviteOnly && <span class="room-badge">Invite Only</span>}
                                     {room.verifiedOnly && <span class="room-badge">Verified Only</span>}
                                     {room.accountOnly  && <span class="room-badge">Account Only</span>}</td>
                                 <td><span class="room-list-entry-usercount">{room.userCount} users</span></td>
                                 <td class ="room-list-join-column" ><button type="button" class="btn btn-danger btn-join btnStandard" onclick={e =>  route(`/room/${room.id}`,true) }
-                                disabled={!(this.canJoin(room) || profile.verified)}>
-                                        {(this.canJoin(room) || profile.verified)? 'Join' : 'Closed'}
+                                disabled={!room.open}>
+                                        {room.open ? 'Join' : 'Closed'}
                                         </button></td>
                             </tr>
                         )}
                         </tbody>
                     </table>
+                    {(this.state.roomlist.length == 0) && <div>Currently none availaible</div>}
                 </div>
             </div>
         </div>

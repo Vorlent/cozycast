@@ -16,6 +16,8 @@ services:
     cozycast-worker:
         volumes:
             - "../cozycast-worker/worker.lua:/worker.lua"
+            - "../cozycast-worker/entrypoint.sh:/entrypoint.sh"
+            - "../cozycast-worker/capture.sh:/capture.sh"
 
 
 # mkdir -p cache/avatar cache/.gradle cache/build

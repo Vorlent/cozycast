@@ -54,6 +54,7 @@ export class Room extends Component {
     constructor(props) {
         super(props);
         //state setup
+        let userSettings = JSON.parse(localStorage.getItem("userSettings"));
         let volume = parseInt(localStorage.getItem("volume"));
         if (!isNaN(volume)) volume = Math.max(Math.min(volume, 100), 0);
         else volume = 100;
@@ -69,6 +70,7 @@ export class Room extends Component {
                 imagePermission: false
             },
             permissions: {
+                trusted: false,
                 remotePermission: false,
                 imagePermission: false
             },
@@ -76,11 +78,13 @@ export class Room extends Component {
             pingLookup: {},
             roomlist: [],
             chatMessages: [],
+            userlistadmin: [],
             newMessage: false,
             forceChatScroll: false,
             remote: false,
             remoteUsed: false,
             volume: volume,
+            muted: localStorage.hasOwnProperty('muted') ? localStorage.getItem("muted") == 'true' : false,
             videoPaused: true,
             videoLoading: false,
             viewPort: {
@@ -89,19 +93,7 @@ export class Room extends Component {
             },
             roomSidebar: SidebarState.CHAT,
             workerStatus: WorkerStatus.STARTED,
-            roomSettings: {
-                workerStarted: true,
-                desktopResolution: 720,
-                streamResolution: 720,
-                framerate: 25,
-                videoBitrate: 1000,
-                audioBitrate: 96,
-                accessType: "public",
-                centerRemote: false,
-                default_image_permission: true,
-                default_remote_permission: true
-
-            },
+            roomSettings: {},
             session: null,
             windowTitle: "CozyCast: Low latency screen capture via WebRTC",
             historyMode: false,
@@ -115,13 +107,13 @@ export class Room extends Component {
                 days: []
             },
             userlistHidden: false,
-            smallPfp: localStorage.hasOwnProperty('smallPfp') ? localStorage.getItem("smallPfp") == 'true' : false,
-            muteChatNotification: localStorage.hasOwnProperty('muteChatNotification') ? localStorage.getItem("muteChatNotification") == 'true' : true,
-            showUsernames: localStorage.hasOwnProperty('showUsernames') ? localStorage.getItem("showUsernames") == 'true' : true,
-            muted: localStorage.hasOwnProperty('muted') ? localStorage.getItem("muted") == 'true' : false,
-            showIfMuted: localStorage.hasOwnProperty('showIfMuted') ? localStorage.getItem("showIfMuted") == 'true' : false,
-            userlistOnLeft: localStorage.hasOwnProperty('userlistOnLeft') ? localStorage.getItem("userlistOnLeft") == 'true' : false,
-            transparentChat: localStorage.hasOwnProperty('transparentChat') ? localStorage.getItem("transparentChat") == 'true' : true
+            userSettings:{
+                muteChatNotification: true,
+                showUsernames: true,
+                transparentChat: true,
+                showLeaveJoinMsg: true,
+                ...userSettings
+            }
         };
         //bind function so they can be passed down as props
         this.pauseVideo = this.pauseVideo.bind(this)
@@ -215,7 +207,7 @@ export class Room extends Component {
             videoElement.play();
             this.webrtc_start();
         }
-        if (this.state.showIfMuted) {
+        if (this.state.userSettings.showIfMuted) {
             this.sendMessage({
                 action: 'userMuted',
                 muted: this.state.muted || updatedPaused
@@ -340,7 +332,9 @@ export class Room extends Component {
             }
         }
 
-        if (parsedMessage.type == "video") {
+        if (parsedMessage.type == "whisper") {
+            queuedMessages.push({ "type": "whisper", message: msg });
+        } else if (parsedMessage.type == "video") {
             queuedMessages.push({ "type": "video", "href": parsedMessage.image });
         } else if (parsedMessage.type == "image") {
             queuedMessages.push({ "type": "image", "href": parsedMessage.image });
@@ -446,7 +440,7 @@ export class Room extends Component {
         if(mention > 0){
             this.rapidPing(mention);
         }
-        else if (this.state.historyMode || !this.state.muteChatNotification && document.hidden && parsedMessage.session !== this.state.session) {
+        else if (!this.state.userSettings.muteChatNotification && document.hidden && parsedMessage.session !== this.state.session) {
             var audio = new Audio('/audio/pop.wav');
             audio.play();
         }
@@ -455,6 +449,23 @@ export class Room extends Component {
             favicon.badge(this.state.newMessageCount + 1);
         }
 
+    }
+
+    tempCount = 0;
+    pushTempMessage= (tempMessage) =>{
+        this.setState((state) => {
+            return {
+                newMessage: true,
+                chatMessages: [...state.chatMessages, {
+                    id: 'tempMessage-ID-' + this.tempCount,
+                    tempMessage: true,
+                    timestamp: moment().format('h:mm A'),
+                    content: tempMessage,
+                    data: [{id: 'tempMessage-ID:' + this.tempCount}]
+                }]
+            }
+        });
+        this.tempCount += 1;
     }
 
     rapidPing = (times) => {
@@ -467,6 +478,7 @@ export class Room extends Component {
 
     join = (parsedMessage) => {
         //this.leave(parsedMessage)
+        this.pushTempMessage(`${parsedMessage.username} joined`)
         var targetName = parsedMessage.username.toLowerCase().replace(/\s/g, '');
         this.setState(state => {
             return {
@@ -630,6 +642,7 @@ export class Room extends Component {
                 }
             }
         })
+        this.pushTempMessage(`${username} left`)
         filterTyping(parsedMessage.session);
     }
 
@@ -654,15 +667,14 @@ export class Room extends Component {
             if (parsedMessage.inviteOnly) a = 'invite';
             return {
                 roomSettings: {
-                    ...this.roomSettings,
-                    accessType: a,
-                    centerRemote: parsedMessage.centerRemote,
-                    default_remote_permission: parsedMessage.default_remote_permission,
-                    default_image_permission: parsedMessage.default_image_permission
+                    ...state.roomSettings,
+                    ...parsedMessage,
+                    accessType: a
                 },
                 permissions: {
-                    remotePermission: state.personalPermissions.remotePermission || parsedMessage.default_remote_permission,
-                    imagePermission: state.personalPermissions.imagePermission || parsedMessage.default_image_permission
+                    ...state.permissions,
+                    remotePermission: state.personalPermissions.remotePermission || state.permissions.trusted || parsedMessage.default_remote_permission,
+                    imagePermission: state.personalPermissions.imagePermission || state.permissions.trusted || parsedMessage.default_image_permission
                 }
             }
         })
@@ -716,8 +728,10 @@ export class Room extends Component {
                                 imagePermission: parsedMessage.imagePermission
                             },
                             permissions: {
-                                remotePermission: parsedMessage.remotePermission || state.roomSettings.default_remote_permission,
-                                imagePermission: parsedMessage.imagePermission || state.roomSettings.default_image_permission
+                                anonymous: parsedMessage.anonymous,
+                                trusted: parsedMessage.trusted,
+                                remotePermission: parsedMessage.trusted || parsedMessage.remotePermission || state.roomSettings.default_remote_permission,
+                                imagePermission: parsedMessage.trusted || parsedMessage.imagePermission || state.roomSettings.default_image_permission
                             }
                         }
                     })
@@ -763,9 +777,29 @@ export class Room extends Component {
                     if (parsedMessage.messages) {
                         this.chatHistory(parsedMessage.messages)
                     }
+                    this.pushTempMessage(`${this.props.profile.nickname} joined`)
                     break;
                 case 'receivemessage':
                     this.chatmessage(parsedMessage);
+                    break;
+                case 'user_list_info':
+                    this.setState(state => { return {userlistadmin: parsedMessage.users}})
+                    break;
+                case 'updatePermission':
+                    this.setState(state => {
+                        return {
+                            personalPermissions: {
+                                remotePermission: parsedMessage.remotePermission,
+                                imagePermission: parsedMessage.imagePermission
+                            },
+                            permissions: {
+                                ...state.permissions,
+                                trusted: parsedMessage.trusted,
+                                remotePermission: parsedMessage.trusted || parsedMessage.remotePermission || state.roomSettings.default_remote_permission,
+                                imagePermission: parsedMessage.trusted || parsedMessage.imagePermission || state.roomSettings.default_image_permission
+                            }
+                        }
+                    })
                     break;
                 case 'deletemessage':
                     this.deletemessage(parsedMessage);
@@ -883,7 +917,8 @@ export class Room extends Component {
         this.sendMessage({
             action: 'join',
             token: bearerToken,
-            muted: (this.state.showIfMuted ? this.state.muted : false)
+            access: this.props.matches.access,
+            muted: (this.state.userSettings.showIfMuted ? this.state.muted : false)
         });
     }
 
@@ -977,18 +1012,18 @@ export class Room extends Component {
                     </DefaultButton>
                 </InfoScreen>}
             {!this.isBanned() && <Fragment>
-                {!state.userlistHidden && (state.fullscreen || state.userlistOnLeft) && <div><Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={true} smallPfp={state.smallPfp} fullscreen={state.fullscreen} hasRemote={state.remote} updateRoomState={this.updateRoomState} /></div>}
+                {!state.userlistHidden && (state.fullscreen || state.userSettings.userlistOnLeft) && <div><Userlist showUsernames={state.userSettings.showUsernames} userlist={state.userlist} isLeft={true} smallPfp={state.userSettings.smallPfp} fullscreen={state.fullscreen} hasRemote={state.remote} updateRoomState={this.updateRoomState} /></div>}
                 <div id="videoWrapper" class="videoWrapper">
                     <VideoControls state={state} sendMessage={this.sendMessage} pauseVideo={this.pauseVideo} updateRoomState={this.updateRoomState} />
                     <div id="pagetoolbar" class={state.fullscreen ? "toolbarFullscreen" : ""}>
-                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} pauseVideo={this.pauseVideo} permissions={state.permissions} />
-                        {!state.userlistHidden && !state.fullscreen && !state.userlistOnLeft && <Userlist showUsernames={state.showUsernames} userlist={state.userlist} isLeft={false} smallPfp={state.smallPfp} updateRoomState={this.updateRoomState} />}
+                        <Controls state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} pauseVideo={this.pauseVideo} permissions={state.permissions} disabledRemote={this.state.remoteUsed && this.state.roomSettings.remote_ownership}/>
+                        {!state.userlistHidden && !state.fullscreen && !state.userSettings.userlistOnLeft && <Userlist showUsernames={state.userSettings.showUsernames} userlist={state.userlist} isLeft={false} smallPfp={state.userSettings.smallPfp} updateRoomState={this.updateRoomState}/>}
                     </div>
                 </div>
-                {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions} pingLookup={state.pingLookup}/>}
-                {state.UserRoomSettings && <UserRoomSettings state={state} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} updateProfile={this.props.updateProfile} setAppState={this.props.setAppState} profile={this.props.profile} legacyDesign={this.props.legacyDesign}/>}
+                {(state.roomSidebar != SidebarState.NOTHING) && <RoomSidebar state={state} transparentChat={state.userSettings.transparentChat} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} profile={this.props.profile} permissions={state.permissions} pingLookup={state.pingLookup}/>}
+                {state.UserRoomSettings && <UserRoomSettings state={state} permissions={state.permissions} userSettings={state.userSettings} sendMessage={this.sendMessage} updateRoomState={this.updateRoomState} updateProfile={this.props.updateProfile} setAppState={this.props.setAppState} profile={this.props.profile} design={this.props.design} updateDesign={this.props.updateDesign}/>}
                 {state.hoverText && <UserHoverName state={state} />}
-                {!state.userlistHidden  && <a tabindex="-1" id="copyright" href="/license" target="_blank" class={state.userlistOnLeft ? "left" : "bottom"}>Copyright (C) 2022 Vorlent</a>}
+                {!state.userlistHidden  && !state.fullscreen && <a tabindex="-1" id="copyright" href="/license" target="_blank" class={state.userSettings.userlistOnLeft ? "left" : "bottom"}>Copyright (C) 2022 Vorlent</a>}
             </Fragment>}
         </Fragment>
     }

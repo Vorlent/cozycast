@@ -22,12 +22,14 @@ class Room {
     final ConcurrentHashMap<String, UserSession> users = new ConcurrentHashMap<>()
     final ConcurrentHashMap<String, String> sessionToName = new ConcurrentHashMap<>()
     WorkerSession worker
-    String remote
+    String remote = null
     String title
     Boolean accountOnly = false
     Boolean verifiedOnly = false
     Boolean inviteOnly = false
+    Boolean hidden_to_unauthorized = false
     Boolean centerRemote = false
+    Boolean remote_ownership = false
     Boolean default_remote_permission = false
     Boolean default_image_permission = false
     VideoSettings videoSettings = new VideoSettings(
@@ -48,6 +50,8 @@ class Room {
         this.verifiedOnly = roomPersistence.verifiedOnly
         this.inviteOnly = roomPersistence.inviteOnly
         this.centerRemote = roomPersistence.centerRemote
+        this.remote_ownership = roomPersistence.remote_ownership
+        this.hidden_to_unauthorized = roomPersistence.hidden_to_unauthorized
         this.default_remote_permission = roomPersistence.default_remote_permission
         this.default_image_permission = roomPersistence.default_image_permission
 
@@ -63,6 +67,14 @@ class Room {
     }
 
     Room(){};
+
+    def getUserInfo() {
+        List<UserSessionInfo> userSessionInfoList = users.values().stream()
+        .map({ userSession -> new UserSessionInfo(userSession) })
+        .collect()
+        return userSessionInfoList;
+    }
+
 
     def restartByUser(){
         if(ZonedDateTime.now(ZoneId.of("UTC")).minusHours(1) > lastRestarted){

@@ -14,21 +14,39 @@ export class Chat extends Component {
         }
     }
 
-    render({state}) {
+    render({ state: propsState }, state) {
         var roomId = state.roomId;
-        if(roomId == null || roomId == "default") {
+        if (roomId == null || roomId == "default") {
             roomId = "";
         }
         return <div id="chat">
-            {this.state.imageModal && <ImageModal type={this.state.type} href={this.state.href} setChatState={this.setState.bind(this)}/>}
-            {this.state.historyMode && <div class="history-mode-indicator">Old messages</div>}
-            <ChatMessages sendMessage={this.props.sendMessage} historyMode={this.state.historyMode} 
-                chatMessages={this.props.state.chatMessages} session={this.props.state.session} 
-                newMessage={this.props.state.newMessage} setChatState={this.setState.bind(this)}
-                forceChatScroll={this.props.state.forceChatScroll} updateRoomState={this.props.updateRoomState}
-                profile={this.props.profile} pingLookup={this.props.pingLookup}
-                />
-            <ChatInput sendMessage={this.props.sendMessage} historyMode={this.state.historyMode} editContent={this.state.editContent} editTarget={this.state.editTarget} viewPort={this.props.state.viewPort} setChatState={this.setState.bind(this)} permissions={this.props.permissions} profile={this.props.profile}/>
+            {this.state.imageModal &&
+                <ImageModal
+                    type={this.state.type}
+                    href={this.state.href}
+                    setChatState={this.setState.bind(this)} />}
+            <ChatMessages
+                sendMessage={this.props.sendMessage}
+                historyMode={state.historyMode}
+                chatMessages={propsState.chatMessages}
+                session={propsState.session}
+                newMessage={propsState.newMessage} 
+                setChatState={this.setState.bind(this)}
+                forceChatScroll={propsState.forceChatScroll}
+                updateRoomState={this.props.updateRoomState}
+                profile={this.props.profile}
+                pingLookup={this.props.pingLookup}
+                showLeaveJoinMsg={propsState.userSettings.showLeaveJoinMsg}
+            />
+            <ChatInput
+                sendMessage={this.props.sendMessage}
+                historyMode={state.historyMode}
+                editContent={state.editContent}
+                editTarget={state.editTarget}
+                viewPort={propsState.viewPort}
+                setChatState={this.setState.bind(this)}
+                permissions={this.props.permissions}
+                profile={this.props.profile} />
         </div>
     }
 }
