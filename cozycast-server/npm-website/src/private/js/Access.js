@@ -16,7 +16,6 @@ export class Access extends Component {
                 this.setState({ message: "Error", submessage: "Invalid access link" })
             else {
                 e.json().then((e) => {
-                    console.log(e)
                     route(`/room/${e.name}?access=${this.props.code}`, false)
                 }
                 )

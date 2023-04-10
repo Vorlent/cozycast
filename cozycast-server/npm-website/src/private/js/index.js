@@ -13,10 +13,6 @@ import { Profile } from './Profile.js';
 import { InfoScreen } from './InfoScreen.js';
 import { Access } from './Access.js';
 
-import { Accounts } from './Accounts.js';
-import { InviteManager } from './InviteManager.js';
-import { PermissionManager } from './PermissionManager.js';
-import { MiscSettings } from './MiscSettings.js';
 import { AdminPage } from './AdminPage.js';
 
 export var SidebarState = {
@@ -216,8 +212,8 @@ class App extends Component {
 
                 <AdminPage path="/accounts" profile={this.state.profile} />
                 <AdminPage path="/invites" profile={this.state.profile} />
-                <AdminPage path="/permission" />
-                <AdminPage path="/cozysettings" message={this.state.message} registerWithInviteOnly={this.state.registerWithInviteOnly} updateMisc={this.fetchMisc.bind(this)}/>
+                <AdminPage path="/permission" profile={this.state.profile}/>
+                <AdminPage path="/cozysettings" profile={this.state.profile} message={this.state.message} registerWithInviteOnly={this.state.registerWithInviteOnly} updateMisc={this.fetchMisc.bind(this)}/>
             </Router>
         </div>
             ;

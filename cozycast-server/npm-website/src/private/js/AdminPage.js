@@ -1,5 +1,5 @@
 import { h, Component } from 'preact';
-import { Router } from 'preact-router';
+import { Router,route } from 'preact-router';
 import { Link } from 'preact-router/match';
 import { Accounts } from './Accounts';
 import { InviteManager } from './InviteManager';
@@ -9,6 +9,9 @@ import { MiscSettings } from './MiscSettings';
 export class AdminPage extends Component {
 
     render(props,state) {
+        if(!this.props.profile.admin){
+            route('/', true);
+        }
         return (
             <div class="admin-page-background">
                 <header id="admin-page-header" class="header">

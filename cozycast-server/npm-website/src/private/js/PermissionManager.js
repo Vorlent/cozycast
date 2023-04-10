@@ -121,6 +121,10 @@ export class PermissionManager extends Component {
             filterPermissions(room, userId, e.target.name, e.target.checked);
         };
 
+        const onInputChange = (e) => {
+            filterPermissions(room, userId, e.target.name, e.target.value);
+        };
+
         return (
             <tr className="default-list-element">
                 <td>{room}</td>
@@ -128,7 +132,7 @@ export class PermissionManager extends Component {
                 <td><input name="banned" onclick={onCheckboxToggle} type="checkbox" checked={banned}></input></td>
                 <td><input name="trusted" onclick={onCheckboxToggle} type="checkbox" checked={trusted}></input></td>
                 <td><input name="invited" onclick={onCheckboxToggle} type="checkbox" checked={invited || trusted} /></td>
-                <td>{inviteName}</td>
+                <td><input name="inviteName" value={inviteName} oninput={onInputChange}></input></td>
                 <td><input name="remote_permission" onclick={onCheckboxToggle} type="checkbox" checked={remote_permission || trusted}></input></td>
                 <td><input name="image_permission" onclick={onCheckboxToggle} type="checkbox" checked={image_permission || trusted}></input></td>
                 <td class="default-list-table-center">

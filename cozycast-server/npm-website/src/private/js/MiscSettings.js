@@ -56,6 +56,7 @@ export class MiscSettings extends Component {
                     <div>
                         <textarea
                             rows="3"
+                            cols="60"
                             class="modal-username standardInputField"
                             type="text"
                             id="messageInput"

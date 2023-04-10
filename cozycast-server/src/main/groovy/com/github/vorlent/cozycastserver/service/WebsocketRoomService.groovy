@@ -862,8 +862,8 @@ class WebsocketRoomService {
         //send remote info for joining user
         if(room.remote != null){
             sendMessage(session, new PickupRemoteEvent(
-                session: room.sessionToName.get(room.remote),
-                has_remote: room.remote == session.getId()))
+                session: room.remote,
+                has_remote: room.remote == user.username))
         }
     }
 

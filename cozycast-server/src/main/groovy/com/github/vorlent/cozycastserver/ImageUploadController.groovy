@@ -76,6 +76,8 @@ class ImageController {
         switch(mimeType) {
             case "video/webm":
                 return ".webm"
+            case "video/mp4":
+                return ".mp4";
             case "image/jpeg":
                 return ".jpg"
             case "image/png":
@@ -104,7 +106,7 @@ class ImageController {
             if(fileExt != null) {
                 Path path = new File(imageDirectory, filename + fileExt).toPath();
                 Files.write(path, content);
-                websocketRoomService.chatMedia(room,authentication.getName(),"/image/asset/" + filename + fileExt,fileExt.endsWith(".webm") ? "video" : "image")
+                websocketRoomService.chatMedia(room, authentication.getName(), "/image/asset/" + filename + fileExt, (fileExt.endsWith(".webm") || fileExt.endsWith(".mp4")) ? "video" : "image");
                 return HttpResponse.ok()
             } else {
                 return HttpResponse.badRequest()

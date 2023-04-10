@@ -77,9 +77,9 @@ export class InviteModal extends Component {
                     <button type="button" class="modal-close" onclick={this.closeInvite}>X</button>
                 </div>
                 <div class="modal-row">
-                    <input id="inviteRemotePermission" type="checkbox" checked={this.state.temporary}
+                    <input id="temporaryInvite" type="checkbox" checked={this.state.temporary}
                         onclick={() => this.setState(({temporary}) => ({temporary: !temporary}))}></input>
-                    <label for="inviteRemotePermission">Temporary</label>
+                    <label for="temporaryInvite">Temporary</label>
                 </div>
                 <div class="modal-row">
                     <input id="inviteRemotePermission" type="checkbox" checked={this.state.remotePermission}

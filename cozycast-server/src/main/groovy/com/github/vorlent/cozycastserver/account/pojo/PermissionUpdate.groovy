@@ -9,6 +9,8 @@ import javax.validation.constraints.Pattern
 
 @Introspected
 class PermissionUpdate{
+    String inviteName
+
     @NotNull(message = "Must declare invited")
     Boolean invited
 

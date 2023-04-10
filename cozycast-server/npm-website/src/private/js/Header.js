@@ -6,7 +6,6 @@ import { route } from 'preact-router'
 export class Header extends Component {
 
     render({ url, loggedIn, profile, logout, registerWithInviteOnly }) {
-        console.log(this.props)
         return <header class="header">
             <h1>CozyCast</h1>
             {loggedIn && 
