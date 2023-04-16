@@ -22,6 +22,9 @@ export const Controls = ({ roomSidebar, userlistHidden, userRoomSettings, fullsc
         else {
             volume.value = e.target.value;
             localStorage.setItem("volume", e.target.value);
+            if (muted.value) {
+                mute();
+            }
         }
     }
 
@@ -123,9 +126,9 @@ export const Controls = ({ roomSidebar, userlistHidden, userRoomSettings, fullsc
                     onclick={() => userRoomSettings.value = true} style="buttonSmall">
                     <img class="video-control-icon" src="/svg/settings.svg" />
                 </Button>
-                <Button enabled={false} onclick={() => route('/', true)} style="buttonSmall">
-                    <img class="video-control-icon" src="/svg/home.svg" />
-                </Button>
+                <a class='btn btn-primary buttonSmall' href='/' style={{ display: 'flex' }}>
+                    <img class="video-control-icon" src="/svg/home.svg" style={{ 'pointer-events': 'none' }} />
+                </a>
             </div>
             {middle}
             <div class="subControls">

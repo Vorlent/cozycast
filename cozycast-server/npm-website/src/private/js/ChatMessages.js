@@ -5,7 +5,7 @@ import { AppStateContext } from './appstate/AppStateContext.js';
 import { memo } from 'preact/compat';
 import { useSignal } from '@preact/signals';
 
-export const TextInput = ({ sendMessage, value, editInfo }) => {
+const TextInput = ({ sendMessage, value, editInfo }) => {
     const text = useSignal(value);
     const ref = useRef(null);
 
@@ -19,7 +19,7 @@ export const TextInput = ({ sendMessage, value, editInfo }) => {
         if (ref.current) {
             var ta = ref.current;
             ta.style.height = '0px';
-            var height = Math.min(18 * 5, ta.scrollHeight);
+            var height = ta.scrollHeight;
             ta.style.height = height + 'px';
         }
     }, [text.value]);
@@ -72,8 +72,6 @@ export const TextInput = ({ sendMessage, value, editInfo }) => {
         </>
     );
 };
-
-
 
 const HistoryModeBade = ({ display, leaveHistoryMode }) => {
     if (display.value) return <div className="history-mode-badge" onClick={leaveHistoryMode}></div>
@@ -180,8 +178,7 @@ const ChatMessages = ({ historyMode, imageModal }) => {
     const messageBody = useRef(null);
 
     const chatScroll = () => {
-        const activateHistoryMode =
-            messageBody.current.scrollHeight - (messageBody.current.scrollTop + messageBody.current.clientHeight) > 50;
+        const activateHistoryMode = messageBody.current.scrollHeight - (messageBody.current.scrollTop + messageBody.current.clientHeight) > 200;
 
         if (historyMode.value !== activateHistoryMode) {
             historyMode.value = activateHistoryMode;
@@ -189,7 +186,6 @@ const ChatMessages = ({ historyMode, imageModal }) => {
     };
 
     const scrollToBottom = useCallback(() => {
-        console.log("ChatMessages: scrollingBottom")
         if (!(historyMode.value)) {
             messageBody.current.scrollTop = messageBody.current.scrollHeight;
         }

@@ -73,7 +73,7 @@ const UserRow = ({ user, defaultPerms, filterUsers, updatePerm, setBanTarget }) 
 };
 
 export const RoomAdminUserlist = () => {
-    const { roomId, userlistAdmin, roomSettings, sendMessage } = useContext(WebSocketContext);
+    const { userlistAdmin, roomSettings, sendMessage } = useContext(WebSocketContext);
 
     const [userlist, setUserlist] = useState([...userlistAdmin.value]);
     const [defaultPerms, setDefaultPerms] = useState({...roomSettings.value})

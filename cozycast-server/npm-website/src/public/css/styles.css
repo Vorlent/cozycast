@@ -499,6 +499,10 @@ body,
     color: var(--cozyTextColor);
     border-radius: 0.2em;
     transition: background-color 0.2s;
+    user-select: none;
+    -webkit-user-select: none; /* For Safari */
+    -moz-user-select: none;    /* For Firefox */
+    -ms-user-select: none;     /* For IE and Edge */
 }
 
 button {

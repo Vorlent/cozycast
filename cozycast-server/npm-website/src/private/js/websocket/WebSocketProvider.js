@@ -75,7 +75,7 @@ const parseMessage = (parsedMessage, pingName) => {
             var offset = 0;
             urls.forEach((element) => {
                 if (element.start != offset) {
-                    parsePing(remaining, offset, element.start);
+                    parsePing(msg, offset, element.start);
                 }
                 if (element.type == "url") {
                     pushToQueue("url", { href: element.href, value: element.value });
@@ -569,7 +569,7 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
                     action: 'join',
                     token: bearerToken,
                     access: matches.access,
-                    muted: false
+                    muted: muted.value
                 })
                 document.addEventListener('visibilitychange', handleVisibilityChange);
             };
@@ -684,7 +684,7 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
                     case 'userMutedChange':
                         updateMuted(parsedMessage, state.userlist);
                     case 'user_list_info':
-                        state.userlistAdmin.value = parsedMessage.users;
+                        state.userlistAdmin.value = parsedMessage.users ? parsedMessage.users : [];
                         break;
 
                     //Errors

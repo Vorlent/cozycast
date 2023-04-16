@@ -16,7 +16,7 @@ export const MiscSettings = ({refreshMisc}) => {
                 'Content-Type': 'application/json'
             },
             body: newMessage
-        }).then(refreshMisc)
+        }).then(onUpdate)
     }
 
     const updateFlag = () => {
@@ -26,7 +26,12 @@ export const MiscSettings = ({refreshMisc}) => {
                 'Content-Type': 'application/json'
             },
             body: newInviteFlag
-        }).then(refreshMisc)
+        }).then(onUpdate)
+    }
+
+    const onUpdate = () => {
+        refreshMisc();
+        window.alert("updated!");
     }
 
     const updateSettings = () => {
@@ -58,7 +63,7 @@ export const MiscSettings = ({refreshMisc}) => {
                 <label>
                     <input
                         type="checkbox"
-                        checked={registerWithInviteOnly}
+                        checked={newInviteFlag}
                         onclick={() =>
                             seInviteFlag(flag => !flag)
                         }

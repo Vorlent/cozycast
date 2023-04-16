@@ -44,6 +44,7 @@ export function createAppState() {
     showUsernames: true,
     transparentChat: true,
     showLeaveJoinMsg: true,
+    showIfMuted: true,
     ...JSON.parse(localStorage.getItem("userSettings"))
   });
 
