@@ -371,7 +371,6 @@ function onmessage(ws, data)
         if data.restart then
             print "worker.lua: Worker restart with settings update requested..."
             os.execute("echo '' >> /worker.restart")
-            --ws:close()
         end
         return true
     end
@@ -446,6 +445,10 @@ end
 
 while true do
     print(pcall(start_server))
+    if active_vm_flag then 
+        os.execute("echo '' >> /worker.restart")
+        break
+    end
     print("worker.lua: Restarting lua worker in 5 seconds")
     os.execute("sleep 5")
 end

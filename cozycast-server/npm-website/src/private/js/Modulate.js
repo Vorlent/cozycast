@@ -1,16 +1,16 @@
-import { h, Component, createRef } from 'preact'
+import { h } from 'preact'
+import { useRef } from 'preact/hooks';
 
-export class Modulate extends Component {
+export const Modulate = ({ closeCallback, title, children }) => {
 
-    modulateOuter = createRef();
-    render({children, closeCallback, title}) {
-        return <div class="modulate-absolute" ref={this.modulateOuter} onmousedown={(e) => {if(e.target == this.modulateOuter.current) if(closeCallback) closeCallback()}}>
+    const modulateOuter = useRef();
+    return (
+        <div class="modulate-absolute" ref={modulateOuter} onmousedown={(e) => { if (e.target == modulateOuter.current) if (closeCallback) closeCallback() }}>
             <div class="modulate-container">
                 {title && <div class="roomSettingsHeaders">{title}</div>}
-            {children}
-            <button class="btn btn-primary btnStandard" type="button" onclick={closeCallback}>Close</button>
+                {children}
+                <button class="btn btn-primary btnStandard" type="button" onclick={closeCallback}>Close</button>
             </div>
         </div>
-        ;
-    }
+    );
 }

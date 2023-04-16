@@ -1,233 +1,146 @@
-import { Component, createRef, h, Fragment } from 'preact'
-import { ConfirmUpload } from './ConfirmUpload.js'
+import moment from 'moment';
+import { Fragment, h } from 'preact';
+import { ConfirmUpload } from './ConfirmUpload.js';
 import { ScreenshotModal } from './ScreenshotModal.js';
-import moment from 'moment'
+import { useCallback, useContext, useEffect, useRef } from 'preact/hooks';
+import { WebSocketContext } from './websocket/WebSocketContext.js';
+import { useSignal } from '@preact/signals';
+import { AutoResizingTextInput } from './AutoResizingTextInput.js';
 
-var globalTypingUsers = [];
-var chatInputState = {};
+const TypingBox = () => {
+    const { typingUsers } = useContext(WebSocketContext);
 
-export function typing(parsedMessage) {
-    if(parsedMessage.state == "start") {
-        var typingUser = globalTypingUsers.find(e => e.session == parsedMessage.session)
-        if(typingUser) {
-            typingUser.lastTypingTime = moment()
-        } else {
-            globalTypingUsers.push({
-                username: parsedMessage.username,
-                session: parsedMessage.session,
-                lastTypingTime: moment()
-            })
-        }
-    } else if(parsedMessage.state == "stop") {
-        globalTypingUsers = globalTypingUsers.filter(function(user) {
-            return user.session != parsedMessage.session;
-        });
-    }
-    chatInputState.setState(globalTypingUsers);
+    useEffect(() => {
+        let typingInterval = setInterval(() => {
+            var newTypingUsers = typingUsers.value.filter(function (user) {
+                return user.lastTypingTime.isAfter(moment().subtract(3, 'seconds'));
+            });
+            if (newTypingUsers.length != typingUsers.value.length) {
+                typingUsers.value = newTypingUsers;
+            }
+        }, 1000);
+        return (() => {
+            clearInterval(typingInterval);
+        })
+    }, []);
+
+    if (typingUsers.value.length == 0) return <div id="typing" />
+
+    const multipleTypers = typingUsers.value.length > 1;
+    const userNames = typingUsers.value.length > 2 ? "Several people" : typingUsers.value.map((user) => user.username).join(', ');
+    return (
+        <div id="typing">
+            {userNames} {multipleTypers ? 'are ' : 'is '}
+            <div className="typingWrapper">
+                typing
+                <div className="loadingDotsWrapper">
+                    <div className="loadingDots"></div>
+                </div>
+            </div>
+        </div>
+    );
 }
 
-export function filterTyping(session){
-    globalTypingUsers = globalTypingUsers.filter(function(user) {
-        return user.session != session;
-    });
-    chatInputState.setState(globalTypingUsers);
-}
+export const ChatInput = ({ historyMode }) => {
+    const { sendMessage, permissions, viewPort } = useContext(WebSocketContext);
 
-export function clearTyping(){
-    chatInputState.setState(globalTypingUsers);
-}
+    const lastTypingEvent = useRef(Date.now());
+    const sendFile = useSignal(null);
+    const chatBoxEmpty = useSignal(true);
+    const currentScreenshot = useSignal(null);
+    const inputRef = useRef();
+    const refImageUploadFile = useRef();
 
 
-export class ChatInput extends Component {
-    constructor() {
-        super();
-        chatInputState.setState = (data) => {
-            this.setState({typingUsers: data});
-        };
-        this.typingInterval = null;
-        this.clearFile = this.clearFile.bind(this);
-        this.lastTypingEvent = Date.now();
-        this.state = { 
-            chatBox: "",
-            typingUsers: [],
-            sendFile: false,
-            pasteFile: false,
-            editTarget: null,
-            screenshotModal: false,
-            currentScreenshot: null
-        };
+    const openConfirmWindow = (e) => {
+        sendFile.value = { file: e.target.files[0] };
     }
 
-    clearFile() {
-        if(this.state.sendFile) this.state.sendFile.target.value = "";
-        this.setState({sendFile: false, pasteFile: false})
-    }
-
-    shouldComponentUpdate(nextProps, nextState){
-        return this.state !== nextState || nextProps.editTarget !== this.state.editTarget || this.props.permissions != nextProps.permissions;
-    }
-
-    componentDidUpdate(prevProps, prevState) {
-        if(this.state.editTarget !== this.props.editTarget) {
-            this.setState({editTarget: this.props.editTarget, chatBox: this.props.editContent})
-            this.refChatboxText.current.focus();
-        }
-        this.autosize();
-    }
-
-    componentDidMount() {
-         this.typingInterval = setInterval(() => {
-                 var newTypingUsers = globalTypingUsers.filter(function(user) {
-                    return user.lastTypingTime.isAfter(moment().subtract(3, 'seconds'));
-                 });
-                 if(newTypingUsers.length != globalTypingUsers.length) {
-                    globalTypingUsers = newTypingUsers
-                    this.setState({typingUsers: globalTypingUsers});
-                 }
-         }, 1000);
-    }
-
-    componentWillUnmount() {
-        if(this.typingInterval) {
-            clearInterval(this.typingInterval)
-        }
-    }
-
-    openConfirmWindow= (e) => {
-        this.setState({sendFile: e})
-    }
-    
-    openConfirmWindowPaste= (e) => {
-        if(!this.props.permissions.imagePermission) return;
-        if(e.clipboardData) {
+    const chatPaste = useCallback((e) => {
+        if (!(permissions.value.imagePermission)) return;
+        if (e.clipboardData) {
             var items = e.clipboardData.items
             for (var i = 0; i < items.length; i++) {
                 if (items[i].type.indexOf("image") == -1) continue
-                var blob = items[i].getAsFile()
-                this.setState({pasteFile: blob})
-           }
+                var blob = items[i].getAsFile();
+                sendFile.value = { file: blob };
+            }
         };
-    
-    }
+    }, [])
 
-    chatInput = (e) => {
-        var enterKeycode = 13;
-        this.setState({chatBox: e.target.value})
+    const onResize = useCallback(() => {
+        if (!historyMode.value) {
+            var messages = document.getElementById("messages");
+            if (messages) messages.scrollTop = messages.scrollHeight;
+        }
+    })
+
+    const chatInput = useCallback((e) => {
         var now = Date.now();
-        if(now - this.lastTypingEvent > 1000) {
-            this.props.sendMessage({
-                action : 'typing',
+        if (now - lastTypingEvent.current > 1000) {
+            sendMessage({
+                action: 'typing',
                 state: 'start'
             });
-            this.lastTypingEvent = now;
+            lastTypingEvent.current = now;
         }
-    }
+    }, [])
 
-    chatEnter = (e) => {
-        var enterKeycode = 13;
-        if(e.which == enterKeycode) {
-            e.preventDefault();
-            if(e.shiftKey) {
-                let newChatBox = this.state.chatBox += "\n";
-                this.setState({chatBox: newChatBox})
-            } else {
-                if(this.state.chatBox.trim() != "") {
-                    if(this.state.editTarget !== null){
-                        this.props.sendMessage({
-                            action : 'editmessage',
-                            id: this.state.editTarget,
-                            message: this.state.chatBox
-                        });
-                    }
-                    else{
-                        this.props.sendMessage({
-                            action : 'chatmessage',
-                            type: "text",
-                            message: this.state.chatBox
-                        });
-                    }
-                }
-                if(this.state.editTarget !== null){
-                    this.exitEdit();
-                }
-                else {
-                this.setState({chatBox: ""})
-                }
-
-                this.props.sendMessage({
-                    action : 'typing',
-                    state: 'stop'
-                });
-            }
+    const chatEnter = useCallback((e) => {
+        if (e.target.value.trim() != "") {
+            sendMessage({
+                action: 'chatmessage',
+                type: "text",
+                message: e.target.value
+            });
+            chatBoxEmpty.value = true
+            sendMessage({
+                action: 'typing',
+                state: 'stop'
+            });
         }
-    }
+    }, [])
 
-    screenshot = () => {
+    const screenshot = () => {
         let canvas = document.createElement('canvas');
         let video = document.getElementById('video');
 
-        canvas.width = this.props.viewPort.width;
-        canvas.height = this.props.viewPort.height;
+        canvas.width = viewPort.value.width;
+        canvas.height = viewPort.value.height;
 
         let ctx = canvas.getContext('2d');
-        ctx.drawImage( video, 0, 0, canvas.width, canvas.height );
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         let image = canvas.toDataURL('image/png');
 
-        this.setState((oldState) => {return {
-            screenshotModal: true,
-            currentScreenshot: image,
-        }})
-    }
-    
-    refTaWrapper = createRef();
-    refChatboxText = createRef();
-    autosize = () => {
-        var div = this.refTaWrapper.current;
-        var ta =  this.refChatboxText.current;
-        var messages = document.getElementById("messages");
-
-        ta. style.cssText = 'height:0px';
-        var height = Math.min(18*5, ta.scrollHeight);
-        div.style.cssText = 'height:' + (20 + height) + 'px';
-        ta. style.cssText = 'height:' + height + 'px';
-        if(!this.props.historyMode) messages.scrollTop = messages.scrollHeight;
-    }
-    
-    refImageUploadFile = createRef();
-    openPictureUpload =() => {
-        this.refImageUploadFile.current.click();
+        currentScreenshot.value = image;
     }
 
-    exitEdit = () => {
-        this.props.setChatState({editTarget: null, editContent: ""});
+    const focusChat = () => {
+        if (inputRef.current) inputRef.current.focus();
     }
 
-    render(_,state) {
-        return <Fragment>
-            {this.state.screenshotModal && <ScreenshotModal href={this.state.currentScreenshot} sendMessage={this.props.sendMessage} setChatState={this.setState.bind(this)}></ScreenshotModal>}
-            <ConfirmUpload sendFile={this.state.sendFile} pasteFile={this.state.pasteFile} clear={this.clearFile} sendMessage={this.props.sendMessage} screenshot={this.state.screenshotModal} anonymous={this.props.permissions.anonymous}/>
-            <div id="chatbox" onclick={() => this.refChatboxText.current.focus()}>
-                {this.state.editTarget && <button class="editMode" onclick={this.exitEdit}>End Edit</button>}
-                <div class={`image-uploader ${this.state.chatBox.length != 0 ? "hasText" : ""}`}>
-                    <div class="ta-wrapper" ref={this.refTaWrapper}>
-                        <textarea id="chat-textbox" ref={this.refChatboxText} value={this.state.chatBox} class="chatbox-textarea" oninput={this.chatInput} onkeypress={this.chatEnter} onpaste={this.openConfirmWindowPaste}>
-                        </textarea>
-                    </div>
-                    {this.props.permissions.imagePermission && !this.props.permissions.anonymous &&
+    return <Fragment>
+        {currentScreenshot.value && <ScreenshotModal sendFile={sendFile} currentScreenshot={currentScreenshot} ></ScreenshotModal>}
+        <ConfirmUpload sendFile={sendFile} />
+        <div id="chatbox" onclick={focusChat}>
+            <div class={`image-uploader ${chatBoxEmpty.value ? "" : "hasText"}`}>
+                <AutoResizingTextInput
+                    onInput={chatInput}
+                    onEnter={chatEnter}
+                    onPaste={chatPaste}
+                    onResize={onResize}
+                    chatBoxEmpty={chatBoxEmpty}
+                    ref={inputRef} />
+                {permissions.value.imagePermission && chatBoxEmpty.value &&
                     <div class="image-uploader-button-wrapper">
-                        <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp, video/mp4" onchange={this.openConfirmWindow} ref={this.refImageUploadFile}/>
-                        {this.state.chatBox.length == 0 && <Fragment><img class="image-uploader-button" src="/svg/screen_shot.svg" onclick={this.screenshot}/><img class="image-uploader-button" src="/svg/imageupload.svg" onclick={this.openPictureUpload}/></Fragment>}
+                        <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp, video/mp4" onchange={openConfirmWindow} ref={refImageUploadFile} />
+                        <img class="image-uploader-button" src="/svg/screen_shot.svg" onclick={screenshot} />
+                        <img class="image-uploader-button" src="/svg/imageupload.svg" onclick={() => refImageUploadFile.current.click()} />
                     </div>
-                    }
-                </div>
-                <div id="typing">
-                    {this.state.typingUsers.length > 0 && <Fragment>
-                        {this.state.typingUsers.length > 2 ? "Several people" : this.state.typingUsers.map((user, i) => `${user.username}${(this.state.typingUsers.length - 1 != i) ? ', ' : ''}`) } {this.state.typingUsers.length > 1 ? 'are ' : 'is '}
-                        <div class="typingWrapper">typing<div class="loadingDotsWrapper"><div class="loadingDots"></div></div></div>
-                        </Fragment>}
-                </div>
+                }
             </div>
-            </Fragment>
-    }
+            <TypingBox />
+        </div>
+    </Fragment>
 }

@@ -1,27 +1,21 @@
-import { h, Component, Fragment } from 'preact'
-import { authLogin, logOut } from './Authentication';
-import { Header } from './Header.js';
+import { h, Fragment } from 'preact'
+import { authLogin } from './Authentication';
 import { route } from 'preact-router'
+import { useSignal } from '@preact/signals';
+import { useContext } from 'preact/hooks';
+import { AppStateContext } from './appstate/AppStateContext';
 
-export class Login extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            username: "",
-            password: ""
-        }
-    }
+export const Login = ({updateProfile}) => {
+    const { inviteCode, loggedIn, logout } = useContext(AppStateContext);
 
-    login = () => {
-        authLogin(this.state.username, this.state.password).then((e) => {
+    const username = useSignal("");
+    const password = useSignal("");
+
+    const login = () => {
+        authLogin(username.value, password.value).then((e) => {
             if (e) {
-                this.setState({
-                    loggedIn: true,
-                    username: "",
-                    password: ""
-                });
-                this.props.login();
-                if(this.props.inviteCode) route(`/invite/${this.props.inviteCode}`, true);
+                updateProfile();
+                if (inviteCode.value) route(`/invite/${inviteCode.value}`, true);
                 else route("/", true);
             } else {
                 alert("Username or password is wrong")
@@ -29,26 +23,26 @@ export class Login extends Component {
         });
     }
 
-    onSubmit = e => {
+    const onSubmit = e => {
         e.preventDefault();
-        this.login();
+        login();
     }
 
 
-    updateAdminUsername = (value) => {
-        this.setState({ username: value });
+    const updateUsername = (e) => {
+        username.value = e.target.value;
     }
 
-    updateAdminPassword = (value) => {
-        this.setState({ password: value });
+    const updatePassword = (e) => {
+        password.value = e.target.value;
     }
 
-    render({ loggedIn, logout }, state) {
-        return <div class="admin-background">
+    return (
+        <div class="admin-background">
             <div class="admin">
                 <div class="admin-modal">
-                    {!loggedIn &&
-                        <form class="formStandard" onSubmit={this.onSubmit}>
+                    {!loggedIn.value &&
+                        <form class="formStandard" onSubmit={onSubmit}>
                             <div class="admin-title">
                                 Login
                             </div>
@@ -58,8 +52,8 @@ export class Login extends Component {
                                 </label>
                                 <div>
                                     <input class="modal-username standardInputField" type="text" id="usernameInput"
-                                        onInput={e => this.updateAdminUsername(e.target.value)}
-                                        name="username" maxlength="12" value={state.username} />
+                                        onInput={updateUsername}
+                                        name="username" maxlength="12" value={username} />
                                 </div>
                             </div>
                             <div>
@@ -68,8 +62,8 @@ export class Login extends Component {
                                 </label>
                                 <div>
                                     <input class="modal-username standardInputField" type="password" id="passwordInput"
-                                        onInput={e => this.updateAdminPassword(e.target.value)}
-                                        name="username" maxlength="64" value={state.password} />
+                                        onInput={updatePassword}
+                                        name="password" maxlength="64" value={password} />
                                 </div>
                             </div>
                             <div>
@@ -77,7 +71,7 @@ export class Login extends Component {
                             </div>
                         </form>
                     }
-                    {loggedIn && <Fragment>
+                    {loggedIn.value && <Fragment>
                         <div class="admin-title">
                             Logged in
                         </div>
@@ -85,6 +79,6 @@ export class Login extends Component {
                     </Fragment>}
                 </div>
             </div>
-        </div>;
-    }
+        </div>
+    );
 }

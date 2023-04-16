@@ -175,6 +175,7 @@ class ResetKeyboardEvent {
 class LeaveEvent {
     String action = "leave"
     String session
+    String username
 }
 
 class CozycastError {
@@ -1322,7 +1323,8 @@ class WebsocketRoomService {
                 value.connections.each {sessionIdKey, connection ->
                     if (connection.webSocketSession != null) {
                         sendMessage(connection.webSocketSession, new LeaveEvent(
-                            session: username
+                            session: username,
+                            username: user.nickname
                         ))
                     }
                 }

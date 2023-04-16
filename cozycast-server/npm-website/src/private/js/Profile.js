@@ -1,11 +1,11 @@
-import { Component, h } from 'preact'
+import { h } from 'preact'
 import { ProfileModal } from './ProfileModal.js';
 
-export class Profile extends Component {
+export const Profile = () => {
 
-    render() {
-        return <div class="admin-background">
-            <ProfileModal profile={this.props.profile} setAppState={this.props.setAppState} updateProfile={this.props.updateProfile} />
+    return (
+        <div class="admin-background">
+            <ProfileModal />
         </div>
-    }
+    );
 }

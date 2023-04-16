@@ -1,72 +1,44 @@
-import { Component, h } from 'preact'
+import { h } from 'preact'
 import { authFetch } from './Authentication';
+import { useContext } from 'preact/hooks';
+import { WebSocketContext } from './websocket/WebSocketContext';
 
-export class ConfirmUpload extends Component {
-    send =() => {
-        if(this.props.pasteFile){
-            this.pasteFile();
-            return;
-        }
-    
-        let e = this.props.sendFile;
-        if(e.target.files.length > 0) {
-            let formData = new FormData();
-            formData.append("room", "default");
-            formData.append("image", e.target.files[0]);
-            authFetch('/image/upload', {method: "POST", body: formData}).then((e) =>
-                {if(e.status != 200){return Promise.reject("File is too large");};
-                    }).catch(error => {alert("Failed to upload image")});
-            e.target.value = "";
-            this.closeConfirmWindow();
-        }
-        else{this.closeConfirmWindow();}
-    };
-    
-    lastUpload = Date.now()
-    
-    pasteFile = (e) => {
-        var blob = this.props.pasteFile;
-    
-        var now = Date.now();
-        if(now - this.lastUpload < 3000) {
-            this.closeConfirmWindow();
-            return;
-        }
-        this.lastUpload = now
-    
+
+
+export const ConfirmUpload = ({ sendFile, screenshot }) => {
+    const { roomId } = useContext(WebSocketContext);
+
+    const send = () => {
         let formData = new FormData();
-        formData.append("room", "default");
-        formData.append("image", blob);
-        authFetch('/image/upload', {method: "POST", body: formData}).then((e) =>
-            {if(e.status != 200){return Promise.reject("File is too large");};
-               }).catch(error => {alert("Failed to upload image")});
-        this.closeConfirmWindow();
-    }
-        
-    closeConfirmWindow = () => {
-        this.props.clear();
+        formData.append("room", roomId.value);
+        formData.append("image", sendFile.value.file);
+        authFetch('/image/upload', { method: "POST", body: formData }).then((e) => {
+            if (e.status != 200) { return Promise.reject("File is too large"); };
+        }).catch(error => { alert("Failed to upload image") });
+        closeWindow();
+    };
+
+    const closeWindow = () => {
+        sendFile.value = null;
     }
 
-    shouldComponentUpdate(nextProps, nextState){
-        return nextProps.sendFile != this.props.sendFile || nextProps.pasteFile != this.props.pasteFile;
-    }
-
-    render({sendFile, pasteFile }, { xyz = [] }) {
-        return (sendFile || pasteFile) && 
-        <div class={this.props.screenshot ? "confirmUploadWrapperScreenshot": "confirmUploadWrapper"}>
-            <div class={`confirmUpload ${this.props.screenshot ? "centerMode" : ""}`}>
-                {sendFile && (
-                    sendFile.target.files[0].type.substring(0,5) == "image" && <img src={URL.createObjectURL(sendFile.target.files[0])} class="uploadPreview"/> ||
-                    sendFile.target.files[0].type.substring(0,5) == "video" && <video loop autoplay muted src={URL.createObjectURL(sendFile.target.files[0])} class="uploadPreview"/>
-                    )}
-                {pasteFile && <img src={URL.createObjectURL(pasteFile)} class="uploadPreview"/>}
+    return (sendFile.value) &&
+        <div class={sendFile.value.screenshot ? "confirmUploadWrapperScreenshot" : "confirmUploadWrapper"}>
+            <div class={`confirmUpload ${sendFile.value.screenshot ? "centerMode" : ""}`}>
+                {(() => {
+                    switch (sendFile.value.file.type.substring(0, 5)) {
+                        case 'image':
+                            return <img src={URL.createObjectURL(sendFile.value.file)} class="uploadPreview" />
+                        case 'video':
+                            return <video loop autoplay muted src={URL.createObjectURL(sendFile.value.file)} class="uploadPreview" />
+                    }
+                })()}
                 <p>Upload this file?</p>
                 <div class="confirmButton">
-                    <button type="button" onclick={this.send} class="btn btn-danger buttonBorder">Upload</button>
-                    <button type="button" onclick={this.closeConfirmWindow} class="btn buttonCancel buttonBorder">Cancel</button>
+                    <button type="button" onclick={send} class="btn btn-danger buttonBorder">Upload</button>
+                    <button type="button" onclick={closeWindow} class="btn buttonCancel buttonBorder">Cancel</button>
                 </div>
             </div>
         </div>
-        ;     
-    }
+        ;
 }

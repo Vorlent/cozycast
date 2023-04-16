@@ -1,26 +1,24 @@
-import { h, Component, Fragment } from 'preact'
-import { authLogin, logOut } from './Authentication';
-import { Header } from './Header.js';
+import { h, Fragment } from 'preact'
 import { route } from 'preact-router'
+import { useContext } from 'preact/hooks';
+import { AppStateContext } from './appstate/AppStateContext';
+import { useSignal } from '@preact/signals';
 
-export class Register extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            username: "",
-            password: "",
-            confirmPassword: "",
-            registered: false
-        }
-    }
+export const Register = ({ updateProfile }) => {
+    const { inviteCode, loggedIn } = useContext(AppStateContext);
 
-    onSubmit = e => {
+    const username = useSignal("");
+    const password = useSignal("");
+    const confirmPassword = useSignal("");
+    const registerComplete = useSignal(false);
+
+    const onSubmit = e => {
         e.preventDefault();
-        this.register();
+        register();
     }
 
-    register = () => {
-        if(this.state.password != this.state.confirmPassword){
+    const register = () => {
+        if (password.value != confirmPassword.value) {
             alert("Passwords do not match");
             return;
         }
@@ -30,41 +28,36 @@ export class Register extends Component {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                username: this.state.username,
-                password: this.state.password,
-                inviteCode: this.props.inviteCode
+                username: username.value,
+                password: password.value,
+                inviteCode: inviteCode.value
             })
         }).then((e) => {
             if (e.status == 200) {
-                this.setState({ 
-                    registered: true,
-                    username: "",
-                    password: "",
-                    confirmPassword: ""
-                });
-                this.props.setAppState(state => { return { inviteCode: undefined } })
+                registerComplete.value = true;
+                inviteCode.value = undefined;
             } else e.json().then(e => alert(e.errors.join("\n")))
         });
     }
 
-    updateUsername = (value) => {
-        this.setState({ username: value });
+    const updateUsername = (e) => {
+        username.value = e.target.value;
     }
 
-    updatePassword = (value) => {
-        this.setState({ password: value });
+    const updatePassword = (e) => {
+        password.value = e.target.value;
     }
 
-    updateConfirmPassword = (value) => {
-        this.setState({ confirmPassword: value });
+    const updateConfirmPassword = (e) => {
+        confirmPassword.value = e.target.value;
     }
 
-    render(_, state) {
-        return <div class="admin-background">
+    return (
+        <div class="admin-background">
             <div class="admin">
                 <div class="admin-modal">
-                    {!state.registered &&
-                        <form class="formStandard" onSubmit={this.onSubmit} id="registerForm" autocomplete="off" >
+                    {!(loggedIn.value || registerComplete.value) &&
+                        <form class="formStandard" onSubmit={onSubmit} id="registerForm" autocomplete="off" >
                             <div class="admin-title">
                                 Register
                             </div>
@@ -74,8 +67,8 @@ export class Register extends Component {
                                 </label>
                                 <div>
                                     <input class="modal-username standardInputField" type="text" id="usernameInputRegister"
-                                        onInput={e => this.updateUsername(e.target.value)}
-                                        name="usernameRegister" maxlength="12" value={state.username} autocomplete="off" />
+                                        onInput={updateUsername}
+                                        name="usernameRegister" maxlength="12" value={username} autocomplete="off" />
                                 </div>
                             </div>
                             <div>
@@ -84,8 +77,8 @@ export class Register extends Component {
                                 </label>
                                 <div>
                                     <input class="modal-username standardInputField" type="password" id="passwordInputRegister"
-                                        onInput={e => this.updatePassword(e.target.value)}
-                                        name="passwordRegister" maxlength="64" value={state.password} autocomplete="off" />
+                                        onInput={updatePassword}
+                                        name="passwordRegister" maxlength="64" value={password} autocomplete="off" />
                                 </div>
                             </div>
                             <div>
@@ -94,17 +87,17 @@ export class Register extends Component {
                                 </label>
                                 <div>
                                     <input class="modal-username standardInputField" type="password" id="passwordInputConfirm"
-                                        onInput={e => this.updateConfirmPassword(e.target.value)}
-                                        name="confirmPassword" maxlength="64" value={state.confirmPassword} autocomplete="off" />
+                                        onInput={updateConfirmPassword}
+                                        name="confirmPassword" maxlength="64" value={confirmPassword} autocomplete="off" />
                                 </div>
                             </div>
-                            {this.props.inviteCode && <div>
+                            {inviteCode.value && <div>
                                 <label for="inviteCode">
                                     Invite Code
                                 </label>
                                 <div>
                                     <input class="modal-username standardInputField" id="inviteCode"
-                                        name="inviteCode" disabled value={this.props.inviteCode } autocomplete="off" />
+                                        name="inviteCode" disabled value={inviteCode} autocomplete="off" />
                                 </div>
                             </div>}
                             <div>
@@ -112,7 +105,7 @@ export class Register extends Component {
                             </div>
                         </form>
                     }
-                    {state.registered && <Fragment>
+                    {(loggedIn.value || registerComplete.value) && <Fragment>
                         <div class="admin-title">
                             Successfully registerd
                         </div>
@@ -120,6 +113,6 @@ export class Register extends Component {
                     </Fragment>}
                 </div>
             </div>
-        </div>;
-    }
+        </div>
+    );
 }
