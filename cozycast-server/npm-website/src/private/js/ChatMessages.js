@@ -5,7 +5,7 @@ import { AppStateContext } from './appstate/AppStateContext.js';
 import { memo } from 'preact/compat';
 import { useSignal } from '@preact/signals';
 
-const TextInput = ({ sendMessage, value, editInfo }) => {
+const TextInput = ({ sendMessage, value, editInfo, scrollToBottom }) => {
     const text = useSignal(value);
     const ref = useRef(null);
 
@@ -13,6 +13,7 @@ const TextInput = ({ sendMessage, value, editInfo }) => {
         if (ref.current) {
             ref.current.focus();
         }
+        scrollToBottom();
     }, []);
 
     useEffect(() => {
@@ -49,18 +50,18 @@ const TextInput = ({ sendMessage, value, editInfo }) => {
         }
     }
 
-    const exit = () =>{
+    const exit = () => {
         editInfo.value = {};
     }
 
     const handleOnInput = (e) => {
-        if(!editInfo.value.isWriting) editInfo.value.isWriting = true;
+        if (!editInfo.value.isWriting) editInfo.value.isWriting = true;
         text.value = e.target.value;
     };
 
     return (
         <>
-            <div class="ta-wrapper" style={{"border-radius": "3px"}}>
+            <div class="ta-wrapper" style={{ "border-radius": "3px" }}>
                 <textarea id="chat-textbox"
                     ref={ref}
                     value={text}
@@ -73,7 +74,7 @@ const TextInput = ({ sendMessage, value, editInfo }) => {
     );
 };
 
-const HistoryModeBade = ({ display, leaveHistoryMode }) => {
+const HistoryModeBadge = ({ display, leaveHistoryMode }) => {
     if (display.value) return <div className="history-mode-badge" onClick={leaveHistoryMode}></div>
 }
 
@@ -86,9 +87,9 @@ const TempMessage = memo(({ message, showLeaveJoinMsg }) => {
     ) : null;
 })
 
-function SubMessages({ data, message, profile, session, deleteMessage, clickImage, pingLookup, sendMessage, editInfo,scrollToBottom }) {
+function SubMessages({ data, message, profile, session, deleteMessage, clickImage, pingLookup, sendMessage, editInfo, scrollToBottom }) {
     if (editInfo.value.id == data.id) {
-        return <TextInput value={editInfo.value.msg} editInfo={editInfo} sendMessage={sendMessage} />
+        return <TextInput value={editInfo.value.msg} editInfo={editInfo} sendMessage={sendMessage} scrollToBottom={scrollToBottom} />
     }
     return (
         <div className="subMessage">
@@ -131,7 +132,7 @@ function SubMessages({ data, message, profile, session, deleteMessage, clickImag
                         return <div class="chat-deleted">deleted </div>;
                     case "whisper":
                         return <div class="chat-deleted">{msg.message}</div>;
-                    default: 
+                    default:
                         return <div class="chat-deleted">Error</div>
                 }
             })}
@@ -140,7 +141,7 @@ function SubMessages({ data, message, profile, session, deleteMessage, clickImag
     );
 }
 
-const Message = memo(({ message, profile, session, deleteMessage, clickImage, pingLookup, sendMessage, editInfo,scrollToBottom }) => {
+const Message = memo(({ message, profile, session, deleteMessage, clickImage, pingLookup, sendMessage, editInfo, scrollToBottom }) => {
     return (
         <div className="message" key={message.data[0].id + message.data.length} id={message.data[0].id}>
             <div className="username" style={{ color: message.nameColor }}>
@@ -206,7 +207,7 @@ const ChatMessages = ({ historyMode, imageModal }) => {
 
     useEffect(() => {
         scrollToBottom();
-    }, [chatMessages.value, editInfo.value]);
+    }, [chatMessages.value]);
 
     const deleteMessage = useCallback((id) => {
         sendMessage({
@@ -239,7 +240,7 @@ const ChatMessages = ({ historyMode, imageModal }) => {
                     />
                 )
             )}
-            <HistoryModeBade display={historyMode} leaveHistoryMode={leaveHistoryMode} />
+            <HistoryModeBadge display={historyMode} leaveHistoryMode={leaveHistoryMode} />
         </div>
     );
 };
