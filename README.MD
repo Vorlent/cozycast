@@ -42,6 +42,8 @@ export NETWORK_INTERFACES=#<your network interface here: eth0/wlo1/...>#
 ```
 If you are using the provided terminal commands for the IP addresses, it is advised to check if they return the correct values.
 
+If you have made modifications to the source code then it is recommended to set `SOURCE_URL` to point to the modified source code (e.g. git/github repository or downloadable zip file) to ensure compliance with the AGPL. If you have not made any modifications then you can simply set it to https://github.com/Vorlent/cozycast.
+
 2. Optional but recommended for https:
 
 ``` bash
@@ -68,8 +70,6 @@ COZYCAST_JWT_SECRET
 COZYCAST_INIT_ADMIN_PASSWORD
 ```
 
-5. If you have made modifications to the source code then it is recommended to set `SOURCE_URL` to point to the modified source code (e.g. git/github repository or downloadable zip file) to ensure compliance with the AGPL. If you have not made any modifications then you can simply set it to https://github.com/Vorlent/cozycast.
-
 ## Usage
 
 Start CozyCast with the following commands:
@@ -78,6 +78,8 @@ Start CozyCast with the following commands:
 ./cozycast build
 ./cozycast start
 ```
+
+Afterwards you should be able to reach CozyCast through your public ip address or the dns server if you have configured one.
 
 It is only necessary to build cozycast once. Only rebuild it if you have made any changes to the source code.
 
@@ -130,6 +132,6 @@ https://preactjs.github.io/preact-devtools/ which will provide additional inform
 
 If you are experiencing some kind of problem on startup, please first make sure that you have the docker environment set up correctly. It also might be necessary to run the commands with sudo.
 
-Currently, only the workers can create rooms. So, if you don't see a room being created, check the Docker worker logs for any issues. Restarting is advised if you see problems related to PulseAudio.
+Currently, only the workers can create rooms, which can take a while. So please try waiting and refreshing your window first if you don't see any rooms. If you still don't see one after that, check the Docker worker logs for any issues. Restarting is advised if you see problems related to PulseAudio.
 
 There is currently a bug with some browsers that prevents you from watching two separate instances of CozyCast simultaneously. This means that if you have two different servers running, one of the streams won't load. If you experience endless loading time, try closing one of the tabs and then refreshing the other.
