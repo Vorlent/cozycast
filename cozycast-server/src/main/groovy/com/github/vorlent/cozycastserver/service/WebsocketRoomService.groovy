@@ -425,7 +425,13 @@ class WebsocketRoomService {
         log.info jsonMessage.toString()
         final UserSession user = room.users.get(username)
         if(jsonMessage.message == null || jsonMessage.message.length() == 0) return;
-        if(user.anonymous && jsonMessage.message.length() > 250) return;
+        if(user.anonymous && jsonMessage.message.length() > 250) {
+            return;
+        }
+        if(user.anonymous && !user.rateLimiter.tryConsume()) {
+            sendMessage(session, new RateLimitExceededEvent())
+            return;
+        }
         ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))
         String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
         ChatMessage.withTransaction {
@@ -1398,12 +1404,7 @@ class WebsocketRoomService {
             try {
                 switch (jsonMessage.action) {
                     case "chatmessage":
-                        UserSession userSession = currentRoom.users.get(username);
-                        if (!userSession.anonymous || userSession.rateLimiter.tryConsume()) {
-                            chatmessage(currentRoom, session, jsonMessage, username)
-                        } else{
-                            sendMessage(session, new RateLimitExceededEvent())
-                        }
+                        chatmessage(currentRoom, session, jsonMessage, username)
                         break;
                     case "keepalive":
                         keepalive(currentRoom, session, jsonMessage)
