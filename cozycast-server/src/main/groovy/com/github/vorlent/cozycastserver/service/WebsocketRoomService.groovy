@@ -176,6 +176,7 @@ class LeaveEvent {
     String action = "leave"
     String session
     String username
+    Boolean anonymous
 }
 
 class CozycastError {
