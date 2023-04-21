@@ -4,8 +4,7 @@ import { ConfirmUpload } from './ConfirmUpload.js';
 import { ScreenshotModal } from './ScreenshotModal.js';
 import { useCallback, useContext, useEffect, useRef } from 'preact/hooks';
 import { WebSocketContext } from './websocket/WebSocketContext.js';
-import { useSignal } from '@preact/signals';
-import { AutoResizingTextInput } from './AutoResizingTextInput.js';
+import { batch, useSignal } from '@preact/signals';
 
 const TypingBox = () => {
     const { typingUsers } = useContext(WebSocketContext);
@@ -42,14 +41,81 @@ const TypingBox = () => {
 }
 
 export const ChatInput = ({ historyMode }) => {
-    const { sendMessage, permissions, viewPort } = useContext(WebSocketContext);
+    const { sendMessage, permissions, authorization, viewPort } = useContext(WebSocketContext);
 
     const lastTypingEvent = useRef(Date.now());
     const sendFile = useSignal(null);
-    const chatBoxEmpty = useSignal(true);
     const currentScreenshot = useSignal(null);
-    const inputRef = useRef();
     const refImageUploadFile = useRef();
+
+    const chatBoxEmpty = useSignal(true);
+    const text = useSignal("");
+    const inputRef = useRef();
+
+
+    useEffect(() => {
+        resizeChat();
+    }, [text.value]);
+    
+    const resizeChat = () => {
+        if (inputRef.current) {
+            var ta = inputRef.current;
+            let oldHeight = ta.style.height;
+            ta.style.height = '0px';
+            var height = Math.min(18 * 5, ta.scrollHeight);
+            ta.style.height = height + 'px';
+            if (oldHeight != height) {
+                if (!historyMode.value) {
+                    var messages = document.getElementById("messages");
+                    if (messages) messages.scrollTop = messages.scrollHeight;
+                }
+            }
+        }
+    }
+
+
+    const handleKeypress = (e) => {
+        var enterKeycode = 13;
+        if (e.which == enterKeycode && !e.shiftKey) {
+            e.preventDefault();
+            if (text.value.trim() != "") {
+                sendMessage({
+                    action: 'chatmessage',
+                    type: "text",
+                    message: text.value
+                });
+                batch(()=>{
+                    text.value = '';
+                    chatBoxEmpty.value = true;
+                })
+                resizeChat();
+                sendMessage({
+                    action: 'typing',
+                    state: 'stop'
+                });
+            }
+        }
+    }
+
+    const handleOnInput = (e) => {
+        if(authorization.value.anonymous && e.target.value.length > 250){
+            e.target.value = e.target.value.slice(0,250);
+        }
+        batch(()=>{
+            text.value = e.target.value;
+            chatBoxEmpty.value = e.target.value.length == 0
+        })
+        
+        var now = Date.now();
+        if (now - lastTypingEvent.current > 1000) {
+            sendMessage({
+                action: 'typing',
+                state: 'start'
+            });
+            lastTypingEvent.current = now;
+        }
+    };
+
 
 
     const openConfirmWindow = (e) => {
@@ -68,38 +134,6 @@ export const ChatInput = ({ historyMode }) => {
         };
     }, [])
 
-    const onResize = useCallback(() => {
-        if (!historyMode.value) {
-            var messages = document.getElementById("messages");
-            if (messages) messages.scrollTop = messages.scrollHeight;
-        }
-    })
-
-    const chatInput = useCallback((e) => {
-        var now = Date.now();
-        if (now - lastTypingEvent.current > 1000) {
-            sendMessage({
-                action: 'typing',
-                state: 'start'
-            });
-            lastTypingEvent.current = now;
-        }
-    }, [])
-
-    const chatEnter = useCallback((e) => {
-        if (e.target.value.trim() != "") {
-            sendMessage({
-                action: 'chatmessage',
-                type: "text",
-                message: e.target.value
-            });
-            chatBoxEmpty.value = true
-            sendMessage({
-                action: 'typing',
-                state: 'stop'
-            });
-        }
-    }, [])
 
     const screenshot = () => {
         let canvas = document.createElement('canvas');
@@ -125,13 +159,16 @@ export const ChatInput = ({ historyMode }) => {
         <ConfirmUpload sendFile={sendFile} />
         <div id="chatbox" onclick={focusChat}>
             <div class={`image-uploader ${chatBoxEmpty.value ? "" : "hasText"}`}>
-                <AutoResizingTextInput
-                    onInput={chatInput}
-                    onEnter={chatEnter}
-                    onPaste={chatPaste}
-                    onResize={onResize}
-                    chatBoxEmpty={chatBoxEmpty}
-                    ref={inputRef} />
+                <div class="ta-wrapper">
+                    <textarea id="chat-textbox"
+                        ref={inputRef}
+                        value={text}
+                        class="chatbox-textarea"
+                        onKeyPress={handleKeypress}
+                        onInput={handleOnInput}
+                        onPaste={chatPaste}>
+                    </textarea>
+                </div>
                 {permissions.value.imagePermission && chatBoxEmpty.value &&
                     <div class="image-uploader-button-wrapper">
                         <input id="image-upload-file" type="file" name="image" accept="image/png, image/jpeg, image/gif, video/webm,  image/webp, video/mp4" onchange={openConfirmWindow} ref={refImageUploadFile} />

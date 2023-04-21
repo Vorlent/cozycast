@@ -267,6 +267,10 @@ class BanEvent {
     String expiration
 }
 
+class RateLimitExceededEvent {
+    String action = "rateLimitExceeded"
+}
+
 class RestartWorkerEvent {
     String action = "worker_restart"
 }
@@ -421,6 +425,7 @@ class WebsocketRoomService {
         log.info jsonMessage.toString()
         final UserSession user = room.users.get(username)
         if(jsonMessage.message == null || jsonMessage.message.length() == 0) return;
+        if(user.anonymous && jsonMessage.message.length() > 250) return;
         ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))
         String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
         ChatMessage.withTransaction {
@@ -1324,7 +1329,8 @@ class WebsocketRoomService {
                     if (connection.webSocketSession != null) {
                         sendMessage(connection.webSocketSession, new LeaveEvent(
                             session: username,
-                            username: user.nickname
+                            username: user.nickname,
+                            anonymous: user.anonymous
                         ))
                     }
                 }
@@ -1391,6 +1397,14 @@ class WebsocketRoomService {
         else {
             try {
                 switch (jsonMessage.action) {
+                    case "chatmessage":
+                        UserSession userSession = currentRoom.users.get(username);
+                        if (!userSession.anonymous || userSession.rateLimiter.tryConsume()) {
+                            chatmessage(currentRoom, session, jsonMessage, username)
+                        } else{
+                            sendMessage(session, new RateLimitExceededEvent())
+                        }
+                        break;
                     case "keepalive":
                         keepalive(currentRoom, session, jsonMessage)
                         break;
@@ -1411,9 +1425,6 @@ class WebsocketRoomService {
                         break;
                     case "updateprofile":
                         updateProfile(currentRoom, session, username)
-                        break;
-                    case "chatmessage":
-                        chatmessage(currentRoom, session, jsonMessage, username)
                         break;
                     case "whisper":
                         whisper(currentRoom, session, jsonMessage, username)

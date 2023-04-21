@@ -668,11 +668,13 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
                         break;
                     case 'join':
                         join(parsedMessage, state.userlist, state.pingLookup);
-                        pushTempMessage(`${parsedMessage.username} joined`, state.chatMessages);
+                        if(!parsedMessage.anonymous)
+                            pushTempMessage(`${parsedMessage.username} joined`, state.chatMessages);
                         break;
                     case 'leave':
                         leave(parsedMessage, state.userlist, state.pingLookup);
-                        pushTempMessage(`${parsedMessage.username} left`, state.chatMessages);
+                        if(!parsedMessage.anonymous)
+                            pushTempMessage(`${parsedMessage.username} left`, state.chatMessages);
                         break;
                     case 'update_user':
                         updateUser(parsedMessage, state.userlist, state.pingLookup);

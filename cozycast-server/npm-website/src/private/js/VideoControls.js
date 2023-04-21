@@ -18,7 +18,7 @@ export const VideoControls = () => {
     const videoElementRef = useRef();
     
     useEffect(() => {
-        updateVolume(volume.value,muted.value);
+        updateVolume();
     }, [volume.value,muted.value])
 
     const getRemotePosition = (e) => {
@@ -139,16 +139,17 @@ export const VideoControls = () => {
 
     const onCanPlay = (e) => {
         videoLoading.value = "loaded";
+        updateVolume();
     }
 
     const onLoadStart = (e) => {
         videoLoading.value = "loading";
     }
 
-    const updateVolume = (volume, muted) => {
+    const updateVolume = () => {
         if (videoElementRef.current) {
-            if (muted) videoElementRef.current.volume = 0;
-            else { videoElementRef.current.volume = volume / 100; }
+            if (muted.value) videoElementRef.current.volume = 0;
+            else { videoElementRef.current.volume = volume.value / 100; }
         }
     }
 
