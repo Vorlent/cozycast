@@ -569,7 +569,7 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
                     action: 'join',
                     token: bearerToken,
                     access: matches.access,
-                    muted: muted.value
+                    muted: userSettings.value.showIfMuted && muted.value
                 })
                 document.addEventListener('visibilitychange', handleVisibilityChange);
             };
@@ -777,8 +777,11 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
         }
     }, []);
 
-
     const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+            state.newMessageCount.value = 0;
+            favicon.current.badge(0);
+        }
         calcActiveStatus(document.visibilityState !== 'visible');
     };
 

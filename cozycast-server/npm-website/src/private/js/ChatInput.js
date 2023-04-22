@@ -82,7 +82,7 @@ export const ChatInput = ({ historyMode }) => {
                 sendMessage({
                     action: 'chatmessage',
                     type: "text",
-                    message: text.value
+                    message: text.value.replace(/^\n+|\n+$/g, '')
                 });
                 batch(()=>{
                     text.value = '';
@@ -120,6 +120,7 @@ export const ChatInput = ({ historyMode }) => {
 
     const openConfirmWindow = (e) => {
         sendFile.value = { file: e.target.files[0] };
+        e.target.value = '';
     }
 
     const chatPaste = useCallback((e) => {
@@ -162,7 +163,7 @@ export const ChatInput = ({ historyMode }) => {
                 <div class="ta-wrapper">
                     <textarea id="chat-textbox"
                         ref={inputRef}
-                        value={text}
+                        value={text.value}
                         class="chatbox-textarea"
                         onKeyPress={handleKeypress}
                         onInput={handleOnInput}

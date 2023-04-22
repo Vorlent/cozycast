@@ -22,12 +22,12 @@ const TextInput = ({ sendMessage, value, editInfo, scrollToBottom }) => {
             ta.style.height = '0px';
             var height = ta.scrollHeight;
             ta.style.height = height + 'px';
+            scrollToBottom();
         }
     }, [text.value]);
 
 
     const handleKeyDown = (e) => {
-        console.log(e.key)
         if (e.key == 'Enter' && !e.shiftKey) {
             e.preventDefault();
             send();
@@ -178,13 +178,33 @@ const ChatMessages = ({ historyMode, imageModal }) => {
     const editInfo = useSignal({});
     const messageBody = useRef(null);
 
+    const isUserScroll = useRef(false);
     const chatScroll = () => {
-        const activateHistoryMode = messageBody.current.scrollHeight - (messageBody.current.scrollTop + messageBody.current.clientHeight) > 200;
-
+        const activateHistoryMode = messageBody.current.scrollHeight - (messageBody.current.scrollTop + messageBody.current.clientHeight) > 30;
         if (historyMode.value !== activateHistoryMode) {
-            historyMode.value = activateHistoryMode;
+            if (activateHistoryMode && isUserScroll.current)
+                historyMode.value = true;
+            else if (!activateHistoryMode) {
+                historyMode.value = false;
+            }
         }
     };
+
+    const handleMouseUp = () => {
+        isUserScroll.current = false;
+    }
+
+    const handleMouseDown = () => {
+        isUserScroll.current = true;
+    }
+
+    const handeChatWheel = (event) => {
+        if (event.deltaY < 0) {
+            setTimeout(() => {
+                historyMode.value = true;
+              }, 100);
+        }
+    }
 
     const scrollToBottom = useCallback(() => {
         if (!(historyMode.value)) {
@@ -199,9 +219,11 @@ const ChatMessages = ({ historyMode, imageModal }) => {
 
     useEffect(() => {
         window.addEventListener('resize', scrollToBottom);
+        window.addEventListener("mouseup", handleMouseUp);
         scrollToBottom();
         return () => {
             window.removeEventListener('resize', scrollToBottom);
+            window.removeEventListener("mouseup", handleMouseUp);
         };
     }, []);
 
@@ -222,7 +244,10 @@ const ChatMessages = ({ historyMode, imageModal }) => {
     }, []);
 
     return (
-        <div id="messages" ref={messageBody} onscroll={chatScroll}>
+        <div id="messages" ref={messageBody}
+            onWheel={handeChatWheel}
+            onscroll={chatScroll}
+            onmousedown={handleMouseDown}>
             {chatMessages.value.map((message) =>
                 message.tempMessage ? (
                     <TempMessage message={message} showLeaveJoinMsg={showLeaveJoinMsg} />

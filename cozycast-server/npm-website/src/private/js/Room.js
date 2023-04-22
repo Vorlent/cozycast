@@ -1,6 +1,5 @@
 import { h, Fragment } from 'preact'
 import moment from 'moment'
-import Favico from './libs/favico-0.3.10.min.js'
 import { route } from 'preact-router'
 
 import { RoomSidebar } from './RoomSidebar.js'
@@ -29,10 +28,6 @@ export var WorkerStatus = {
     STARTING: "STARTING",
     STARTED: "STARTED"
 }
-
-var favicon = new Favico({
-    animation: 'none'
-});
 
 let idleTimer = null;
 let idleState = false;
@@ -64,19 +59,12 @@ function removeCursor(e) {
 
 export const Room = () => {
     const { userSettings } = useContext(AppStateContext);
-    const { newMessageCount, banned } = useContext(WebSocketContext);
+    const { banned } = useContext(WebSocketContext);
     const roomSidebar = useSignal(SidebarState.CHAT);
     const userlistHidden = useSignal(false);
     const fullscreen = useSignal(false);
     const userRoomSettings = useSignal(false);
     const hoverText = useSignal(null);
-
-    const resetBadge = () => {
-        if (!document.hidden) {
-            newMessageCount.value = 0;
-            favicon.badge(0);
-        }
-    }
 
     const fullScreenEvent = () => {
         fullscreen.value = document.fullscreenElement != null;
@@ -95,10 +83,8 @@ export const Room = () => {
     }
 
     useEffect(() => {
-        document.addEventListener('visibilitychange', resetBadge);
         document.addEventListener('fullscreenchange', fullScreenEvent);
         return () => {
-            document.removeEventListener('visibilitychange', resetBadge);
             document.removeEventListener('fullscreenchange', fullScreenEvent);
         }
     }, []);

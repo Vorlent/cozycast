@@ -15,10 +15,6 @@ export const UserRoomSettings = ({ close }) => {
     const backgroundProfileUpdate = useRef();
     const backgroundSettings = useRef();
 
-
-    console.log(settings, openTabs, designTemp, profileMode);
-
-    console.log('Settings', settings);
     useEffect(() => {
         setSettings({...userSettings.value});
         setDesignTemp(design.value)
@@ -80,7 +76,7 @@ export const UserRoomSettings = ({ close }) => {
     }
 
     return (
-        <div class="modal-background" ref={backgroundSettings} onmousedown={(e) => { if (e.target == backgroundSettings.current) {console.log("other");closeProfile()} }}>
+        <div class="modal-background" ref={backgroundSettings} onmousedown={(e) => { if (e.target == backgroundSettings.current) {closeProfile()} }}>
             {!profileMode.open &&
                 <form class="profile modal" onSubmit={onSubmit}>
                     <div class="roomSettingsHeaders">SETTINGS</div>

@@ -425,7 +425,9 @@ class WebsocketRoomService {
     private void chatmessage(Room room, WebSocketSession session, Map jsonMessage,String username) {
         log.info jsonMessage.toString()
         final UserSession user = room.users.get(username)
-        if(jsonMessage.message == null || jsonMessage.message.length() == 0) return;
+        if(jsonMessage.message == null || !(jsonMessage.message instanceof String) || jsonMessage.message.length() == 0) {
+            return
+        }
         if(user.anonymous && jsonMessage.message.length() > 250) {
             return;
         }
@@ -443,7 +445,7 @@ class WebsocketRoomService {
                 .list(sort: 'timestamp', order: 'desc', offset: 1000).each { it.delete() }
             def chatMessage = new ChatMessage(
                 room: room.name,
-                message: jsonMessage.message,
+                message: jsonMessage.message.replaceAll(/(^\n+|\n+$)/, ''),
                 type: "text",
                 username: user.nickname,
                 session: username,
