@@ -220,10 +220,12 @@ const ChatMessages = ({ historyMode, imageModal }) => {
     useEffect(() => {
         window.addEventListener('resize', scrollToBottom);
         window.addEventListener("mouseup", handleMouseUp);
+        window.addEventListener("touchend", handleMouseUp);
         scrollToBottom();
         return () => {
             window.removeEventListener('resize', scrollToBottom);
             window.removeEventListener("mouseup", handleMouseUp);
+            window.removeEventListener("touchend", handleMouseUp);
         };
     }, []);
 
@@ -247,7 +249,9 @@ const ChatMessages = ({ historyMode, imageModal }) => {
         <div id="messages" ref={messageBody}
             onWheel={handeChatWheel}
             onscroll={chatScroll}
-            onmousedown={handleMouseDown}>
+            onmousedown={handleMouseDown}
+            onTouchStart={handleMouseDown}
+            >
             {chatMessages.value.map((message) =>
                 message.tempMessage ? (
                     <TempMessage message={message} showLeaveJoinMsg={showLeaveJoinMsg} />

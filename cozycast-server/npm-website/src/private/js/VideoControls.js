@@ -25,7 +25,19 @@ export const VideoControls = () => {
         if (!videoElementRef.current || videoElementRef.current.videoWidth == 0 || videoElementRef.current.videoHeight == 0) {
             return { x: 0, y: 0 }
         }
-        var videoRect = videoElementRef.current .getBoundingClientRect();
+
+        let xPosition = 0;
+        let yPosition = 0;
+        if(e.type == 'touchstart' || e.type == 'touchmove' || e.type == 'touchend' || e.type == 'touchcancel'){
+            var touch = e.touches[0] || e.changedTouches[0];
+            xPosition = touch.pageX;
+            yPosition = touch.pageY;
+        } else if (e.type == 'mousedown' || e.type == 'mouseup' || e.type == 'mousemove' || e.type == 'mouseover'|| e.type=='mouseout' || e.type=='mouseenter' || e.type=='mouseleave') {
+            xPosition = e.clientX;
+            yPosition = e.clientY;
+        }
+
+        var videoRect = videoElementRef.current.getBoundingClientRect();
         var ratioDistortion = (videoRect.width / videoRect.height) / (videoElementRef.current.videoWidth / videoElementRef.current.videoHeight);
         var wider = (ratioDistortion > 1);
         // assume centered
@@ -37,8 +49,8 @@ export const VideoControls = () => {
             bottom: videoRect.bottom - padVt,
             left: videoRect.left + padHz
         };
-        var x = (e.clientX - correctedRect.left) / (correctedRect.right - correctedRect.left) * viewPort.value.width;
-        var y = (e.clientY - correctedRect.top) / (correctedRect.bottom - correctedRect.top) * viewPort.value.height;
+        var x = (xPosition- correctedRect.left) / (correctedRect.right - correctedRect.left) * viewPort.value.width;
+        var y = (yPosition - correctedRect.top) / (correctedRect.bottom - correctedRect.top) * viewPort.value.height;
         return { x: x, y: y }
     }
 
@@ -163,6 +175,10 @@ export const VideoControls = () => {
             onkeyup={videoKeyUp}
             onkeydown={videoKeyDown}
             onwheel={videoScroll}
+
+            onTouchStart={videoMouseDown}
+            onTouchEnd={videoMouseUp}
+            onTouchMove={videoMousemove}
         >
             {videoPaused.value &&
                 <div class="paused-screen">
