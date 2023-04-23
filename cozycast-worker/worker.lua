@@ -207,11 +207,18 @@ end
 
 local worker = {}
 
-function worker.get_active_window_title()
+local lastWindowTitle
+function worker.update_active_window_title(ws)
     local windowName = io.popen('xdotool getactivewindow getwindowname 2>/dev/null');
     local stdout = windowName:read("*a")
     windowName:close()
-    return stdout;
+    if lastWindowTitle ~= stdout then
+        ws:send(lunajson.encode{
+            action = "window_title",
+            title = stdout
+        })
+        lastWindowTitle = stdout;
+    end
 end
 
 function worker.mouse_move(mouseX, mouseY)
@@ -298,7 +305,12 @@ function start_vm()
     print("worker.lua: Started VM")
 end
 
+local lastCallTimestamp = 0
 function onmessage(ws, data)
+    if data.action == "keepalive" then
+        -- skip keepalive response
+        return true
+    end
     if data.type == "sdpOffer" then
         print("worker.lua: sdpOffer")
         if not active_vm_flag then 
@@ -307,6 +319,11 @@ function onmessage(ws, data)
         end
         capture(data, ws)
         return true
+    end
+    local currentTime = os.time()
+    if currentTime - lastCallTimestamp >= 1 then
+        lastCallTimestamp = currentTime
+        worker.update_active_window_title(ws)
     end
     if data.action == "mousemove" then
         worker.mouse_move(data.mouseX, data.mouseY)
@@ -374,10 +391,6 @@ function onmessage(ws, data)
         end
         return true
     end
-    if data.action == "keepalive" then
-        -- skip keepalive response
-        return true
-    end
     return false
 end
 
@@ -414,10 +427,7 @@ function start_server()
         end
         if errno == 110 then -- timeout
             keepalive(ws)
-            ws:send(lunajson.encode{
-                action = "window_title",
-                title = worker.get_active_window_title()
-            })
+            worker.update_active_window_title(ws)
         else
             status, error = pcall(function()
                 if error == "text" then
