@@ -208,10 +208,10 @@ end
 local worker = {}
 
 function worker.get_active_window_title()
-    local xprop = io.popen('xprop -id $(xprop -root _NET_ACTIVE_WINDOW | grep -oiP \"0x.{7}\") WM_NAME | sed \"s/WM_NAME(STRING) = //\"', 'r')
-    local stdout = xprop:read("*a")
-    xprop:close()
-    return stdout
+    local windowName = io.popen('xdotool getactivewindow getwindowname 2>/dev/null');
+    local stdout = windowName:read("*a")
+    windowName:close()
+    return stdout;
 end
 
 function worker.mouse_move(mouseX, mouseY)

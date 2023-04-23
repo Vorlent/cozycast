@@ -707,6 +707,7 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
                     state.userlist.value = [];
                     state.chatMessages.value = [];
                     state.remoteInfo.value.remote = false;
+                    windowTitle.value = "CozyCast: Low latency screen capture via WebRTC";
                 })
                 route('/', true);
             }
