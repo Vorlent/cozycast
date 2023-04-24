@@ -277,6 +277,9 @@ body,
 }
 
 .textarea-wrapper {
+    background-color: var(--cozyButton);
+    border-radius: 4px;
+    margin: 0 4px;
     position: relative;
     display: inline-block;
     height: 100%;
@@ -298,6 +301,14 @@ body,
     resize: none;
     height: 100%;
     width: 5em;
+    max-width: 5em;
+    opacity: 0;
+    cursor: pointer;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 /* MobileRemoteControls end */
 
@@ -2484,6 +2495,14 @@ input[type=range]::-webkit-slider-thumb {
         height: 100vh;
     }
 
+    .toolbarFullscreen {
+        position: relative;
+    }
+    
+    .hideToolbar {
+        opacity: 1;
+    }
+
     .videoWrapper {
         justify-content: unset;
         height: max-content;
@@ -2515,6 +2534,20 @@ input[type=range]::-webkit-slider-thumb {
         width: 260px;
     }
 
+    .hideChat.fullscreenSidebar .history-mode-badge,
+    .hideChat.fullscreenSidebar .image-uploader,
+    .hideChat.fullscreenSidebar .message {
+        opacity: 1;
+    }
+
+    .fullscreenSidebar.hasRemote {
+        visibility: unset;
+    }
+    
+    .fullscreenUserlist.hasRemote {
+        visibility: unset;
+    }
+
 }
 
 @media only screen and (max-width: 780px) and (orientation: landscape) {
@@ -2534,6 +2567,10 @@ input[type=range]::-webkit-slider-thumb {
 
 
 @media only screen and (max-width: 780px) {
+
+    .subControls.fullscreenRemote {
+        position: unset;
+    }
 
     .touchpad-controls {
         display: flex;
@@ -2560,12 +2597,6 @@ input[type=range]::-webkit-slider-thumb {
     .subControls {
         justify-items: flex-end;
         margin-right: 0;
-    }
-
-    .subControls.fullscreenRemote {
-        margin-left: unset;
-        margin-right: unset;
-        position: unset;
     }
 
     .onlineDot {

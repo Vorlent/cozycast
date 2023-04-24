@@ -37,8 +37,6 @@ export const MobileRemoteControls = ({ lastRemotePosition, onPaste, onKeyUp, onK
 
     const handleInput = (e) => {
         if (!remoteInfo.value.remote) { return }
-        e.preventDefault();
-
         let key;
 
         switch (e.inputType) {
@@ -73,7 +71,10 @@ export const MobileRemoteControls = ({ lastRemotePosition, onPaste, onKeyUp, onK
             key: key
         });
 
-        e.target.value = ''; // Clear the input field
+    }
+
+    const onInput = (e) => {
+        e.preventDefault();
     }
 
 
@@ -83,11 +84,11 @@ export const MobileRemoteControls = ({ lastRemotePosition, onPaste, onKeyUp, onK
             e.preventDefault();
             sendMessage({
                 action: 'keydown',
-                key: 'Enter'
+                key: e.key 
             });
             sendMessage({
                 action: 'keyup',
-                key: 'Enter'
+                key: e.key 
             });
             e.target.value = '';
         }
@@ -111,9 +112,10 @@ export const MobileRemoteControls = ({ lastRemotePosition, onPaste, onKeyUp, onK
                 <img src="/svg/arrow-down.svg" />
             </button>
             <div class="textarea-wrapper">
-                <textarea autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="off" className="click-button keyboard-input"
+                <textarea autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="off" className="keyboard-input"
                     onKeyDown={handleKeyDown}
-                    onBeforeInput={handleInput} />
+                    onBeforeInput={handleInput}
+                    onInput={onInput}/>
                 <img src="/svg/keyboard.svg" class="textarea-icon" />
             </div>
 
