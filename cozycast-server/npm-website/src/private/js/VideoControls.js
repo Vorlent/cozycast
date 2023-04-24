@@ -1,7 +1,8 @@
-import { h } from 'preact'
+import { h, Fragment } from 'preact'
 import { useContext, useEffect, useRef } from 'preact/hooks';
 import { AppStateContext } from './appstate/AppStateContext';
 import { WebSocketContext } from './websocket/WebSocketContext';
+import { MobileRemoteControls } from './MobileRemoteControls.js'
 
 var lastMouseEvent = Date.now();
 
@@ -16,25 +17,20 @@ export const VideoControls = () => {
     const { volume, muted } = useContext(AppStateContext);
     const { remoteInfo, videoPaused, videoLoading, toggleVideo, sendMessage, viewPort } = useContext(WebSocketContext);
     const videoElementRef = useRef();
-    
+    const videocontrols = useRef();
+
     useEffect(() => {
         updateVolume();
-    }, [volume.value,muted.value])
+    }, [volume.value, muted.value])
 
+    useEffect(() => {
+        lastRemotePosition.current = { x: viewPort.value.width / 2, y: viewPort.value.height / 2 }
+    }, [viewPort.value])
+
+    const lastRemotePosition = useRef({ x: 0, y: 0 });
     const getRemotePosition = (e) => {
         if (!videoElementRef.current || videoElementRef.current.videoWidth == 0 || videoElementRef.current.videoHeight == 0) {
             return { x: 0, y: 0 }
-        }
-
-        let xPosition = 0;
-        let yPosition = 0;
-        if(e.type == 'touchstart' || e.type == 'touchmove' || e.type == 'touchend' || e.type == 'touchcancel'){
-            var touch = e.touches[0] || e.changedTouches[0];
-            xPosition = touch.pageX;
-            yPosition = touch.pageY;
-        } else if (e.type == 'mousedown' || e.type == 'mouseup' || e.type == 'mousemove' || e.type == 'mouseover'|| e.type=='mouseout' || e.type=='mouseenter' || e.type=='mouseleave') {
-            xPosition = e.clientX;
-            yPosition = e.clientY;
         }
 
         var videoRect = videoElementRef.current.getBoundingClientRect();
@@ -49,8 +45,9 @@ export const VideoControls = () => {
             bottom: videoRect.bottom - padVt,
             left: videoRect.left + padHz
         };
-        var x = (xPosition- correctedRect.left) / (correctedRect.right - correctedRect.left) * viewPort.value.width;
-        var y = (yPosition - correctedRect.top) / (correctedRect.bottom - correctedRect.top) * viewPort.value.height;
+        var x = (e.clientX - correctedRect.left) / (correctedRect.right - correctedRect.left) * viewPort.value.width;
+        var y = (e.clientY - correctedRect.top) / (correctedRect.bottom - correctedRect.top) * viewPort.value.height;
+        lastRemotePosition.current = { x: x, y: y };
         return { x: x, y: y }
     }
 
@@ -90,6 +87,68 @@ export const VideoControls = () => {
                 action: 'mousemove',
                 mouseX: pos.x,
                 mouseY: pos.y
+            });
+            lastMouseEvent = now;
+        }
+    }
+
+    const trackedTouchIdentifier = useRef(null);
+    const lastTouchPosition = useRef({ x: 0, y: 0 });
+    const setTouchPosition = (e) => {
+        if (!remoteInfo.value.remote) { return }
+        e.preventDefault();
+        let touch = null;
+        for (let i = 0; i < e.touches.length; i++) {
+            if (e.touches[i].target === videocontrols.current) {
+                touch = e.touches[i];
+                break;
+            }
+        }
+
+        // If no touch event is occurring on the div, return
+        if (touch === null) {
+            return;
+        }
+
+        trackedTouchIdentifier.current = touch.identifier;
+        const xNew = touch.pageX;
+        const yNew = touch.pageY;
+        lastTouchPosition.current = { x: xNew, y: yNew };
+    }
+
+    const videoTouchmove = (e) => {
+        if (!remoteInfo.value.remote) { return }
+        e.preventDefault();
+        var now = Date.now();
+        if (now - lastMouseEvent > 10) {
+            var touch = null;
+            // Find the touch with the matching identifier
+            for (let i = 0; i < e.touches.length; i++) {
+                if (e.touches[i].identifier === trackedTouchIdentifier.current) {
+                    touch = e.touches[i] || e.changedTouches[i];
+                    break;
+                }
+            }
+
+            if (touch === null) {
+                return;
+            }
+
+            const xNew = touch.pageX;
+            const yNew = touch.pageY;
+            const { x: xOld, y: yOld } = lastTouchPosition.current;
+            lastTouchPosition.current = { x: xNew, y: yNew };
+
+            const { x: remPosX, y: remPosY } = lastRemotePosition.current;
+            let newX = remPosX + (xNew - xOld);
+            let newY = remPosY + (yNew - yOld);
+            newX = Math.max(0, Math.min(newX, viewPort.value.width));
+            newY = Math.max(0, Math.min(newY, viewPort.value.height));
+            lastRemotePosition.current = { x: newX, y: newY };
+            sendMessage({
+                action: 'mousemove',
+                mouseX: newX,
+                mouseY: newY
             });
             lastMouseEvent = now;
         }
@@ -165,45 +224,54 @@ export const VideoControls = () => {
         }
     }
 
-    return (<div id="videoBig">
-        <div id="videocontrols" tabindex="-1"
-            oncontextmenu={disableContextmenu}
-            onmousemove={videoMousemove}
-            onmouseup={videoMouseUp}
-            onmousedown={videoMouseDown}
-            onpaste={paste}
-            onkeyup={videoKeyUp}
-            onkeydown={videoKeyDown}
-            onwheel={videoScroll}
+    return (
+        <>
+            <div id="videoBig">
+                <div id="videocontrols" tabindex="-1"
+                    oncontextmenu={disableContextmenu}
+                    onmousemove={videoMousemove}
+                    onmouseup={videoMouseUp}
+                    onmousedown={videoMouseDown}
+                    onpaste={paste}
+                    onkeyup={videoKeyUp}
+                    onkeydown={videoKeyDown}
+                    onwheel={videoScroll}
 
-            onTouchStart={videoMouseDown}
-            onTouchEnd={videoMouseUp}
-            onTouchMove={videoMousemove}
-        >
-            {videoPaused.value &&
-                <div class="paused-screen">
-                    <div class="play-button"><img title="Play" src="/svg/initial_play_button.svg" /></div>
-                </div>}
-            { videoLoading.value == "loading" && !videoPaused.value &&
-                <div class="paused-screen">
-                    <div class="loading-screen">
-                        <img src="/svg/loading-cozy.svg" />
-                        LOADING...
-                    </div>
+                    onTouchStart={setTouchPosition}
+                    onTouchMove={videoTouchmove}
+
+                    ref={videocontrols}
+                >
+                    {videoPaused.value &&
+                        <div class="paused-screen">
+                            <div class="play-button"><img title="Play" src="/svg/initial_play_button.svg" /></div>
+                        </div>}
+                    {videoLoading.value == "loading" && !videoPaused.value &&
+                        <div class="paused-screen">
+                            <div class="loading-screen">
+                                <img src="/svg/loading-cozy.svg" />
+                                LOADING...
+                            </div>
+                        </div>
+                    }
                 </div>
-            }
-        </div>
-        <audio id="autoplay" controls="" volume="0" src="/audio/pop.wav" autoplay
-            preload="auto" onplay={e => autoplayDetected(false)} />
-        <div id="videosizer">
-            <video id="video" 
-                ref={videoElementRef}
-                autoplay 
-                tabindex="-1"
-                oncanplay={e => onCanPlay(e)}
-                onloadstart={e => onLoadStart(e)}
-            ></video>
-        </div>
-    </div>
+                <audio id="autoplay" controls="" volume="0" src="/audio/pop.wav" autoplay
+                    preload="auto" onplay={e => autoplayDetected(false)} />
+                <div id="videosizer">
+                    <video id="video"
+                        ref={videoElementRef}
+                        autoplay
+                        tabindex="-1"
+                        oncanplay={e => onCanPlay(e)}
+                        onloadstart={e => onLoadStart(e)}
+                    ></video>
+                </div>
+            </div>
+            <MobileRemoteControls
+                onKeyDown={videoKeyDown}
+                onKeyUp={videoKeyUp}
+                onPaste={paste}
+                lastRemotePosition={lastRemotePosition} />
+        </>
     );
 }

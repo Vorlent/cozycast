@@ -236,6 +236,71 @@ body,
 /* Default list end */
 
 
+/* MobileRemoteControls start */
+
+.touchpad-controls {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--cozyColorMenu);
+    padding: 16px;
+    border-radius: 4px;
+}
+
+.touchpad-controls img {
+    height: 2.5em;
+    pointer-events: none;
+}
+
+.click-button.scroll{
+    padding: 8px 4px;
+}
+
+.click-button {
+    background-color: var(--cozyButton);
+    border: none;
+    color: var(--cozyTextColor);
+    padding: 8px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    margin: 0 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.textarea-wrapper {
+    position: relative;
+    display: inline-block;
+    height: 100%;
+  }
+
+  .textarea-icon{
+    position: absolute;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+  }
+
+.keyboard-input {
+    text-align: center;
+    caret-color: transparent;
+    resize: none;
+    height: 100%;
+    width: 5em;
+}
+/* MobileRemoteControls end */
+
 /* Admin page start */
 
 .admin-page-background {
@@ -2469,6 +2534,10 @@ input[type=range]::-webkit-slider-thumb {
 
 
 @media only screen and (max-width: 780px) {
+
+    .touchpad-controls {
+        display: flex;
+    }
 
     .avatar.big {
         height: 8em;
