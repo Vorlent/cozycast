@@ -18,11 +18,7 @@ function switchDesign(newDesign) {
 }
 
 function isTouchDevice() {
-  const hasTouchMediaQuery = window.matchMedia('(pointer: coarse)').matches;
-  const hasTouchEvent = 'ontouchstart' in window;
-  const hasTouchPoints = 'maxTouchPoints' in navigator && navigator.maxTouchPoints > 0;
-
-  return hasTouchMediaQuery || hasTouchEvent || hasTouchPoints;
+  return window.matchMedia('(pointer: coarse)').matches;
 }
 
 export function createAppState() {
