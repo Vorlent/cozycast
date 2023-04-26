@@ -239,12 +239,16 @@ body,
 /* MobileRemoteControls start */
 
 .touchpad-controls {
-    display: none;
+    display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: center;
     background-color: var(--cozyColorMenu);
-    padding: 16px;
-    border-radius: 4px;
+    padding: 16px 8px;
+    gap: 10px 0px;
+    min-width: 5em;
+    max-height: 100%;
+    max-width: 100%;
+    overflow: auto;
 }
 
 .touchpad-controls img {
@@ -253,14 +257,14 @@ body,
 }
 
 .click-button.scroll{
-    padding: 8px 4px;
+    height: 50%;
 }
 
 .click-button {
     background-color: var(--cozyButton);
     border: none;
     color: var(--cozyTextColor);
-    padding: 8px 20px;
+    padding: 4x 20px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
@@ -304,11 +308,13 @@ body,
     max-width: 5em;
     opacity: 0;
     cursor: pointer;
-    -moz-user-select: none;
-    -khtml-user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+    -webkit-touch-callout:none;
+    -webkit-user-select:none;
+    -khtml-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
+    user-select:none;
+    -webkit-tap-highlight-color:rgba(0,0,0,0);
 }
 /* MobileRemoteControls end */
 
@@ -332,6 +338,14 @@ body,
 
 /* Admin page end */
 
+.videoAndControlsWrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    overflow-x: hidden;
+    flex-direction: row-reverse;
+}
+
 .videoWrapper {
     width: 100%;
     height: 100%;
@@ -350,7 +364,6 @@ body,
 
 #videoBig {
     flex-grow: 1;
-    grid-area: video;
     position: relative;
     background-color: var(--cozyColor);
 }
@@ -425,12 +438,12 @@ body,
     width: 100%;
 }
 
-.hideToolbar {
+.hideToolbar #controls {
     opacity: 0;
     transition: opacity 0.2s linear;
 }
 
-.hideToolbar:hover {
+.hideToolbar:hover #controls {
     opacity: 1;
     transition: opacity 0s;
 }
@@ -2495,6 +2508,24 @@ input[type=range]::-webkit-slider-thumb {
         height: 100vh;
     }
 
+    .videoAndControlsWrapper {
+        flex-direction: column;
+    }
+
+    .touchpad-controls {
+        flex-direction: row;
+        height: 6em;
+    }
+
+    .click-button {
+        width: 5.5em;
+    }
+
+    .click-button.scroll {
+        height: 100%;
+        width: 3.5em;
+    }
+
     .toolbarFullscreen {
         position: relative;
     }
@@ -2570,10 +2601,6 @@ input[type=range]::-webkit-slider-thumb {
 
     .subControls.fullscreenRemote {
         position: unset;
-    }
-
-    .touchpad-controls {
-        display: flex;
     }
 
     .avatar.big {

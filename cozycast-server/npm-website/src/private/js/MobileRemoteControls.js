@@ -1,9 +1,11 @@
 import { h } from 'preact'
-import { useContext } from 'preact/hooks';
+import { useContext, useRef } from 'preact/hooks';
 import { WebSocketContext } from './websocket/WebSocketContext';
+import { AppStateContext } from './appstate/AppStateContext';
 
-export const MobileRemoteControls = ({ lastRemotePosition, onPaste, onKeyUp, onKeyDown }) => {
+export const MobileRemoteControls = ({ lastRemotePosition }) => {
     const { remoteInfo, sendMessage } = useContext(WebSocketContext);
+    const { touchDevice } = useContext(AppStateContext);
 
     const videoMouseUp = (button) => {
         if (!remoteInfo.value.remote) { return }
@@ -90,15 +92,38 @@ export const MobileRemoteControls = ({ lastRemotePosition, onPaste, onKeyUp, onK
                 action: 'keyup',
                 key: e.key 
             });
+            setInput('');
             e.target.value = '';
         }
     }
 
+    const handleTextAreaClick = (e) => {
+        e.preventDefault();
+        // Check if textarea is focused
+        if (document.activeElement === textareaRef.current) {
+          // Unfocus the textarea
+          textareaRef.current.blur();
+        } else {
+          // Focus the textarea
+          textareaRef.current.focus();
+        }
+      }
 
-    if (!remoteInfo.value.remote) return;
 
+    if (!remoteInfo.value.remote || !touchDevice.value ) return;
+
+    const textareaRef = useRef();
     return (
         <div className="touchpad-controls">
+            <div class="textarea-wrapper">
+                <textarea autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="off" className="keyboard-input"
+                    onKeyDown={handleKeyDown}
+                    onBeforeInput={handleInput}
+                    onInput={onInput}
+                    onTouchStart={handleTextAreaClick}
+                    ref={textareaRef}/>
+                <img src="/svg/keyboard.svg" class="textarea-icon" />
+            </div>
             <button tabIndex="-1" className="click-button" onTouchStart={() => videoMouseDown(0)} onTouchEnd={() => videoMouseUp(0)} >
                 <img src="/svg/left-click.svg" />
             </button>
@@ -111,14 +136,6 @@ export const MobileRemoteControls = ({ lastRemotePosition, onPaste, onKeyUp, onK
             <button className="click-button scroll" onClick={() => videoScroll("down")}>
                 <img src="/svg/arrow-down.svg" />
             </button>
-            <div class="textarea-wrapper">
-                <textarea autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="off" className="keyboard-input"
-                    onKeyDown={handleKeyDown}
-                    onBeforeInput={handleInput}
-                    onInput={onInput}/>
-                <img src="/svg/keyboard.svg" class="textarea-icon" />
-            </div>
-
         </div>
     );
 };

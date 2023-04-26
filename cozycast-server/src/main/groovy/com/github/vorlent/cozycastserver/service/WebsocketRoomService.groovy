@@ -423,7 +423,6 @@ class WebsocketRoomService {
     }
 
     private void chatmessage(Room room, WebSocketSession session, Map jsonMessage,String username) {
-        log.info jsonMessage.toString()
         final UserSession user = room.users.get(username)
         if(jsonMessage.message == null || !(jsonMessage.message instanceof String) || jsonMessage.message.length() == 0) {
             return
@@ -811,7 +810,7 @@ class WebsocketRoomService {
             session: username
         ))
         sendMessage(session, new WindowTitleEvent(
-            title: "CozyCast: " + (room.title ?: "Low latency screen capture via WebRTC")
+            title: (room.title ?: "")
         ))
 
         ChatMessage.withTransaction {

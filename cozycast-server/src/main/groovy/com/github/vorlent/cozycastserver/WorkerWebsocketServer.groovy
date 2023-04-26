@@ -101,7 +101,7 @@ class WorkerWebsocketServer {
             room.users.each { key, value ->
             value.connections.each {sessionId, connection ->
                 connection.webSocketSession.sendSync(new WindowTitleEvent(
-                    title: "CozyCast: " + (room.title ?: "Low latency screen capture via WebRTC")
+                    title: (room.title ?: "")
                 ))
             }
             }

@@ -179,10 +179,10 @@ const ChatMessages = ({ historyMode, imageModal }) => {
     const messageBody = useRef(null);
 
     const isUserScroll = useRef(false);
-    const chatScroll = () => {
+    const chatScroll = (e, usedWheel) => {
         const activateHistoryMode = messageBody.current.scrollHeight - (messageBody.current.scrollTop + messageBody.current.clientHeight) > 30;
         if (historyMode.value !== activateHistoryMode) {
-            if (activateHistoryMode && isUserScroll.current)
+            if (activateHistoryMode && (usedWheel || isUserScroll.current))
                 historyMode.value = true;
             else if (!activateHistoryMode) {
                 historyMode.value = false;
@@ -201,7 +201,7 @@ const ChatMessages = ({ historyMode, imageModal }) => {
     const handeChatWheel = (event) => {
         if (event.deltaY < 0) {
             setTimeout(() => {
-                historyMode.value = true;
+                chatScroll(null,true);
               }, 100);
         }
     }

@@ -17,6 +17,14 @@ function switchDesign(newDesign) {
   return design;
 }
 
+function isTouchDevice() {
+  const hasTouchMediaQuery = window.matchMedia('(pointer: coarse)').matches;
+  const hasTouchEvent = 'ontouchstart' in window;
+  const hasTouchPoints = 'maxTouchPoints' in navigator && navigator.maxTouchPoints > 0;
+
+  return hasTouchMediaQuery || hasTouchEvent || hasTouchPoints;
+}
+
 export function createAppState() {
   //Account
   const profile = signal({
@@ -31,8 +39,8 @@ export function createAppState() {
 
   //Volume
   let volumeLevel = parseInt(localStorage.getItem("volume"));
-    if (!isNaN(volumeLevel)) volumeLevel = Math.max(Math.min(volumeLevel, 100), 0);
-    else volumeLevel = 100;
+  if (!isNaN(volumeLevel)) volumeLevel = Math.max(Math.min(volumeLevel, 100), 0);
+  else volumeLevel = 100;
   const volume = signal(volumeLevel);
   const muted = signal(localStorage.hasOwnProperty('muted') ? localStorage.getItem("muted") == 'true' : false);
 
@@ -48,12 +56,18 @@ export function createAppState() {
     ...JSON.parse(localStorage.getItem("userSettings"))
   });
 
+  const touchDevice = signal(isTouchDevice());
+
   //Page Information
   const windowTitle = signal();
-  effect(() => { if(windowTitle.value) {document.title = windowTitle.value}});
+  effect(() => {
+    let newTitle = (userSettings.value.titleNameInFront ? 'CozyCast: ' : '')  + windowTitle.value + (userSettings.value.titleNameInFront ? '' : ' - CozyCast');
+    if (windowTitle.value) { document.title = newTitle}
+    else {document.title = "CozyCast - Movie night over the internet"}
+  });
 
-  const registerWithInviteOnly = signal(true); 
+  const registerWithInviteOnly = signal(true);
   const cozyMessage = signal("");
 
-  return { design, updateDesign, profile, userSettings,  loggedIn, registerWithInviteOnly, cozyMessage , loginCompleted , windowTitle, volume, muted, inviteCode, accessCode}
+  return { design, updateDesign, profile, userSettings, loggedIn, touchDevice, registerWithInviteOnly, cozyMessage, loginCompleted, windowTitle, volume, muted, inviteCode, accessCode }
 }

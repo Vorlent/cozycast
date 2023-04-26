@@ -11,14 +11,14 @@ export const UserRoomSettings = ({ close }) => {
     const [settings, setSettings] = useState({});
     const [openTabs, setOpenTabs] = useState({});
     const [designTemp, setDesignTemp] = useState(null);
-    const [profileMode, setProfileMode] = useState({open: false});
+    const [profileMode, setProfileMode] = useState({ open: false });
     const backgroundProfileUpdate = useRef();
     const backgroundSettings = useRef();
 
     useEffect(() => {
-        setSettings({...userSettings.value});
+        setSettings({ ...userSettings.value });
         setDesignTemp(design.value)
-     }, [])
+    }, [])
 
     const sendWorkerRestart = () => {
         sendMessage({
@@ -32,13 +32,13 @@ export const UserRoomSettings = ({ close }) => {
                 action: 'userMuted',
                 muted: settings.showIfMuted && (muted.value || videoPaused.value)
             });
-        userSettings.value = {...settings};
+        userSettings.value = { ...settings };
         updateDesign.value = designTemp;
         localStorage.setItem("userSettings", JSON.stringify(settings))
     }
 
     const closeProfile = () => {
-        if(close) close();
+        if (close) close();
     }
 
     const onSubmit = e => {
@@ -47,10 +47,10 @@ export const UserRoomSettings = ({ close }) => {
     }
 
     const toggleTabs = (e) => {
-        setOpenTabs(oldTabs => ({ ...oldTabs, [e.target.name]: !oldTabs[e.target.name]}))
+        setOpenTabs(oldTabs => ({ ...oldTabs, [e.target.name]: !oldTabs[e.target.name] }))
     }
     const toggle = (e) => {
-        setSettings(settings => ({...settings, [e.target.name]: e.target.checked }));
+        setSettings(settings => ({ ...settings, [e.target.name]: e.target.checked }));
     }
 
     const selectDesignChoice = (e) => {
@@ -59,14 +59,14 @@ export const UserRoomSettings = ({ close }) => {
 
 
     const profileUpdateCallback = () => {
-        setProfileMode({open: false});
+        setProfileMode({ open: false });
         sendMessage({
             action: 'updateprofile'
         });
     }
 
-    const closeProfileCall = () =>{
-        setProfileMode({open: false});
+    const closeProfileCall = () => {
+        setProfileMode({ open: false });
     }
 
     const confirmRestart = () => {
@@ -75,15 +75,29 @@ export const UserRoomSettings = ({ close }) => {
         }
     }
 
+    const ToggleSetting = ({name, description}) => {
+        return (
+            <div><input
+                class="modal-username"
+                type="checkbox"
+                id={name}
+                onClick={toggle}
+                name={name}
+                checked={settings[name]} />
+                <label for={name}>{description}</label>
+            </div>
+        );
+    }
+
     return (
-        <div class="modal-background" ref={backgroundSettings} onmousedown={(e) => { if (e.target == backgroundSettings.current) {closeProfile()} }}>
+        <div class="modal-background" ref={backgroundSettings} onmousedown={(e) => { if (e.target == backgroundSettings.current) { closeProfile() } }}>
             {!profileMode.open &&
                 <form class="profile modal" onSubmit={onSubmit}>
                     <div class="roomSettingsHeaders">SETTINGS</div>
                     <div class="settingsContainer">
 
                         {loggedIn.value ?
-                            <button onclick={() => {setProfileMode({open: true})}}>Edit Profile</button> :
+                            <button onclick={() => { setProfileMode({ open: true }) }}>Edit Profile</button> :
                             <Fragment>
                                 <button
                                     type="button"
@@ -104,33 +118,10 @@ export const UserRoomSettings = ({ close }) => {
                             class={openTabs.notification ? "open" : ""}>Notification</button>
                         {openTabs.notification &&
                             <div class="subSettings">
-                                <div><input
-                                    class="modal-username"
-                                    type="checkbox"
-                                    id="muteChatNotification"
-                                    onClick={toggle}
-                                    name="muteChatNotification"
-                                    checked={settings.muteChatNotification} />
-                                    <label for="muteChatNotification">Mute Chat Notification</label>
-                                </div>
-                                <div><input
-                                    class="modal-username"
-                                    type="checkbox"
-                                    id="showIfMuted"
-                                    onClick={toggle}
-                                    name="showIfMuted"
-                                    checked={settings.showIfMuted} />
-                                    <label for="showIfMuted">Show Others If Muted</label>
-                                </div>
-                                <div><input
-                                    class="modal-username"
-                                    type="checkbox"
-                                    id="showLeaveJoinMsg"
-                                    onClick={toggle}
-                                    name="showLeaveJoinMsg"
-                                    checked={settings.showLeaveJoinMsg} />
-                                    <label for="showLeaveJoinMsg">Show Leave/Join Message</label>
-                                </div>
+                                <ToggleSetting name='muteChatNotification' description='Mute Chat Notification'/>
+                                <ToggleSetting name='showIfMuted' description='Show Others If Muted'/>
+                                <ToggleSetting name='showLeaveJoinMsg' description='Show Leave/Join Message'/>
+                                <ToggleSetting name='titleNameInFront' description='Display CozyCast In Title First'/>
                             </div>}
 
                         <button
@@ -140,33 +131,9 @@ export const UserRoomSettings = ({ close }) => {
                             class={openTabs.userlist ? "open" : ""}>Userlist</button>
                         {openTabs.userlist &&
                             <div class="subSettings">
-                                <div><input
-                                    class="modal-username"
-                                    type="checkbox"
-                                    id="userlistOnLeft"
-                                    onClick={toggle}
-                                    name="userlistOnLeft"
-                                    checked={settings.userlistOnLeft} />
-                                    <label for="userlistOnLeft">Show Users On Left</label>
-                                </div>
-                                <div><input
-                                    class="modal-username"
-                                    type="checkbox"
-                                    id="showUsernames"
-                                    onClick={toggle}
-                                    name="showUsernames"
-                                    checked={settings.showUsernames} />
-                                    <label for="showUsernames">Show Usernames</label>
-                                </div>
-                                <div><input
-                                    class="modal-username"
-                                    type="checkbox"
-                                    id="smallPfp"
-                                    onClick={toggle}
-                                    name="smallPfp"
-                                    checked={settings.smallPfp} />
-                                    <label for="smallPfp">Use Small Profile Pictures</label>
-                                </div>
+                                <ToggleSetting name='userlistOnLeft' description='Show Users On Left'/>
+                                <ToggleSetting name='showUsernames' description='Show Usernames'/>
+                                <ToggleSetting name='smallPfp' description='Use Small Profile Pictures'/>
                             </div>}
 
                         <button
@@ -176,15 +143,7 @@ export const UserRoomSettings = ({ close }) => {
                             class={openTabs.design ? "open" : ""}>Design</button>
                         {openTabs.design &&
                             <div class="subSettings">
-                                <div><input
-                                    class="modal-username"
-                                    type="checkbox"
-                                    id="transparentChat"
-                                    onClick={toggle}
-                                    name="transparentChat"
-                                    checked={settings.transparentChat} />
-                                    <label for="transparentChat">Fullscreen Transparent Chat</label>
-                                </div>
+                                <ToggleSetting name='transparentChat' description='Fullscreen Transparent Chat'/>
                                 <div>
                                     <input
                                         class="modal-username"
@@ -212,7 +171,7 @@ export const UserRoomSettings = ({ close }) => {
                 </form>
             }
             {profileMode.open &&
-                <div class="center-background" ref={backgroundProfileUpdate} onmousedown={(e) => {if(e.target == backgroundProfileUpdate.current){ closeProfileCall()} }}>
+                <div class="center-background" ref={backgroundProfileUpdate} onmousedown={(e) => { if (e.target == backgroundProfileUpdate.current) { closeProfileCall() } }}>
                     <ProfileModal successCallback={profileUpdateCallback} />
                 </div>
             }

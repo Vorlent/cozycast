@@ -96,7 +96,11 @@ export const VideoControls = () => {
     const lastTouchPosition = useRef({ x: 0, y: 0 });
     const setTouchPosition = (e) => {
         if (!remoteInfo.value.remote) { return }
-        e.preventDefault();
+        try {
+            e.preventDefault();
+        } catch (error) {
+            console.error("Error: " + error.message);
+        }
         let touch = null;
         for (let i = 0; i < e.touches.length; i++) {
             if (e.touches[i].target === videocontrols.current) {
@@ -118,7 +122,11 @@ export const VideoControls = () => {
 
     const videoTouchmove = (e) => {
         if (!remoteInfo.value.remote) { return }
-        e.preventDefault();
+        try {
+            e.preventDefault();
+        } catch (error) {
+            console.error("Error: " + error.message);
+        }
         var now = Date.now();
         if (now - lastMouseEvent > 10) {
             var touch = null;
@@ -225,7 +233,7 @@ export const VideoControls = () => {
     }
 
     return (
-        <>
+        <div class="videoAndControlsWrapper">
             <div id="videoBig">
                 <div id="videocontrols" tabindex="-1"
                     oncontextmenu={disableContextmenu}
@@ -272,6 +280,6 @@ export const VideoControls = () => {
                 onKeyUp={videoKeyUp}
                 onPaste={paste}
                 lastRemotePosition={lastRemotePosition} />
-        </>
+        </div>
     );
 }
