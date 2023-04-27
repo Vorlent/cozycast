@@ -39,19 +39,21 @@ export const MobileRemoteControls = ({ lastRemotePosition }) => {
 
     const handleInput = (e) => {
         if (!remoteInfo.value.remote) { return }
-        let key;
+        let key = null;
 
-        switch (e.inputType) {
-            case 'insertText':
-                key = e.data;
-                if (key.length > 1) {
-                    sendMessage({
-                        action: 'paste',
-                        clipboard: key
-                    });
-                    return;
-                }
-                break;
+        if (e.inputType == 'insertText') {
+            key = e.data;
+            e.target.value += key;
+            if (key.length > 1) {
+                e.preventDefault();
+                sendMessage({
+                    action: 'paste',
+                    clipboard: key
+                });
+                return;
+            }
+        }
+        else switch (e.inputType) {
             case 'deleteContentBackward':
                 key = 'Backspace';
                 break;
@@ -60,10 +62,11 @@ export const MobileRemoteControls = ({ lastRemotePosition }) => {
                 break;
             case 'insertLineBreak':
                 key = 'Enter';
+                break;
             default:
                 return;
         }
-
+        e.preventDefault();
         sendMessage({
             action: 'keydown',
             key: key
@@ -72,28 +75,25 @@ export const MobileRemoteControls = ({ lastRemotePosition }) => {
             action: 'keyup',
             key: key
         });
-
     }
 
-    const onInput = (e) => {
-        e.preventDefault();
-    }
-
-
+    //Backup for everything handleInput does not catch
     const handleKeyDown = (e) => {
         if (!remoteInfo.value.remote) { return }
-        if (e.key === 'Enter') {
+        if(e.key && e.key != 'Unidentified'){
             e.preventDefault();
+            if(e.key.length == 1) e.target.value += e.key;
             sendMessage({
                 action: 'keydown',
-                key: e.key 
+                key: e.key
             });
             sendMessage({
                 action: 'keyup',
                 key: e.key 
             });
-            setInput('');
-            e.target.value = '';
+            if (e.key === 'Enter') {
+                e.target.value = '';
+            }
         }
     }
 
@@ -119,7 +119,6 @@ export const MobileRemoteControls = ({ lastRemotePosition }) => {
                 <textarea autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="off" className="keyboard-input"
                     onKeyDown={handleKeyDown}
                     onBeforeInput={handleInput}
-                    onInput={onInput}
                     onTouchStart={handleTextAreaClick}
                     ref={textareaRef}/>
                 <img src="/svg/keyboard.svg" class="textarea-icon" />

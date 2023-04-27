@@ -21,6 +21,10 @@ function isTouchDevice() {
   return window.matchMedia('(pointer: coarse)').matches;
 }
 
+function isMobileDevice() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 export function createAppState() {
   //Account
   const profile = signal({
@@ -52,7 +56,7 @@ export function createAppState() {
     ...JSON.parse(localStorage.getItem("userSettings"))
   });
 
-  const touchDevice = signal(isTouchDevice());
+  const touchDevice = signal(isMobileDevice());
 
   //Page Information
   const windowTitle = signal();
