@@ -34,6 +34,7 @@ export const UserRoomSettings = ({ close }) => {
             });
         userSettings.value = { ...settings };
         updateDesign.value = designTemp;
+        localStorage.setItem("design", designTemp);
         localStorage.setItem("userSettings", JSON.stringify(settings))
     }
 
