@@ -37,6 +37,20 @@ export const MobileRemoteControls = ({ lastRemotePosition }) => {
         });
     }
 
+    const handleCompositionend = (e) => {
+        if (!remoteInfo.value.remote) { return }
+            let key = e.data;
+            e.target.value += key;
+            if (key.length > 1) {
+                e.preventDefault();
+                sendMessage({
+                    action: 'textinput',
+                    text: key
+                });
+                return;
+            }
+    }
+
     const handleInput = (e) => {
         if (!remoteInfo.value.remote) { return }
         let key = null;
@@ -47,8 +61,8 @@ export const MobileRemoteControls = ({ lastRemotePosition }) => {
             if (key.length > 1) {
                 e.preventDefault();
                 sendMessage({
-                    action: 'paste',
-                    clipboard: key
+                    action: 'textinput',
+                    text: key
                 });
                 return;
             }
@@ -117,6 +131,7 @@ export const MobileRemoteControls = ({ lastRemotePosition }) => {
         <div className="touchpad-controls">
             <div class="textarea-wrapper">
                 <textarea autocomplete="off" autocorrect="off" spellcheck="false" autocapitalize="off" className="keyboard-input"
+                    onCompositionend={handleCompositionend}
                     onKeyDown={handleKeyDown}
                     onBeforeInput={handleInput}
                     onTouchStart={handleTextAreaClick}

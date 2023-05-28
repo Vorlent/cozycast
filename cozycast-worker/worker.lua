@@ -37,6 +37,7 @@ int xdo_move_mouse(const xdo_t *xdo, int x, int y, int screen);
 int xdo_click_window(const xdo_t *xdo, Window window, int button);
 int xdo_mouse_down(const xdo_t *xdo, Window window, int button);
 int xdo_mouse_up(const xdo_t *xdo, Window window, int button);
+int xdo_enter_text_window(const xdo_t *xdo, Window window, const char *string, useconds_t delay);
 int xdo_send_keysequence_window(const xdo_t *xdo, Window window,
                     const char *keysequence, useconds_t delay);
 int xdo_send_keysequence_window_up(const xdo_t *xdo, Window window,
@@ -249,6 +250,10 @@ function worker.mouse_down(mouseX, mouseY, button)
     end
 end
 
+function worker.textinput(text)
+    libxdo.xdo_enter_text_window(xdo, 0, text, 0);
+end
+
 function worker.clipboard_write(text)
     local xclip = io.popen("xclip -selection clipboard", 'w')
     xclip:write(text or "")
@@ -335,6 +340,11 @@ function onmessage(ws, data)
     end
     if data.action == "mousedown" then
         worker.mouse_down(data.mouseX, data.mouseY, data.button)
+        return true
+    end
+
+    if data.action == "textinput" then
+        worker.textinput(data.text)
         return true
     end
 

@@ -243,6 +243,11 @@ class NextRestartAvailable {
     String time
 }
 
+class TextinputEvent {
+    String action = "textinput"
+    String text
+}
+
 class PasteEvent {
     String action = "paste"
     String clipboard
@@ -987,9 +992,16 @@ class WebsocketRoomService {
         }
     }
 
-    private void scroll(Room room, WebSocketSession session, Map jsonMessage , String username) {
+    private void scroll(Room room, WebSocketSession session, Map jsonMessage, String username) {
         if(username == room.remote) {
             sendMessage(room.worker?.websocket, new ScrollEvent(direction: jsonMessage.direction))
+        }
+    }
+
+    private void textinput(Room room, WebSocketSession session, Map jsonMessage, String username) {
+        if(username == room.remote) {
+            log.info jsonMessage.toString()
+            sendMessage(room.worker?.websocket, new TextinputEvent(text: jsonMessage.text));
         }
     }
 
@@ -1458,6 +1470,9 @@ class WebsocketRoomService {
                         break;
                     case "mousedown":
                         mousedown(currentRoom, session, jsonMessage, username)
+                        break;
+                    case "textinput":
+                        textinput(currentRoom, session, jsonMessage, username)
                         break;
                     case "paste":
                         paste(currentRoom, session, jsonMessage, username)
