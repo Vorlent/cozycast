@@ -2,5 +2,4 @@ version: '3'
 
 services:
     cozycast-worker:
-        environment:
-            COZYCAST_ROOM: $COZYCAST_ROOM
+        container_name: $COZYCAST_ROOM

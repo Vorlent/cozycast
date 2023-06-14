@@ -412,7 +412,8 @@ function start_server()
         server = os.getenv("DUCKDNS_DOMAIN")
     end
 
-    if os.getenv("LOCAL_WORKER") ~= "" then
+    if os.getenv("LOCAL_WORKER") == "true" then
+        print("Worker.lua: Using local worker")
         server="cozycast-server"
     end
 
