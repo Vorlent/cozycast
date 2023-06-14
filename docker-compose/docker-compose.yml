@@ -41,8 +41,7 @@ services:
         networks:
             - internal
         environment:
-            LOCAL_WORKER: "true"
-            FORCE_HTTPS: "false"
+            LOCAL_WORKER: $LOCAL_WORKER
             COZYCAST_ROOM: default
     cozycast-server:
         build: ../cozycast-server
