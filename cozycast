@@ -15,7 +15,10 @@ function setup_env {
     export KURENTO_USERNAME=2139323074:kurento
     export KURENTO_PASSWORD=$(echo -n "$KURENTO_USERNAME" | openssl dgst -sha1 -hmac "$TURN_SECRET" -binary | base64)
     sudo docker network create cozycast_cozycast
-    export KURENTO_IP=$(sudo docker network inspect cozycast_cozycast --format="{{(index (index .).IPAM.Config 0).Gateway}}")
+
+    if [ -z "$KURENTO_IP" ]; then
+        export KURENTO_IP=$(sudo docker network inspect cozycast_cozycast --format="{{(index (index .).IPAM.Config 0).Gateway}}")
+    fi
 
     if [ -f "data/COZYCAST_JWT_SECRET" ]; then
         export COZYCAST_JWT_SECRET=$(cat data/COZYCAST_JWT_SECRET)
@@ -84,20 +87,35 @@ case $1 in
         exit;
         ;;
     connect)
+        cd docker-compose
         while IFS=',' read -r server roomname key https
         do
+            if [ -z "$server" ] || [ -z "$roomname" ] || [ -z "$key" ] || [ -z "$https" ]; then
+                echo "Error: Missing one or more required variables (server, roomname, key, https) in the input file."
+                echo "Example: example_server,example_room,example_key,true"
+                exit 1
+            fi
             export DUCKDNS_DOMAIN=$server
             export COZYCAST_ROOM=$roomname
             export COZYCAST_WORKER_KEY=$key
             export FORCE_HTTPS=$https
-            cd docker-compose
-            sudo -E docker-compose -p cozycast_room -f docker-compose.worker.yml -f docker-compose.connect.yml up -d cozycast-worker
-        done < ".rooms"
+
+            sudo -E docker-compose -p cozycast_room_$roomname -f docker-compose.worker.yml -f docker-compose.connect.yml up -d cozycast-worker
+            sleep 5
+
+        done < ../.rooms
         exit;
         ;;
     disconnect)
-        cd docker-compose
-        sudo -E docker-compose -p cozycast_room -f docker-compose.worker.yml -f docker-compose.connect.yml down
+        # Get the list of running container names
+        container_names=$(sudo docker ps --format '{{.Names}}')
+
+        # Stop containers with names starting with "cozycast_room_"
+        for name in $container_names; do
+            if [[ $name == cozycast_room_* ]]; then
+                sudo docker stop "$name"
+            fi
+        done
         exit;
         ;;
     build)
