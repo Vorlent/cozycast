@@ -1,6 +1,7 @@
 #!/bin/bash
 source .env
 
+
 function setup_env {
     mkdir -p data
     FILE=/etc/resolv.conf
@@ -13,8 +14,10 @@ function setup_env {
 
     export KURENTO_USERNAME=2139323074:kurento
     export KURENTO_PASSWORD=$(echo -n "$KURENTO_USERNAME" | openssl dgst -sha1 -hmac "$TURN_SECRET" -binary | base64)
-    sudo docker network create cozycast_cozycast
-    export KURENTO_IP=$(sudo docker network inspect cozycast_cozycast --format="{{(index (index .).IPAM.Config 0).Gateway}}")
+
+    if [ -z "$KURENTO_IP" ]; then
+        export KURENTO_IP=$(sudo docker network inspect cozycast_cozycast --format="{{(index (index .).IPAM.Config 0).Gateway}}")
+    fi
 
     if [ -f "data/COZYCAST_JWT_SECRET" ]; then
         export COZYCAST_JWT_SECRET=$(cat data/COZYCAST_JWT_SECRET)
@@ -37,7 +40,12 @@ function setup_env {
         echo $COZYCAST_INIT_ADMIN_PASSWORD > data/COZYCAST_INIT_ADMIN_PASSWORD
     fi
 
-    export COZYCAST_WORKER_KEY=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
+    if [ -f "data/COZYCAST_WORKER_KEY" ]; then
+        export COZYCAST_WORKER_KEY=$(cat data/COZYCAST_WORKER_KEY)
+    else
+        export COZYCAST_WORKER_KEY=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
+        echo $COZYCAST_WORKER_KEY > data/COZYCAST_WORKER_KEY
+    fi
 
     export COMPOSE_COMPATIBILITY=true
 }
@@ -67,31 +75,58 @@ case $1 in
     start)
         mkdir -p cozycast-server/cache/avatar
         cd docker-compose
-        sudo -E docker-compose -p cozycast -f docker-compose.yml up -d
+        sudo -E docker-compose -p cozycast -f docker-compose.worker.yml -f docker-compose.yml up -d
         coturn_add_kurento_user
         liquibase_update
         exit;
         ;;
     stop)
         cd docker-compose
-        sudo -E docker-compose -p cozycast -f docker-compose.yml down
+        sudo -E docker-compose -p cozycast -f docker-compose.worker.yml -f docker-compose.yml down
         exit;
         ;;
     connect)
         cd docker-compose
-        sudo -E docker-compose -p cozycast_2 -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.connect.yml up -d cozycast-worker
+        while IFS=',' read -r server roomname key https
+        do
+            if [ -z "$server" ] || [ -z "$roomname" ] || [ -z "$key" ] || [ -z "$https" ]; then
+                echo "Error: Missing one or more required variables (server, roomname, key, https) in the input file."
+                echo "Example: example_server,example_room,example_key,true"
+                exit 1
+            fi
+            export DUCKDNS_DOMAIN=$server
+            export COZYCAST_ROOM=$roomname
+            export COZYCAST_WORKER_KEY=$key
+            export FORCE_HTTPS=$https
+
+            sudo -E docker-compose -p cozycast_room_$roomname -f docker-compose.worker.yml -f docker-compose.connect.yml up -d cozycast-worker
+            sleep 5
+
+        done < ../.rooms
+        exit;
+        ;;
+    disconnect)
+        # Get the list of running container names
+        container_names=$(sudo docker ps --format '{{.Names}}')
+
+        # Stop containers with names starting with "cozycast_room_"
+        for name in $container_names; do
+            if [[ $name == cozycast_room_* ]]; then
+                sudo docker stop "$name"
+            fi
+        done
         exit;
         ;;
     build)
         cd docker-compose
-        sudo -E docker-compose -p cozycast -f docker-compose.yml build
+        sudo -E docker-compose -p cozycast -f docker-compose.worker.yml -f docker-compose.yml build
         exit;
         ;;
     dev)
         mkdir -p cozycast-server/cache/avatar
         cd docker-compose
         export SOURCE_URL=$(git remote get-url origin)
-        sudo -E docker-compose -p cozycast -f docker-compose.yml -f docker-compose.dev.yml up -d
+        sudo -E docker-compose -p cozycast -f docker-compose.worker.yml -f docker-compose.yml -f docker-compose.dev.yml up -d
         coturn_add_kurento_user
         liquibase_update
         (sudo -E docker exec -i cozycast-server sh dev.sh) &

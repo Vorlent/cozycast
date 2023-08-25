@@ -175,6 +175,8 @@ class ResetKeyboardEvent {
 class LeaveEvent {
     String action = "leave"
     String session
+    String username
+    Boolean anonymous
 }
 
 class CozycastError {
@@ -241,6 +243,11 @@ class NextRestartAvailable {
     String time
 }
 
+class TextinputEvent {
+    String action = "textinput"
+    String text
+}
+
 class PasteEvent {
     String action = "paste"
     String clipboard
@@ -264,6 +271,10 @@ class BanEvent {
     String action = "ban"
     String session
     String expiration
+}
+
+class RateLimitExceededEvent {
+    String action = "rateLimitExceeded"
 }
 
 class RestartWorkerEvent {
@@ -417,9 +428,17 @@ class WebsocketRoomService {
     }
 
     private void chatmessage(Room room, WebSocketSession session, Map jsonMessage,String username) {
-        log.info jsonMessage.toString()
         final UserSession user = room.users.get(username)
-        if(jsonMessage.message == null || jsonMessage.message.length() == 0) return;
+        if(jsonMessage.message == null || !(jsonMessage.message instanceof String) || jsonMessage.message.length() == 0) {
+            return
+        }
+        if(user.anonymous && jsonMessage.message.length() > 250) {
+            return;
+        }
+        if(user.anonymous && !user.rateLimiter.tryConsume()) {
+            sendMessage(session, new RateLimitExceededEvent())
+            return;
+        }
         ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))
         String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
         ChatMessage.withTransaction {
@@ -430,7 +449,7 @@ class WebsocketRoomService {
                 .list(sort: 'timestamp', order: 'desc', offset: 1000).each { it.delete() }
             def chatMessage = new ChatMessage(
                 room: room.name,
-                message: jsonMessage.message,
+                message: jsonMessage.message.replaceAll(/(^\n+|\n+$)/, ''),
                 type: "text",
                 username: user.nickname,
                 session: username,
@@ -796,7 +815,7 @@ class WebsocketRoomService {
             session: username
         ))
         sendMessage(session, new WindowTitleEvent(
-            title: "CozyCast: " + (room.title ?: "Low latency screen capture via WebRTC")
+            title: (room.title ?: "")
         ))
 
         ChatMessage.withTransaction {
@@ -862,8 +881,8 @@ class WebsocketRoomService {
         //send remote info for joining user
         if(room.remote != null){
             sendMessage(session, new PickupRemoteEvent(
-                session: room.sessionToName.get(room.remote),
-                has_remote: room.remote == session.getId()))
+                session: room.remote,
+                has_remote: room.remote == user.username))
         }
     }
 
@@ -973,9 +992,16 @@ class WebsocketRoomService {
         }
     }
 
-    private void scroll(Room room, WebSocketSession session, Map jsonMessage , String username) {
+    private void scroll(Room room, WebSocketSession session, Map jsonMessage, String username) {
         if(username == room.remote) {
             sendMessage(room.worker?.websocket, new ScrollEvent(direction: jsonMessage.direction))
+        }
+    }
+
+    private void textinput(Room room, WebSocketSession session, Map jsonMessage, String username) {
+        if(username == room.remote) {
+            log.info jsonMessage.toString()
+            sendMessage(room.worker?.websocket, new TextinputEvent(text: jsonMessage.text));
         }
     }
 
@@ -1322,7 +1348,9 @@ class WebsocketRoomService {
                 value.connections.each {sessionIdKey, connection ->
                     if (connection.webSocketSession != null) {
                         sendMessage(connection.webSocketSession, new LeaveEvent(
-                            session: username
+                            session: username,
+                            username: user.nickname,
+                            anonymous: user.anonymous
                         ))
                     }
                 }
@@ -1389,6 +1417,9 @@ class WebsocketRoomService {
         else {
             try {
                 switch (jsonMessage.action) {
+                    case "chatmessage":
+                        chatmessage(currentRoom, session, jsonMessage, username)
+                        break;
                     case "keepalive":
                         keepalive(currentRoom, session, jsonMessage)
                         break;
@@ -1409,9 +1440,6 @@ class WebsocketRoomService {
                         break;
                     case "updateprofile":
                         updateProfile(currentRoom, session, username)
-                        break;
-                    case "chatmessage":
-                        chatmessage(currentRoom, session, jsonMessage, username)
                         break;
                     case "whisper":
                         whisper(currentRoom, session, jsonMessage, username)
@@ -1442,6 +1470,9 @@ class WebsocketRoomService {
                         break;
                     case "mousedown":
                         mousedown(currentRoom, session, jsonMessage, username)
+                        break;
+                    case "textinput":
+                        textinput(currentRoom, session, jsonMessage, username)
                         break;
                     case "paste":
                         paste(currentRoom, session, jsonMessage, username)

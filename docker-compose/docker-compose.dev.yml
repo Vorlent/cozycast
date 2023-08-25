@@ -8,6 +8,7 @@ services:
         - run
         environment:
             SOURCE_URL: $SOURCE_URL
+            NODE_ENV: development
         volumes:
             - "../data/cozycast-server/avatar:/var/cozycast/avatar/"
             - "../cozycast-server:/root/cozycast/cozycast-server"

@@ -1,29 +1,24 @@
-import { h, Component } from 'preact'
+import { h } from 'preact'
 
-export class ImageModal extends Component {
+export const ImageModal = ({ imageInfo }) => {
 
-    closeModal = () => {
-        this.props.setChatState({imageModal: false})
+    const closeModal = () => {
+        imageInfo.value = {};
     }
-
-    shouldComponentUpdate(nextProps, nextState){
-        return false;
-    }
-
-    render({type,href}) {
-        return <div class="modal-background" onclick={this.closeModal}>
-                <div class="imageModal">
-                    {type == "image" && 
-                        <div>
-                            <a class="chat-link" target="_blank" href={href}><img src={href} /></a>
-                        </div>
-                    }
-                    {type == "video" && 
-                        <div>
-                            <a class="chat-link" target="_blank" href={href}> <video loop autoplay controls src={href} /></a>
-                        </div>
-                    }
+    if(!(imageInfo.value.display )) return;
+    
+    return <div class="modal-background" onclick={closeModal}>
+        <div class="imageModal">
+            {imageInfo.value.type == "image" &&
+                <div>
+                    <a class="chat-link" target="_blank" href={imageInfo.value.href}><img src={imageInfo.value.href} /></a>
                 </div>
-            </div>
-    }
+            }
+            {imageInfo.value.type == "video" &&
+                <div>
+                    <a class="chat-link" target="_blank" href={imageInfo.value.href}> <video loop autoplay controls src={imageInfo.value.href} /></a>
+                </div>
+            }
+        </div>
+    </div>
 }

@@ -2,5 +2,9 @@ version: '3'
 
 services:
     cozycast-worker:
-        environment:
-            COZYCAST_ROOM: $COZYCAST_ROOM
+        volumes:
+            - "../cozycast-worker/worker.lua:/worker.lua"
+            - "../cozycast-worker/entrypoint.sh:/entrypoint.sh"
+            - "../cozycast-worker/capture.sh:/capture.sh"
+            - "../data/cozycast-worker/$COZYCAST_ROOM:/home/cozycast"
+

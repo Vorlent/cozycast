@@ -1,50 +1,56 @@
-import { Component, render, h, Fragment } from 'preact'
+import { h } from 'preact'
 import { route } from 'preact-router'
 import { authFetch, TokenStatus } from './Authentication.js'
 import { DefaultButton } from './DefaultButton.js';
 import { InfoScreen } from './InfoScreen.js';
+import { useContext, useEffect, useState } from 'preact/hooks';
+import { AppStateContext } from './appstate/AppStateContext.js';
 
-export class Invite extends Component {
+export const Invite = ({ code }) => {
+    const { inviteCode } = useContext(AppStateContext);
 
-    state = {
+    const [state, setState] = useState({
         message: "checking invite",
         submessage: "please wait",
         validInvite: false
-    }
+    })
 
-    componentWillMount() {
-        authFetch('/api/invite/use/' + this.props.code)
+
+    useEffect(() => {
+        authFetch('/api/invite/use/' + code)
             .then((e) => {
                 if (e == TokenStatus.EXPIRED || e == TokenStatus.NO_TOKEN) {
-                    fetch('/api/invite/check/' + this.props.code).then(e => {
+                    fetch('/api/invite/check/' + code).then(e => {
                         if (e.status != 200)
-                            this.setState({ message: "Error", submessage: "Invite invlaid or expired" })
+                            setState({ message: "Error", submessage: "Invite invlaid or expired" })
                         else {
-                            this.setState({ message: "Not logged in", submessage: "Please log in to use an invite", validInvite: true })
-                            this.props.setAppState(state => { return { inviteCode: this.props.code } })
+                            setState({ message: "Not logged in", submessage: "Please log in to use an invite", validInvite: true })
+                            inviteCode.value = code;
                         }
                     })
 
                 } else if (e.status == 200) {
-                    this.props.updatePermissions();
-                    this.props.setAppState(state => { return { inviteCode: undefined } })
-                    this.setState({ message: "Success", submessage: "Invite used" })
+                    inviteCode.value = null;
+                    setState({ message: "Success", submessage: "Invite used" })
                 }
                 else {
-                    this.setState({ message: "Invalid invite", submessage: undefined })
+                    setState({ message: "Invalid invite", submessage: undefined })
                 }
             });
-    }
+    }, []);
 
-    render({ code }, { state }) {
-        if (!this.state.validInvite) {
-            return <InfoScreen message={this.state.message} submessage={this.state.submessage}>
+
+    if (!state.validInvite) {
+        return (
+            <InfoScreen message={state.message} submessage={state.submessage}>
                 <DefaultButton enabled={true} onclick={e => route("/", false)}>
                     ok
                 </DefaultButton>
-            </InfoScreen>;
-        }
-        return <InfoScreen message={this.state.message} submessage={this.state.submessage}>
+            </InfoScreen>
+        );
+    }
+    return (
+        <InfoScreen message={state.message} submessage={state.submessage}>
             <div class="inviteButtonContainer">
                 <DefaultButton enabled={true} onclick={e => route("/login", false)}>
                     login
@@ -53,6 +59,6 @@ export class Invite extends Component {
                     register
                 </DefaultButton>
             </div>
-        </InfoScreen>;
-    }
+        </InfoScreen>
+    );
 }

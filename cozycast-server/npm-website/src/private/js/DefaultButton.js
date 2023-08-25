@@ -1,12 +1,11 @@
-import { h, Component } from 'preact'
+import { h } from 'preact'
 
-export class DefaultButton extends Component {
+export const DefaultButton = ({ enabled, onclick, children, style }) => {
 
-    render({ enabled, onclick, children,style }) {
-        return <button class={`btn btnStandard ${ style ? style : ''} ${enabled ? 'btn-danger' : 'btn-primary'}`}
-                onclick={e => onclick(e)}>
-                {children}
-            </button>
-        ;
-    }
+    return (
+        <button class={`btn btnStandard ${style ? style : ''} ${enabled ? 'btn-danger' : 'btn-primary'}`}
+            onclick={onclick}>
+            {children}
+        </button>
+    );
 }

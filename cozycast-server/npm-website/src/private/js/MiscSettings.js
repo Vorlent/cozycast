@@ -1,88 +1,80 @@
-import { h, Component, Fragment } from 'preact'
-import { authFetch, TokenStatus } from './Authentication.js'
+import { h } from 'preact'
+import { authFetch } from './Authentication.js'
 import { DefaultButton } from './DefaultButton.js';
+import { useContext, useState } from 'preact/hooks';
+import { AppStateContext } from './appstate/AppStateContext.js';
 
-export class MiscSettings extends Component {
+export const MiscSettings = ({refreshMisc}) => {
+    const {registerWithInviteOnly, cozyMessage} = useContext(AppStateContext)
+    let [newMessage, setNewMessage] = useState(cozyMessage.value);
+    let [newInviteFlag, seInviteFlag] = useState(registerWithInviteOnly.value);
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            message: this.props.message,
-            registerWithInviteOnly: this.props.registerWithInviteOnly
-        }
-    }
-
-    componentDidMount() {
-    }
-
-    refresh = () => {
-        this.props.updateMisc();
-    }
-
-    updateMessage = () => {
+    const updateMessage = () => {
         authFetch(`/api/misc/message`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: this.state.message
-        }).then(e => this.refresh())
+            body: newMessage
+        }).then(onUpdate)
     }
 
-    updateFlag = () => {
+    const updateFlag = () => {
         authFetch(`/api/misc/inviteOnly`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: this.state.registerWithInviteOnly
-        }).then(e => this.refresh())
+            body: newInviteFlag
+        }).then(onUpdate)
     }
 
-    updateSettings = () => {
-        if (this.state.message != this.props.message) {
-            this.updateMessage();
+    const onUpdate = () => {
+        refreshMisc();
+        window.alert("updated!");
+    }
+
+    const updateSettings = () => {
+        if (newMessage != cozyMessage.value) {
+            updateMessage();
         }
-        if (this.state.registerWithInviteOnly != this.props.registerWithInviteOnly) {
-            this.updateFlag();
+        if (newInviteFlag != registerWithInviteOnly.value) {
+            updateFlag();
         }
     };
 
-    render({ }, state) {
-        return (
+    return (
             <div class="misc-settings">
                 <div style={{ width: '90%' }}>
                     <label for="messageInput">Message</label>
                     <div>
                         <textarea
                             rows="3"
+                            cols="60"
                             class="modal-username standardInputField"
                             type="text"
                             id="messageInput"
-                            onInput={(e) => this.setState({ message: e.target.value })}
+                            onInput={(e) => setNewMessage(e.target.value)}
                             name="message"
-                            value={state.message}
+                            value={newMessage}
                         />
                     </div>
                 </div>
                 <label>
                     <input
                         type="checkbox"
-                        checked={state.registerWithInviteOnly}
+                        checked={newInviteFlag}
                         onclick={() =>
-                            this.setState((state) => {
-                                return { registerWithInviteOnly: !state.registerWithInviteOnly };
-                            })
+                            seInviteFlag(flag => !flag)
                         }
                     />
                     Invite required for register
                 </label>
                 <div>
-                    <DefaultButton enabled={true} onclick={this.updateSettings}>
+                    <DefaultButton enabled={true} onclick={updateSettings}>
                         Update Settings
                     </DefaultButton>
                 </div>
             </div>
         );
-    }
 }

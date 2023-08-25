@@ -60,6 +60,7 @@ class PermissionController {
     @Secured(["ROLE_ADMIN"])
     @Post("/")
     Object editPerms(@Body @Valid PermissionUpdate permission) {
+        if(permission.inviteName?.length() == 0) permission.inviteName = null;
         User.withTransaction{
             User user = User.get(permission.userId)
             if(user == null) return HttpResponse.status(HttpStatus.BAD_REQUEST)
@@ -74,6 +75,7 @@ class PermissionController {
                         remote_permission: permission.remote_permission,
                         image_permission: permission.image_permission,
                         trusted: permission.trusted,
+                        inviteName: permission.inviteName,
                         bannedUntil : null
                     )
                 } else{
@@ -83,6 +85,7 @@ class PermissionController {
                         perms.remote_permission = permission.remote_permission
                         perms.image_permission = permission.image_permission
                         perms.trusted = permission.trusted
+                        perms.inviteName = permission.inviteName
                 }
                 perms.save();
                 return HttpResponse.status(HttpStatus.OK)

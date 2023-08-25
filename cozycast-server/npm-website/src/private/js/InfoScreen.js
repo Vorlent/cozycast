@@ -1,15 +1,14 @@
-import { h, Component } from 'preact'
+import { h } from 'preact'
 
-export class InfoScreen extends Component {
+export const InfoScreen = ({ message, submessage, children }) => {
 
-    render({ message,submessage,children }) {
-        return <div class="admin-background">
-                <div class="infoScreenCenter">
-                    <div class="infoScreenMessage">{message}</div>
-                    <div class="infoScreenSubMessage">{submessage}</div>
-                    {children}
-                </div>
+    return (
+        <div class="admin-background">
+            <div class="infoScreenCenter">
+                <div class="infoScreenMessage">{message}</div>
+                <div class="infoScreenSubMessage">{submessage}</div>
+                {children}
             </div>
-            ;
-    }
+        </div>
+    );
 }

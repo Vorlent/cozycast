@@ -27,7 +27,7 @@ function restart {
         kill -9 $(cat /worker.pid)
         rm /worker.pid
     fi
-    (lua5.3 worker.lua) &
+    (luajit worker.lua) &
     echo $! >> /worker.pid
 }
 

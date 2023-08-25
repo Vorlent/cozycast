@@ -1,4 +1,8 @@
-import { Component, h } from 'preact'
+import { h, Fragment } from 'preact'
+import { useContext, useEffect, useRef } from 'preact/hooks';
+import { AppStateContext } from './appstate/AppStateContext';
+import { WebSocketContext } from './websocket/WebSocketContext';
+import { MobileRemoteControls } from './MobileRemoteControls.js'
 
 var lastMouseEvent = Date.now();
 
@@ -7,17 +11,30 @@ function disableContextmenu(e) {
     return false;
 }
 
-var videoElement;
 
 
-export class VideoControls extends Component {
+export const VideoControls = () => {
+    const { volume, muted } = useContext(AppStateContext);
+    const { remoteInfo, videoPaused, videoLoading, toggleVideo, sendMessage, viewPort } = useContext(WebSocketContext);
+    const videoElementRef = useRef();
+    const videocontrols = useRef();
 
-    getRemotePosition = (e) => {
-        if(!videoElement || videoElement.videoWidth == 0 || videoElement.videoHeight == 0) {
+    useEffect(() => {
+        updateVolume();
+    }, [volume.value, muted.value])
+
+    useEffect(() => {
+        lastRemotePosition.current = { x: viewPort.value.width / 2, y: viewPort.value.height / 2 }
+    }, [viewPort.value])
+
+    const lastRemotePosition = useRef({ x: 0, y: 0 });
+    const getRemotePosition = (e) => {
+        if (!videoElementRef.current || videoElementRef.current.videoWidth == 0 || videoElementRef.current.videoHeight == 0) {
             return { x: 0, y: 0 }
         }
-        var videoRect = videoElement.getBoundingClientRect();
-        var ratioDistortion = (videoRect.width / videoRect.height) / (videoElement.videoWidth / videoElement.videoHeight);
+
+        var videoRect = videoElementRef.current.getBoundingClientRect();
+        var ratioDistortion = (videoRect.width / videoRect.height) / (videoElementRef.current.videoWidth / videoElementRef.current.videoHeight);
         var wider = (ratioDistortion > 1);
         // assume centered
         var padVt = wider ? 0 : (videoRect.height * (1 - ratioDistortion) / 2);
@@ -28,182 +45,241 @@ export class VideoControls extends Component {
             bottom: videoRect.bottom - padVt,
             left: videoRect.left + padHz
         };
-        var x = (e.clientX - correctedRect.left) / (correctedRect.right - correctedRect.left) * this.props.state.viewPort.width;
-        var y = (e.clientY - correctedRect.top) / (correctedRect.bottom - correctedRect.top) * this.props.state.viewPort.height;
+        var x = (e.clientX - correctedRect.left) / (correctedRect.right - correctedRect.left) * viewPort.value.width;
+        var y = (e.clientY - correctedRect.top) / (correctedRect.bottom - correctedRect.top) * viewPort.value.height;
+        lastRemotePosition.current = { x: x, y: y };
         return { x: x, y: y }
     }
-    
-    videoMouseUp = (e) => {
-        if(!this.props.state.remote) { return }
-        var pos = this.getRemotePosition(e);
-        this.props.sendMessage({
-            action : 'mouseup',
+
+    const videoMouseUp = (e) => {
+        if (!remoteInfo.value.remote) { return }
+        var pos = getRemotePosition(e);
+        sendMessage({
+            action: 'mouseup',
             mouseX: pos.x,
             mouseY: pos.y,
             button: e.button
         });
     }
-    
-    videoMouseDown = (e) => {
-        var videoElement = document.getElementById('video');
-        if(this.props.state.videoPaused) {
-            videoElement.play();
-            this.props.pauseVideo();
-            if (this.props.state.videoLoading != "loaded"){
-                this.props.updateRoomState({
-                    videoLoading: "loading"
-                })
-            }
+
+    const videoMouseDown = (e) => {
+        if (videoPaused.value) {
+            toggleVideo();
+            return;
         }
-        if(!this.props.state.remote) { return }
-    
-        var pos = this.getRemotePosition(e);
-        this.props.sendMessage({
-            action : 'mousedown',
+        if (!remoteInfo.value.remote) { return }
+
+        var pos = getRemotePosition(e);
+        sendMessage({
+            action: 'mousedown',
             mouseX: pos.x,
             mouseY: pos.y,
             button: e.button
         });
     }
-    
-    videoMousemove = (e) => {
-        if(!this.props.state.remote) { return }
+
+    const videoMousemove = (e) => {
+        if (!remoteInfo.value.remote) { return }
         var now = Date.now();
-        if(now - lastMouseEvent > 10) {
-            var pos = this.getRemotePosition(e);
-            this.props.sendMessage({
-                action : 'mousemove',
+        if (now - lastMouseEvent > 10) {
+            var pos = getRemotePosition(e);
+            sendMessage({
+                action: 'mousemove',
                 mouseX: pos.x,
                 mouseY: pos.y
             });
             lastMouseEvent = now;
         }
     }
-    
-    videoScroll = (e) => {
-        if(!this.props.state.remote) { return }
-        if(e.deltaY < 0) {
-            this.props.sendMessage({
-                action : 'scroll',
+
+    const trackedTouchIdentifier = useRef(null);
+    const lastTouchPosition = useRef({ x: 0, y: 0 });
+    const setTouchPosition = (e) => {
+        if (!remoteInfo.value.remote) { return }
+        try {
+            e.preventDefault();
+        } catch (error) {
+            console.error("Error: " + error.message);
+        }
+        let touch = null;
+        for (let i = 0; i < e.touches.length; i++) {
+            if (e.touches[i].target === videocontrols.current) {
+                touch = e.touches[i];
+                break;
+            }
+        }
+
+        // If no touch event is occurring on the div, return
+        if (touch === null) {
+            return;
+        }
+
+        trackedTouchIdentifier.current = touch.identifier;
+        const xNew = touch.pageX;
+        const yNew = touch.pageY;
+        lastTouchPosition.current = { x: xNew, y: yNew };
+    }
+
+    const videoTouchmove = (e) => {
+        if (!remoteInfo.value.remote) { return }
+        try {
+            e.preventDefault();
+        } catch (error) {
+            console.error("Error: " + error.message);
+        }
+        var now = Date.now();
+        if (now - lastMouseEvent > 10) {
+            var touch = null;
+            // Find the touch with the matching identifier
+            for (let i = 0; i < e.touches.length; i++) {
+                if (e.touches[i].identifier === trackedTouchIdentifier.current) {
+                    touch = e.touches[i] || e.changedTouches[i];
+                    break;
+                }
+            }
+
+            if (touch === null) {
+                return;
+            }
+
+            const xNew = touch.pageX;
+            const yNew = touch.pageY;
+            const { x: xOld, y: yOld } = lastTouchPosition.current;
+            lastTouchPosition.current = { x: xNew, y: yNew };
+
+            const { x: remPosX, y: remPosY } = lastRemotePosition.current;
+            let newX = remPosX + (xNew - xOld);
+            let newY = remPosY + (yNew - yOld);
+            newX = Math.max(0, Math.min(newX, viewPort.value.width));
+            newY = Math.max(0, Math.min(newY, viewPort.value.height));
+            lastRemotePosition.current = { x: newX, y: newY };
+            sendMessage({
+                action: 'mousemove',
+                mouseX: newX,
+                mouseY: newY
+            });
+            lastMouseEvent = now;
+        }
+    }
+
+    const videoScroll = (e) => {
+        if (!remoteInfo.value.remote) { return }
+        if (e.deltaY < 0) {
+            sendMessage({
+                action: 'scroll',
                 direction: "up"
             });
         }
-        if(e.deltaY > 0) {
-            this.props.sendMessage({
-                action : 'scroll',
+        if (e.deltaY > 0) {
+            sendMessage({
+                action: 'scroll',
                 direction: "down"
             });
         }
     }
-    
-    videoKeyUp = (e) => {
-        if(!this.props.state.remote) { return }
-        if(e.ctrlKey && e.key.toLowerCase() == "v") {
+
+    const videoKeyUp = (e) => {
+        if (!remoteInfo.value.remote) { return }
+        if (e.ctrlKey && e.key.toLowerCase() == "v") {
             return;
         }
         e.preventDefault();
-        this.props.sendMessage({
-            action : 'keyup',
+        sendMessage({
+            action: 'keyup',
             key: e.key
         });
     }
-    
-    videoKeyDown = (e) => {
-        if(!this.props.state.remote) { return }
-        if(e.ctrlKey && e.key.toLowerCase() == "v") {
+
+    const videoKeyDown = (e) => {
+        if (!remoteInfo.value.remote) { return }
+        if (e.ctrlKey && e.key.toLowerCase() == "v") {
             return;
         }
         e.preventDefault();
-        this.props.sendMessage({
-            action : 'keydown',
+        sendMessage({
+            action: 'keydown',
             key: e.key
         });
     }
-    
-    paste = (e) => {
-        if(!this.props.state.remote) { return }
+
+    const paste = (e) => {
+        if (!remoteInfo.value.remote) { return }
         e.preventDefault();
         var pastedData = e.clipboardData.getData('text');
-        this.props.sendMessage({
-            action : 'paste',
+        sendMessage({
+            action: 'paste',
             clipboard: pastedData
         });
     }
-    
-    autoplayDetected = (loadingState) => {
-        this.props.updateRoomState({
-            videoPaused: false
-        })
-    }
-    
-    onCanPlay = (e) => {
-        this.props.updateRoomState({
-            videoLoading: "loaded"
-        })
-    }
-    
-    onLoadStart = (e) => {
-        this.props.updateRoomState({
-            videoLoading: "loading"
-        })
+
+    const autoplayDetected = (loadingState) => {
+        videoPaused.value = false;
     }
 
-    componentDidMount() {
-        videoElement = document.getElementById('video');
-        this.updateVolume(this.props.state.volume,this.props.state.muted);
+    const onCanPlay = (e) => {
+        videoLoading.value = "loaded";
+        updateVolume();
     }
 
-    shouldComponentUpdate(nextProps, nextState){
-        return this.props.state.volume !== nextProps.state.volume || 
-        this.props.state.muted !== nextProps.state.muted ||
-        this.props.state.videoPaused !== nextProps.state.videoPaused ||
-        this.props.state.videoLoading !== nextProps.state.videoLoading;
+    const onLoadStart = (e) => {
+        videoLoading.value = "loading";
     }
 
-    componentDidUpdate() {
-    	this.updateVolume(this.props.state.volume,this.props.state.muted);
-    }
-
-    updateVolume(volume,muted) {
-        if(document.getElementById('video')) {
-            if(muted) document.getElementById('video').volume = 0;
-            else {document.getElementById('video').volume = volume/100;}
+    const updateVolume = () => {
+        if (videoElementRef.current) {
+            if (muted.value) videoElementRef.current.volume = 0;
+            else { videoElementRef.current.volume = volume.value / 100; }
         }
     }
 
-    render({ state }) {
-        return <div id="videoBig" class={state.scheduleSidebar ? 'hidden': ''}>
-            <div id="videocontrols" tabindex="-1"
-              oncontextmenu={disableContextmenu}
-              onmousemove={this.videoMousemove}
-              onmouseup={this.videoMouseUp}
-              onmousedown={this.videoMouseDown}
-              onpaste={this.paste}
-              onkeyup={this.videoKeyUp}
-              onkeydown={this.videoKeyDown}
-              onwheel={this.videoScroll}
-            >
-              {state.videoPaused &&
-                <div class="paused-screen">
-                  <div class="play-button"><img title="Play" src="/svg/initial_play_button.svg"/></div>
-                </div>}
-              {state.videoLoading == "loading" && !state.videoPaused &&
-                  <div class="paused-screen">
-                    <div class="loading-screen">
-                        <img class="loading-animation" src="/svg/loading.svg"/>
-                        LOADING...
-                    </div>
+    return (
+        <div class="videoAndControlsWrapper">
+            <div id="videoBig">
+                <div id="videocontrols" tabindex="-1"
+                    oncontextmenu={disableContextmenu}
+                    onmousemove={videoMousemove}
+                    onmouseup={videoMouseUp}
+                    onmousedown={videoMouseDown}
+                    onpaste={paste}
+                    onkeyup={videoKeyUp}
+                    onkeydown={videoKeyDown}
+                    onwheel={videoScroll}
+
+                    onTouchStart={setTouchPosition}
+                    onTouchMove={videoTouchmove}
+
+                    ref={videocontrols}
+                >
+                    {videoPaused.value &&
+                        <div class="paused-screen">
+                            <div class="play-button"><img title="Play" src="/svg/initial_play_button.svg" /></div>
+                        </div>}
+                    {videoLoading.value == "loading" && !videoPaused.value &&
+                        <div class="paused-screen">
+                            <div class="loading-screen">
+                                <img src="/svg/loading-cozy.svg" />
+                                LOADING...
+                            </div>
+                        </div>
+                    }
                 </div>
-                }
+                <audio id="autoplay" controls="" volume="0" src="/audio/pop.wav" autoplay
+                    preload="auto" onplay={e => autoplayDetected(false)} />
+                <div id="videosizer">
+                    <video id="video"
+                        ref={videoElementRef}
+                        autoplay
+                        tabindex="-1"
+                        oncanplay={e => onCanPlay(e)}
+                        onloadstart={e => onLoadStart(e)}
+                    ></video>
+                </div>
             </div>
-            <audio id="autoplay" controls="" volume="0" src="/audio/pop.wav" autoplay
-                preload="auto" onplay={e => this.autoplayDetected(false)}/>
-            <div id="videosizer">
-              <video id="video" autoplay tabindex="-1"
-                  oncanplay={e => this.onCanPlay(e)}
-                  onloadstart={e => this.onLoadStart(e)}
-              ></video>
-            </div>
+            <MobileRemoteControls
+                onKeyDown={videoKeyDown}
+                onKeyUp={videoKeyUp}
+                onPaste={paste}
+                lastRemotePosition={lastRemotePosition} />
         </div>
-    }
+    );
 }

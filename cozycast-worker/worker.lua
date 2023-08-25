@@ -37,6 +37,7 @@ int xdo_move_mouse(const xdo_t *xdo, int x, int y, int screen);
 int xdo_click_window(const xdo_t *xdo, Window window, int button);
 int xdo_mouse_down(const xdo_t *xdo, Window window, int button);
 int xdo_mouse_up(const xdo_t *xdo, Window window, int button);
+int xdo_enter_text_window(const xdo_t *xdo, Window window, const char *string, useconds_t delay);
 int xdo_send_keysequence_window(const xdo_t *xdo, Window window,
                     const char *keysequence, useconds_t delay);
 int xdo_send_keysequence_window_up(const xdo_t *xdo, Window window,
@@ -207,11 +208,18 @@ end
 
 local worker = {}
 
-function worker.get_active_window_title()
-    local xprop = io.popen('xprop -id $(xprop -root _NET_ACTIVE_WINDOW | grep -oiP \"0x.{7}\") WM_NAME | sed \"s/WM_NAME(STRING) = //\"', 'r')
-    local stdout = xprop:read("*a")
-    xprop:close()
-    return stdout
+local lastWindowTitle
+function worker.update_active_window_title(ws)
+    local windowName = io.popen('xdotool getactivewindow getwindowname 2>/dev/null');
+    local stdout = windowName:read("*a")
+    windowName:close()
+    if lastWindowTitle ~= stdout then
+        ws:send(lunajson.encode{
+            action = "window_title",
+            title = stdout
+        })
+        lastWindowTitle = stdout;
+    end
 end
 
 function worker.mouse_move(mouseX, mouseY)
@@ -240,6 +248,10 @@ function worker.mouse_down(mouseX, mouseY, button)
     if xdo_button then
         libxdo.xdo_mouse_down(xdo, 0, xdo_button)
     end
+end
+
+function worker.textinput(text)
+    libxdo.xdo_enter_text_window(xdo, 0, text, 0);
 end
 
 function worker.clipboard_write(text)
@@ -298,7 +310,12 @@ function start_vm()
     print("worker.lua: Started VM")
 end
 
+local lastCallTimestamp = 0
 function onmessage(ws, data)
+    if data.action == "keepalive" then
+        -- skip keepalive response
+        return true
+    end
     if data.type == "sdpOffer" then
         print("worker.lua: sdpOffer")
         if not active_vm_flag then 
@@ -307,6 +324,11 @@ function onmessage(ws, data)
         end
         capture(data, ws)
         return true
+    end
+    local currentTime = os.time()
+    if currentTime - lastCallTimestamp >= 1 then
+        lastCallTimestamp = currentTime
+        worker.update_active_window_title(ws)
     end
     if data.action == "mousemove" then
         worker.mouse_move(data.mouseX, data.mouseY)
@@ -318,6 +340,11 @@ function onmessage(ws, data)
     end
     if data.action == "mousedown" then
         worker.mouse_down(data.mouseX, data.mouseY, data.button)
+        return true
+    end
+
+    if data.action == "textinput" then
+        worker.textinput(data.text)
         return true
     end
 
@@ -371,12 +398,7 @@ function onmessage(ws, data)
         if data.restart then
             print "worker.lua: Worker restart with settings update requested..."
             os.execute("echo '' >> /worker.restart")
-            --ws:close()
         end
-        return true
-    end
-    if data.action == "keepalive" then
-        -- skip keepalive response
         return true
     end
     return false
@@ -390,7 +412,8 @@ function start_server()
         server = os.getenv("DUCKDNS_DOMAIN")
     end
 
-    if os.getenv("LOCAL_WORKER") ~= "" then
+    if os.getenv("LOCAL_WORKER") == "true" then
+        print("Worker.lua: Using local worker")
         server="cozycast-server"
     end
 
@@ -415,10 +438,7 @@ function start_server()
         end
         if errno == 110 then -- timeout
             keepalive(ws)
-            ws:send(lunajson.encode{
-                action = "window_title",
-                title = worker.get_active_window_title()
-            })
+            worker.update_active_window_title(ws)
         else
             status, error = pcall(function()
                 if error == "text" then
@@ -446,6 +466,10 @@ end
 
 while true do
     print(pcall(start_server))
+    if active_vm_flag then 
+        os.execute("echo '' >> /worker.restart")
+        break
+    end
     print("worker.lua: Restarting lua worker in 5 seconds")
     os.execute("sleep 5")
 end
