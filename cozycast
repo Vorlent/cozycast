@@ -14,7 +14,6 @@ function setup_env {
 
     export KURENTO_USERNAME=2139323074:kurento
     export KURENTO_PASSWORD=$(echo -n "$KURENTO_USERNAME" | openssl dgst -sha1 -hmac "$TURN_SECRET" -binary | base64)
-    sudo docker network create cozycast_cozycast
 
     if [ -z "$KURENTO_IP" ]; then
         export KURENTO_IP=$(sudo docker network inspect cozycast_cozycast --format="{{(index (index .).IPAM.Config 0).Gateway}}")
