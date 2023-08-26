@@ -57,18 +57,20 @@ function coturn_add_kurento_user {
 }
 
 function liquibase_update {
+    echo "liquibase update"
     sudo docker run --rm -it \
-        -v $(readlink -f ../liquibase/changelog.xml):/changelog.xml \
+        -v $(readlink -f ../liquibase/changelog.xml):/liquibase/changelog.xml \
         -v $(readlink -f ../liquibase/driver):/liquibase/jdbc \
         --network cozycast_cozycast \
-        liquibase/liquibase:3.10.x \
+        liquibase/liquibase:4.23 \
         --driver=org.postgresql.Driver \
-        --classpath=/liquibase/jdbc/postgresql-42.2.9.jre7.jar \
+        --classpath /liquibase/jdbc/postgresql-42.2.9.jre7.jar \
         --url="jdbc:postgresql://$COZYCAST_DB_HOST:5432/cozycast" \
-        --changeLogFile=/changelog.xml \
+        --changeLogFile=changelog.xml \
         --username=cozycast \
         --password=$COZYCAST_DB_PASS \
         update
+    echo "liquibase finished"
 }
 
 case $1 in
