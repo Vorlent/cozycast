@@ -51,7 +51,7 @@ services:
             - cozycast
             - internal
         ports:
-            - "80:80"
+          #            - "80:80"
             - "443:443"
         shm_size: 2g
         environment:
@@ -72,7 +72,7 @@ services:
         volumes:
             - "../data/cozycast-server/avatar:/var/cozycast/avatar/"
             - "../data/cozycast-server/image:/var/cozycast/image/"
-            - "../data/certbot/live/:/etc/cozycast/"
+            - "../data/certbot-http/live/:/etc/cozycast/"
         restart: unless-stopped
     certbot:
         build: ../certbot
