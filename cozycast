@@ -153,7 +153,7 @@ case $1 in
                 ;;
             renew)
                 # --force-renewal
-                RELOAD_TRIGGER=./data/certbot/RELOAD
+                RELOAD_TRIGGER=./data/certbot-http/RELOAD
                 sudo rm -rf $RELOAD_TRIGGER
                 sudo -E docker run --rm -it \
 		    -p 80:80 \
@@ -173,7 +173,11 @@ case $1 in
                 if test -f "$RELOAD_TRIGGER"; then
                     echo "$RELOAD_TRIGGER exists."
                     ./cozycast ssl keystore $DUCKDNS_DOMAIN
-                    echo "sudo docker restart cozycast-server"
+                    if [ -z ${SSL_SERVER_RESTART+x} ]; then
+			 echo "sudo docker restart cozycast-server";
+		    else
+			sudo docker restart cozycast-server
+		    fi
                     sudo rm -rf $RELOAD_TRIGGER
                 fi
                 exit
