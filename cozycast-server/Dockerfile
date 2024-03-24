@@ -1,6 +1,8 @@
-FROM adoptopenjdk/openjdk11-openj9:jdk-11.0.11_9_openj9-0.26.0-alpine-slim
+FROM eclipse-temurin:11.0.20_8-jdk-jammy
 
 EXPOSE 8080
+
+RUN apt-get update && apt-get install -y inotify-tools
 
 RUN mkdir -p /root/cozycast/cozycast-server
 COPY gradle /root/cozycast/cozycast-server/gradle

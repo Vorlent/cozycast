@@ -11,6 +11,7 @@ import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.commons.codec.binary.Base64;
 import java.time.temporal.ChronoUnit;
 import groovy.transform.CompileStatic 
+import java.lang.IllegalArgumentException
 
 @CompileStatic
 @Controller("/turn")
@@ -25,6 +26,9 @@ class TURNAuthController {
         byte[] hmac = HmacUtils.hmacSha1(secret, temporaryUsername);
         String credential = new String(Base64.encodeBase64(hmac));
         String turnIP = System.getenv("TURN_IP");
+        if (turnIP == null || "".equals(turnIP)) {
+            throw new IllegalArgumentException("TURN_IP environment variable not found");
+        }
 
         return new TURNCredential(
             urls: "turn:" + turnIP + ":3478",

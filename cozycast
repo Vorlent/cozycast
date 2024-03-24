@@ -14,7 +14,6 @@ function setup_env {
 
     export KURENTO_USERNAME=2139323074:kurento
     export KURENTO_PASSWORD=$(echo -n "$KURENTO_USERNAME" | openssl dgst -sha1 -hmac "$TURN_SECRET" -binary | base64)
-    sudo docker network create cozycast_cozycast
 
     if [ -z "$KURENTO_IP" ]; then
         export KURENTO_IP=$(sudo docker network inspect cozycast_cozycast --format="{{(index (index .).IPAM.Config 0).Gateway}}")
@@ -58,18 +57,20 @@ function coturn_add_kurento_user {
 }
 
 function liquibase_update {
+    echo "liquibase update"
     sudo docker run --rm -it \
-        -v $(readlink -f ../liquibase/changelog.xml):/changelog.xml \
+        -v $(readlink -f ../liquibase/changelog.xml):/liquibase/changelog.xml \
         -v $(readlink -f ../liquibase/driver):/liquibase/jdbc \
         --network cozycast_cozycast \
-        liquibase/liquibase:3.10.x \
+        liquibase/liquibase:4.23 \
         --driver=org.postgresql.Driver \
-        --classpath=/liquibase/jdbc/postgresql-42.2.9.jre7.jar \
+        --classpath /liquibase/jdbc/postgresql-42.2.9.jre7.jar \
         --url="jdbc:postgresql://$COZYCAST_DB_HOST:5432/cozycast" \
-        --changeLogFile=/changelog.xml \
+        --changeLogFile=changelog.xml \
         --username=cozycast \
         --password=$COZYCAST_DB_PASS \
         update
+    echo "liquibase finished"
 }
 
 case $1 in
@@ -140,29 +141,43 @@ case $1 in
     ssl)
         case $2 in
             certbot)
-                sudo -E docker run --rm -it -v $(realpath data/certbot2):/etc/letsencrypt/ certbot/certbot \
-                    --server https://acme-staging-v02.api.letsencrypt.org/directory -d $DUCKDNS_DOMAIN --manual --preferred-challenges dns-01 certonly
+                sudo -E docker run --rm -it -p 80:80 -v $(realpath data/certbot-http):/etc/letsencrypt/ certbot/certbot \
+                    --server https://acme-v02.api.letsencrypt.org/directory \
+		    -d $DUCKDNS_DOMAIN \
+		    -d $SECOND_DOMAIN \
+		    --standalone \
+		    --preferred-chain "ISRG Root X1" \
+		    --preferred-challenges http-01 certonly
+		#acme-staging-v02
                 exit;
                 ;;
             renew)
                 # --force-renewal
-                RELOAD_TRIGGER=./data/certbot/RELOAD
+                RELOAD_TRIGGER=./data/certbot-http/RELOAD
                 sudo rm -rf $RELOAD_TRIGGER
-                sudo -E docker run --rm -i \
-                    -v $(realpath data/certbot):/etc/letsencrypt/  \
+                sudo -E docker run --rm -it \
+		    -p 80:80 \
+                    -v $(realpath data/certbot-http):/etc/letsencrypt/  \
                     -v $(realpath cozycast):/cozycast \
                     -v $(realpath .env):/opt/certbot/.env \
                     cozycast-certbot \
+		    --preferred-chain "ISRG Root X1" \
                     renew --server https://acme-v02.api.letsencrypt.org/directory \
-                        --preferred-challenges dns-01 \
-                        --manual-auth-hook="sh /cozycast ssl duckdns \$CERTBOT_VALIDATION" \
-                        --manual-cleanup-hook="sh /cozycast ssl duckdns clear \$CERTBOT_VALIDATION" \
-                        --deploy-hook "touch /etc/letsencrypt/RELOAD"
+		    --preferred-challenges http-01 \
+		    --deploy-hook "touch /etc/letsencrypt/RELOAD"
+                        #--preferred-challenges dns-01 \
+                        #--manual-auth-hook="sh /cozycast ssl duckdns \$CERTBOT_VALIDATION" \
+                        #--manual-cleanup-hook="sh /cozycast ssl duckdns clear \$CERTBOT_VALIDATION" \
+                        #--deploy-hook "touch /etc/letsencrypt/RELOAD"
 
                 if test -f "$RELOAD_TRIGGER"; then
                     echo "$RELOAD_TRIGGER exists."
-                    ./cozycast ssl keystore
-                    echo "sudo docker restart cozycast-server"
+                    ./cozycast ssl keystore $DUCKDNS_DOMAIN
+                    if [ -z ${SSL_SERVER_RESTART+x} ]; then
+			 echo "sudo docker restart cozycast-server";
+		    else
+			sudo docker restart cozycast-server
+		    fi
                     sudo rm -rf $RELOAD_TRIGGER
                 fi
                 exit
@@ -179,17 +194,18 @@ case $1 in
                 exit;
                 ;;
             keystore)
-                DIRECTORY=$(sudo -E realpath data/certbot/live/$DUCKDNS_DOMAIN)
+		PARAM_DOMAIN=$3
+                DIRECTORY=$(sudo -E realpath data/certbot-http/live/$PARAM_DOMAIN)
                 echo $DIRECTORY
                 if test -z "$CHAIN_FILE"; then
-                    CA_FILE="chain.pem"
+                    CHAIN_FILE="fullchain.pem"
                 fi
                 sudo -E openssl pkcs12 -export \
                          -in $DIRECTORY/cert.pem \
                          -inkey $DIRECTORY/privkey.pem \
                          -out $DIRECTORY/server.p12 \
                          -CAfile $DIRECTORY/$CHAIN_FILE -chain \
-                         -name $DUCKDNS_DOMAIN \
+                         -name $PARAM_DOMAIN \
                          -passout 'env:KEYSTORE_PASSWORD'
                 exit;
                 ;;
@@ -202,22 +218,6 @@ case $1 in
                 exit 2
                 ;;
         esac
-        ;;
-    gvisor)
-        (
-          set -e
-          URL=https://storage.googleapis.com/gvisor/releases/master/latest
-          wget ${URL}/runsc
-          wget ${URL}/runsc.sha512
-          sha512sum -c runsc.sha512
-          rm -f runsc.sha512
-          sudo mv runsc /usr/local/bin
-          sudo chown root:root /usr/local/bin/runsc
-          sudo chmod 0755 /usr/local/bin/runsc
-          sudo cp docker-compose/gvisor.json /etc/docker/daemon.json
-          sudo chmod 644 /etc/docker/daemon.json
-          sudo chown root:root /etc/docker/daemon.json
-        )
         ;;
     *)
         printf "Usage: %s: <start|stop|build|dev|db>\n" $0
