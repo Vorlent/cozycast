@@ -40,8 +40,8 @@ const TypingBox = () => {
     );
 }
 
-export const ChatInput = ({ historyMode }) => {
-    const { sendMessage, permissions, authorization, viewPort } = useContext(WebSocketContext);
+export const ChatInput = ({ historyMode, editInfo }) => {
+    const { chatMessages, sendMessage, permissions, authorization, viewPort, session } = useContext(WebSocketContext);
 
     const lastTypingEvent = useRef(Date.now());
     const sendFile = useSignal(null);
@@ -51,7 +51,6 @@ export const ChatInput = ({ historyMode }) => {
     const chatBoxEmpty = useSignal(true);
     const text = useSignal("");
     const inputRef = useRef();
-
 
     useEffect(() => {
         resizeChat();
@@ -72,7 +71,24 @@ export const ChatInput = ({ historyMode }) => {
             }
         }
     }
-
+    const handleKeydown = (e) => {
+        var upKeycode = 38;
+        if (e.which == upKeycode) {
+            if (text.value.trim() == "") {
+                var sessionVal = session.value;
+                var userMessages = chatMessages.value
+                    .filter(e => e.session == sessionVal)
+                if (userMessages && userMessages.length > 0) {
+                    var lastUserMessage = userMessages[userMessages.length-1]
+                    if (lastUserMessage.data && lastUserMessage.data.length > 0) {
+                        var data = lastUserMessage.data
+                        var lastData = data[data.length-1];
+                        editInfo.value = { id: lastData.id, msg: lastData.messages[lastData.messages.length - 1].message }
+                    }
+                }
+            }
+        }
+    }
 
     const handleKeypress = (e) => {
         var enterKeycode = 13;
@@ -166,6 +182,7 @@ export const ChatInput = ({ historyMode }) => {
                         value={text.value}
                         class="chatbox-textarea"
                         onKeyPress={handleKeypress}
+                        onKeyDown={handleKeydown}
                         onInput={handleOnInput}
                         onPaste={chatPaste}>
                     </textarea>
