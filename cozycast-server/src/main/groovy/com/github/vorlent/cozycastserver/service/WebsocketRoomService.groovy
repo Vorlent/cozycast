@@ -202,6 +202,7 @@ class JoinEvent {
     Boolean active
     Boolean muted
     String lastTimeSeen
+    String userEntryTime
     Boolean anonymous
 }
 
@@ -626,6 +627,7 @@ class WebsocketRoomService {
         boolean image_permission = false;
         boolean invited = false;
         String tempInviteName = null;
+        ZonedDateTime userEntryTime = ZonedDateTime.now(ZoneId.of("UTC"));
 
         if(jsonMessage.access){
             def accessResponse = inviteService.access(jsonMessage.access)
@@ -691,6 +693,7 @@ class WebsocketRoomService {
                                 sendMessage(session, new UnauthorizedEvent(message: "Unauthorized action"))
                                 return;
                             } else {
+                                //user already is in the room
                                 UserSession userSession = room.users.get(username);
                                 if(userSession){
                                     room.users.computeIfPresent(username,(key, oldValue) -> {
@@ -712,6 +715,7 @@ class WebsocketRoomService {
                                     existingUser = true;
                                 }
                                 else{
+                                    //new user joined the room
                                     userSession = new UserSession(
                                         username: username,
                                         nickname: user.getNickname(),
@@ -727,6 +731,7 @@ class WebsocketRoomService {
                                         remote_permission: remote_permission,
                                         image_permission: image_permission,
                                         tempInviteName: tempInviteName,
+                                        userEntryTime: userEntryTime,
                                         anonymous: false
                                     )
                                     userSession.connections.put(session.getId(), new UserEndpoint(webSocketSession: session))
@@ -766,6 +771,7 @@ class WebsocketRoomService {
                     avatarUrl: "/png/default_avatar_on_alpha.png",
                     nameColor: stringToColor(session.getId()),
                     lastTimeSeen: ZonedDateTime.now(ZoneId.of("UTC")),
+                    userEntryTime: userEntryTime,
                     active: true,
                     muted: jsonMessage.muted,
                     anonymous: true,
@@ -849,6 +855,7 @@ class WebsocketRoomService {
                     active:  value.getActive(),
                     nameColor: value.getNameColor(),
                     lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(value.getLastTimeSeen()),
+                    userEntryTime: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(value.getUserEntryTime()),
                     muted: value.getMuted(),
                     anonymous: value.isAnonymous()
                 ) 
@@ -867,6 +874,7 @@ class WebsocketRoomService {
                         active:  user.active,
                         nameColor: user.nameColor,
                         lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen),
+                        userEntryTime: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(user.userEntryTime),
                         muted: user.muted,
                         anonymous: user.anonymous
                     ))

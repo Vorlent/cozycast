@@ -58,6 +58,7 @@ class UserSession {
     Boolean remote_permission = false
     Boolean image_permission = false
     ZonedDateTime lastTimeSeen
+    ZonedDateTime userEntryTime
     RateLimiter rateLimiter = new RateLimiter(5,(double) 1)
 
     public void release(String id) {

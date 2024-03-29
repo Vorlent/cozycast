@@ -2507,6 +2507,115 @@ input[type=range]::-webkit-slider-thumb {
 
 /* Whisper end */
 
+/* Clock start */
+
+.baseStyle {
+    opacity: 0.9;
+    position: absolute;
+    border: 2px solid black;
+    color: black;
+    padding: 2px;
+    border-radius: 10px;
+    z-index: 1; /* Ensure it's above other content */
+    background-color: #ffffff; /* Default white background */
+}
+
+.flashStyle {
+    background-color: #f8f0fb;
+    animation: flash 0.6s infinite, rotate 2s linear infinite;
+}
+
+.bounceStyle {
+    background-color: #e1be00;
+    animation: bounce 0.8s infinite;
+}
+
+.shakeStyle {
+    background-color: #f73a0f;
+    animation: shake 0.7s infinite;
+}
+
+.pulseBigStyle {
+    background-color: #15c415;
+    animation: pulseBig 4s infinite ease-in-out;
+}
+
+.pulseStyle {
+    background-color: #84c784;
+    animation: pulse 5s infinite ease-in-out;
+}
+
+.holyStyle {
+    background-color: #ffd700; /* Gold background */
+    box-shadow: 0 0 10px #ffff00; /* Glowing effect */
+    border-top: 3px solid #ffffff; /* Simulates a crown effect */
+    animation: glow 2s infinite alternate; /* Adds a gentle glowing animation */
+}
+
+/* Halo effect using pseudo-elements */
+.holyStyle::before {
+    content: '';
+    position: absolute;
+    top: -130%;
+    width: 85%; 
+    height: 10px; 
+    border-radius: 50%;
+    border: 2px solid rgba(255, 215, 0, 0.5); /* Gold color with transparency */
+    box-shadow: 0 0 8px #ffd700, 0 0 12px #ffd700, 0 0 16px #ffd700; /* Glowing effect */
+}
+
+@keyframes rotateHalo {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulseBig {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+
+@keyframes shake {
+    0% { transform: translate(2px, 2px) rotate(0deg); }
+    10% { transform: translate(-2px, -3px) rotate(-2deg); }
+    20% { transform: translate(-4px, 0px) rotate(2deg); }
+    30% { transform: translate(4px, 3px) rotate(0deg); }
+    40% { transform: translate(2px, -2px) rotate(2deg); }
+    50% { transform: translate(-2px, 3px) rotate(-2deg); }
+    60% { transform: translate(-4px, 2px) rotate(0deg); }
+    70% { transform: translate(4px, 2px) rotate(-2deg); }
+    80% { transform: translate(-2px, -2px) rotate(2deg); }
+    90% { transform: translate(2px, 3px) rotate(0deg); }
+    100% { transform: translate(2px, -3px) rotate(-2deg); }
+}
+  
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+@keyframes flash {
+    0%, 50%, 100% { background-color: #00fbd8; }
+    25%, 75% { background-color: #4511ff; }
+}
+@keyframes rotate {
+  100% { transform: rotate(360deg); }
+}
+@keyframes glow {
+  0% { box-shadow: 0 0 8px #ffff00; }
+  100% { box-shadow: 0 0 30px #ffd700; }
+}
+
+
+/* Clock end */
+
+
 @media only screen and (max-width: 780px) and (orientation: portrait) {
     #pagecontent {
         flex-direction: column;

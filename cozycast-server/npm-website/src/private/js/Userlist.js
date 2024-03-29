@@ -1,7 +1,8 @@
-import { h } from 'preact'
+import { h, Fragment } from 'preact'
 import { useContext } from 'preact/hooks';
 import { WebSocketContext } from './websocket/WebSocketContext.js';
 import { AppStateContext } from './appstate/AppStateContext.js';
+import { Clock } from './Clock.js';
 
 export const Userlist = ({ isLeft, fullscreen, hoverText }) => {
     const { userlist, remoteInfo } = useContext(WebSocketContext)
@@ -44,6 +45,7 @@ export const Userlist = ({ isLeft, fullscreen, hoverText }) => {
             if (user.anonymous) background['background-color'] = user.nameColor + "99"
             {
                 return <div class="user" key={user.session}>
+                    <Clock startTime={user.userEntryTime} />
                     <div class={`avatarContainer ${!showUsernames || isLeft ? "bar" : ""}`}
                         onMouseover={e => showHover(e, user.username, user.active)} onMouseout={hideHover}>
                         <div class={`image avatar ${user.active ? "" : "isAway"}`} style={background} />
