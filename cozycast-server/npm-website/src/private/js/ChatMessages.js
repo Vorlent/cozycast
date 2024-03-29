@@ -46,11 +46,14 @@ const TextInput = ({ sendMessage, value, editInfo, scrollToBottom }) => {
                 id: editInfo.value.id,
                 message: text.value
             })
-            editInfo.value = {};
+            exit();
         }
     }
 
     const exit = () => {
+        if(editInfo.value.fromTextInput && editInfo.value.fromTextInput.current){
+            editInfo.value.fromTextInput.current.focus();
+        }
         editInfo.value = {};
     }
 
@@ -171,11 +174,10 @@ const Message = memo(({ message, profile, session, deleteMessage, clickImage, pi
 
 
 
-const ChatMessages = ({ historyMode, imageModal }) => {
+const ChatMessages = ({ historyMode, imageModal, editInfo }) => {
     const { chatMessages, sendMessage, pingLookup, session } = useContext(WebSocketContext);
     const { profile, userSettings } = useContext(AppStateContext);
     const { showLeaveJoinMsg } = userSettings.value;
-    const editInfo = useSignal({});
     const messageBody = useRef(null);
 
     const isUserScroll = useRef(false);

@@ -40,8 +40,8 @@ const TypingBox = () => {
     );
 }
 
-export const ChatInput = ({ historyMode }) => {
-    const { sendMessage, permissions, authorization, viewPort } = useContext(WebSocketContext);
+export const ChatInput = ({ historyMode, editInfo}) => {
+    const { sendMessage, permissions, authorization, viewPort, chatMessages, session} = useContext(WebSocketContext);
 
     const lastTypingEvent = useRef(Date.now());
     const sendFile = useSignal(null);
@@ -96,6 +96,32 @@ export const ChatInput = ({ historyMode }) => {
             }
         }
     }
+
+    const handleKeyUp = (e) => {
+        if (e.key === 'ArrowUp' && chatBoxEmpty.value) {
+            // Start iterating from the last message backwards
+            for (let i = chatMessages.value.length - 1; i >= 0; i--) {
+                const message = chatMessages.value[i];
+    
+                // Check if the session matches
+                if (message.session == session.value) {
+                    // Iterate over the message.data array backwards to find a message that is not deleted
+                    for (let j = message.data.length - 1; j >= 0; j--) {
+                        const dataMessage = message.data[j];
+                        if (dataMessage.msg != "") { // Assuming 'deleted' flag exists and true means deleted
+                            editInfo.value = { 
+                                id: dataMessage.id, 
+                                msg: dataMessage.msg, 
+                                fromTextInput: inputRef 
+                            };
+                            return; // Exit the function once the suitable message is found
+                        }
+                    }
+                    // If no non-deleted message is found in this message, continue to previous messages
+                }
+            }
+        }
+    };
 
     const handleOnInput = (e) => {
         if(authorization.value.anonymous && e.target.value.length > 250){
@@ -167,6 +193,7 @@ export const ChatInput = ({ historyMode }) => {
                         class="chatbox-textarea"
                         onKeyPress={handleKeypress}
                         onInput={handleOnInput}
+                        onKeyUp={handleKeyUp}
                         onPaste={chatPaste}>
                     </textarea>
                 </div>
