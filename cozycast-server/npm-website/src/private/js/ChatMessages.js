@@ -146,7 +146,7 @@ function SubMessages({ data, message, profile, session, deleteMessage, clickImag
 
 const Message = memo(({ message, profile, session, deleteMessage, clickImage, pingLookup, sendMessage, editInfo, scrollToBottom }) => {
     return (
-        <div className="message" key={message.data[0].id + message.data.length} id={message.data[0].id}>
+        <div className={`message ${ message.golden ? "golden": ""}`}  key={message.data[0].id + message.data.length} id={message.data[0].id}>
             <div className="username" style={{ color: message.nameColor }}>
                 {message.username}
                 <div className="real-username">

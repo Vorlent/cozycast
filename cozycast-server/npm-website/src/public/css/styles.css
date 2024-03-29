@@ -2552,6 +2552,29 @@ input[type=range]::-webkit-slider-thumb {
     animation: glow 2s infinite alternate; /* Adds a gentle glowing animation */
 }
 
+.message.golden{
+    background-color: #ffd700; /* Gold background */
+    box-shadow: 0 0 10px #ffff00; /* Glowing effect */
+    color: black;
+    --cozyColor: #242424;
+    --cozyColorMenu: #fdfdfd;
+    --cozyColorAccent: #d2d2d2;
+    --cozyButton: #dbdbdb;
+    --cozyButtonAccent: #868686;
+
+    --cozyTextColor: black;
+    --cozyTextColor70: rgba(34, 22, 22, 0.97);
+    --cozyTextMisc: #393939;
+
+    --cozyMessageBackground: rgba(0, 0, 0, 0.05);
+    --cozyMessageShadow: 0 0 1px rgba(0, 0, 0, 0.15) inset;
+    --cozyMessageHover: rgba(0, 0, 0, 0.05);
+
+    --cozySvgFilter: invert(40%);
+    --cozyIconChange: invert(90%);
+    animation: glow 2s infinite alternate; /* Adds a gentle glowing animation */
+}
+
 /* Halo effect using pseudo-elements */
 .holyStyle::before {
     content: '';
