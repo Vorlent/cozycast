@@ -87,7 +87,7 @@ export const RoomList = () => {
                             )}
                         </tbody>
                     </table>
-                    {(rooms.length == 0) && <div>Currently none availaible</div>}
+                    {(rooms.length == 0) && <div>Currently none available</div>}
                 </div>
             </div>
         </div>
