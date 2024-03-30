@@ -171,11 +171,10 @@ const Message = memo(({ message, profile, session, deleteMessage, clickImage, pi
 
 
 
-const ChatMessages = ({ historyMode, imageModal }) => {
+const ChatMessages = ({ historyMode, imageModal, editInfo }) => {
     const { chatMessages, sendMessage, pingLookup, session } = useContext(WebSocketContext);
     const { profile, userSettings } = useContext(AppStateContext);
     const { showLeaveJoinMsg } = userSettings.value;
-    const editInfo = useSignal({});
     const messageBody = useRef(null);
 
     const isUserScroll = useRef(false);

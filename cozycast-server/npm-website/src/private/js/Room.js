@@ -134,7 +134,7 @@ export const Room = () => {
                 <UserRoomSettings close={closeSettings} />}
             <UserHoverName hoverText={hoverText} />
             {copyright &&
-                <a tabindex="-1" id="copyright" href="/license" target="_blank" class={userSettings.value.userlistOnLeft ? "left" : "bottom"}>Copyright (C) 2022 Vorlent</a>}
+                <a tabindex="-1" id="copyright" href="/license" target="_blank" class={userSettings.value.userlistOnLeft ? "left" : "bottom"}>Copyright (C) 2024 Vorlent</a>}
         </Fragment>
     );
 }

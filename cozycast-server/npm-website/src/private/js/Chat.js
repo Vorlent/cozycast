@@ -7,15 +7,18 @@ import { useSignal } from '@preact/signals';
 export const Chat = () => {
     const historyMode = useSignal(false);
     const imageModal = useSignal({});
+    const editInfo = useSignal({});
 
     return <div id="chat">
         <ImageModal 
             imageInfo={imageModal} />
         <ChatMessages 
             historyMode={historyMode} 
-            imageModal={imageModal}/>
+            imageModal={imageModal}
+            editInfo={editInfo}/>
         <ChatInput
             historyMode={historyMode}
+            editInfo={editInfo}
             />
     </div>
 }
