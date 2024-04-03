@@ -146,7 +146,6 @@ const chatMessage = (parsedMessage, chatMessages, newMessageCount, session, prof
             if (message.data[0].id === lastMessageID) {
                 return {
                     ...message,
-                    golden: parsedMessage.golden,
                     data: [
                         ...message.data,
                         data
@@ -162,7 +161,6 @@ const chatMessage = (parsedMessage, chatMessages, newMessageCount, session, prof
             nameColor: parsedMessage.nameColor,
             anonymous: parsedMessage.anonymous,
             data: [data],
-            golden: parsedMessage.golden
         }]);
     }
 

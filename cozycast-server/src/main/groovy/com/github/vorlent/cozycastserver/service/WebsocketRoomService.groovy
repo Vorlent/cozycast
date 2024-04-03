@@ -115,7 +115,6 @@ class ReceiveMessageEvent {
     boolean edited
     boolean anonymous
     boolean whisper = false
-    boolean golden = false
 }
 
 class DeleteMessageEvent {
@@ -443,7 +442,6 @@ class WebsocketRoomService {
             return;
         }
         ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))
-        Duration duration = Duration.between(user.userEntryTime, zonedDateTime);
         String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
         ChatMessage.withTransaction {
             ChatMessage.where { room == room.name &&
@@ -476,7 +474,6 @@ class WebsocketRoomService {
                     anonymous: chatMessage.anonymous,
                     timestamp: nowAsISO,
                     edited: false,
-                    golden: duration.toHours() >= 5
                 ))
             }}
             } else {
@@ -542,7 +539,6 @@ class WebsocketRoomService {
         Room room = roomRegistry.getRoomNoCreate(roomName);
         final UserSession user = room.users.get(username);
         ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))
-        Duration duration = Duration.between(user.userEntryTime, zonedDateTime);
         String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
         ChatMessage.withTransaction {
             ChatMessage.where { room == room.name &&
@@ -577,7 +573,6 @@ class WebsocketRoomService {
                     anonymous: chatMessage.anonymous,
                     timestamp: nowAsISO,
                     edited: false,
-                    golden: duration.toHours() >= 5
                 ))
             }
             }
