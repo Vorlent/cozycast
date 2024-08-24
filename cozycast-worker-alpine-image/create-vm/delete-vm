@@ -1,0 +1,47 @@
+#!/bin/bash
+
+#   delete-vm - Delete a virtual machine created with create-vm
+
+#   Copyright 2018-2023 Earl C. Ruby III
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+VM=$1
+
+# Set VM_IMAGE_DIR environment variable to override default storage location for VMs
+VM_IMAGE_DIR=${VM_IMAGE_DIR:-"${HOME}/vms/virsh"}
+
+VM_IMAGE="${VM_IMAGE_DIR}/images/$VM.img"
+CI_IMAGE="${VM_IMAGE_DIR}/images/$VM-cidata.img"
+
+usage()
+{
+cat << EOF
+usage: $0 vmname
+EOF
+}
+
+if [[ -z $VM ]]; then
+    usage
+    exit 1
+fi
+
+if [[ -e $VM_IMAGE ]]; then
+    # VM exists
+    virsh destroy "$VM"
+    virsh undefine "$VM"
+    rm -fv "$VM_IMAGE" "$CI_IMAGE"
+else
+    echo "Cannot find an VM image file named '$VM_IMAGE'. Attempting undefine..."
+    virsh undefine "$VM"
+fi

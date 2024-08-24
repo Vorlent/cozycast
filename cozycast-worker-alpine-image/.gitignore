@@ -1,0 +1,4 @@
+cozycast-apk/cozycast.tar
+rootfs/usr/local/packages
+rootfs/cozycast-worker-latest.tar
+*.raw

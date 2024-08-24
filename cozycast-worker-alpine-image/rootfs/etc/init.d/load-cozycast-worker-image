@@ -1,0 +1,58 @@
+#!/sbin/openrc-run
+
+description="Load cozycast-worker image"
+
+depend() {
+    after localmount
+    need docker
+}
+
+IMAGE_NAME="cozycast-worker:latest"
+IMAGE_TAR_PATH="/cozycast-worker-latest.tar"
+
+# openRC feels like a joke if you have to call this
+check_docker_socket() {
+    local socket_path="/var/run/docker.sock"
+    local retries=10
+    local count=0
+
+    while [ ! -S "$socket_path" ] && [ $count -lt $retries ]; do
+        ewarn "Waiting for docker.sock to be available..."
+        sleep 1
+        count=$((count + 1))
+    done
+
+    if [ ! -S "$socket_path" ]; then
+        eerror "docker.sock is not available after $retries retries"
+        return 1
+    fi
+
+    return 0
+}
+
+start() {
+    check_docker_socket || return 1
+
+    # Check if the Docker image is already present
+    if docker images --format '{{.Repository}}:{{.Tag}}' | grep -q "^${IMAGE_NAME}$"; then
+        einfo "Docker image ${IMAGE_NAME} is already loaded. Skipping."
+        return 0
+    fi
+
+    ebegin "Loading Docker image ${IMAGE_NAME} from ${IMAGE_TAR_PATH}"
+    
+    # Load the Docker image from the tar file
+    if docker load -i "${IMAGE_TAR_PATH}"; then
+        einfo "Docker image ${IMAGE_NAME} successfully loaded."
+    else
+        eerror "Failed to load Docker image ${IMAGE_NAME}."
+        return 1
+    fi
+
+    eend $?
+}
+
+stop() {
+    # No stop action required for this script
+    return 0
+}

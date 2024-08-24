@@ -1,0 +1,43 @@
+#!/sbin/openrc-run
+
+description="Launch the cozycast worker"
+
+directory="/var/lib/cozycast/"
+compose_file="docker-compose.yml"
+
+depend() {
+    need docker
+    need load-cozycast-worker-image
+    after localmount
+}
+
+start() {
+    ebegin "Starting cozycast worker"
+
+    if [ -d "${directory}/" ]; then
+        cd "${directory}" || return 1
+        ./cozycast connect
+        eend $?
+    else
+        eerror "Cozycast folder ${directory} not found"
+        return 1
+    fi
+}
+
+stop() {
+    ebegin "Stopping cozycast worker"
+
+    if [ -d "${directory}/" ]; then
+        cd "${directory}" || return 1
+        ./cozycast disconnect
+        eend $?
+    else
+        eerror "Cozycast folder ${directory} not found"
+        return 1
+    fi
+}
+
+restart() {
+    stop
+    start
+}

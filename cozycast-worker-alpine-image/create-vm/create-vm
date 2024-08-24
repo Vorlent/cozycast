@@ -1,0 +1,193 @@
+#!/bin/bash -e
+
+#   create-vm - Quickly create guest VMs using cloud image files and cloud-init.
+
+#   Copyright 2018-2023 Earl C. Ruby III
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+
+# Set VM_IMAGE_DIR environment variable to override default storage location for VMs
+VM_IMAGE_DIR=${VM_IMAGE_DIR:-"${HOME}/vms/virsh"}
+
+HOSTNAME=
+IMG_FQN=
+AUTH_KEYS_FQN=
+RAM=2048
+VCPUS=2
+STORAGE=80
+BRIDGE=virbr0
+MAC=
+VERBOSE=
+
+usage()
+{
+cat << EOF
+usage: $0 options
+
+Quickly create guest VMs using cloud image files and cloud-init.
+
+OPTIONS:
+   -h      Show this message
+   -n      Host name (required)
+   -i      Full path and name of the base .img file to use (required)
+   -k      Full path and name of the alpine user's public key file (required)
+   -r      RAM in MB (defaults to ${RAM})
+   -c      Number of VCPUs (defaults to ${VCPUS})
+   -s      Amount of storage to allocate in GB (defaults to ${STORAGE})
+   -b      Bridge interface to use (defaults to ${BRIDGE})
+   -m      MAC address to use (default is to use a randomly-generated MAC)
+   -v      Verbose
+EOF
+}
+
+while getopts "h:n:i:k:r:c:s:b:m:v" option; do
+    case "${option}"
+    in
+        h)
+            usage
+            exit 0
+            ;;
+        n) HOSTNAME=${OPTARG};;
+        i) IMG_FQN=${OPTARG};;
+        k) AUTH_KEYS_FQN=${OPTARG};;
+        r) RAM=${OPTARG};;
+        c) VCPUS=${OPTARG};;
+        s) STORAGE=${OPTARG};;
+        b) BRIDGE=${OPTARG};;
+        m) MAC=${OPTARG};;
+        v) VERBOSE=1;;
+        *)
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+if [[ -z $HOSTNAME ]]; then
+    echo "ERROR: Host name is required"
+    usage
+    exit 1
+fi
+
+if [[ -z $IMG_FQN ]]; then
+    echo "ERROR: Base cloud image file name is required"
+    usage
+    exit 1
+fi
+
+if [[ -z $AUTH_KEYS_FQN ]]; then
+    echo "ERROR: alpine public key file $AUTH_KEYS_FQN not found"
+    usage
+    exit 1
+fi
+
+if ! [[ -f $IMG_FQN ]]; then
+    echo "ERROR: $IMG_FQN file not found"
+    usage
+    exit 1
+fi
+
+if [[ -n $VERBOSE ]]; then
+    echo "Building ${HOSTNAME} in $VM_IMAGE_DIR"
+    set -xv
+fi
+
+virsh destroy ${HOSTNAME} || echo "Ignored"
+virsh undefine ${HOSTNAME} || echo "Ignored"
+
+mkdir -p "$VM_IMAGE_DIR"/{images,xml,init,base}
+
+echo "Creating a qcow2 image file ${VM_IMAGE_DIR}/images/${HOSTNAME}.img that uses the cloud image file ${IMG_FQN} as its base"
+qemu-img create -b "${IMG_FQN}" -f qcow2 -F raw "${VM_IMAGE_DIR}/images/${HOSTNAME}.img" "${STORAGE}G"
+echo qemu-img create -b "${IMG_FQN}" -f qcow2 -F raw "${VM_IMAGE_DIR}/images/${HOSTNAME}.img" "${STORAGE}G"
+
+echo "Creating meta-data file $VM_IMAGE_DIR/init/meta-data"
+cat > "$VM_IMAGE_DIR/init/meta-data" << EOF
+instance-id: ${HOSTNAME}
+local-hostname: ${HOSTNAME}
+EOF
+
+echo "Creating user-data file $VM_IMAGE_DIR/init/user-data"
+cat > "$VM_IMAGE_DIR/init/user-data" << EOF
+#cloud-config
+
+ssh_authorized_keys:
+  - ssh-rsa <key>
+
+write_files:
+  - content: |
+      <server>,<room_name>,<worker_secret>,true
+    owner: root:root
+    permissions: '0644'
+    path: /var/lib/cozycast/.rooms
+
+users:
+  - name: alpine
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: false
+    groups: sudo
+    shell: /bin/bash
+    homedir: /home/alpine
+    ssh_authorized_keys:
+EOF
+
+echo "Adding keys from the public key file $AUTH_KEYS_FQN to the user-data file"
+while IFS= read -r key; do
+    echo "      - $key" >> "$VM_IMAGE_DIR/init/user-data"
+done < <(grep -v '^ *#' < "$AUTH_KEYS_FQN")
+
+echo "Generating the cidata ISO file $VM_IMAGE_DIR/images/${HOSTNAME}-cidata.iso"
+(
+    cd "$VM_IMAGE_DIR/init/"
+    genisoimage \
+        -output "$VM_IMAGE_DIR/images/${HOSTNAME}-cidata.img" \
+        -volid cidata \
+        -rational-rock \
+        -joliet \
+        user-data meta-data
+)
+
+MACCMD=
+if [[ -n $MAC ]]; then
+    MACCMD="--mac=${MAC}"
+fi
+
+virt-install \
+    --name="${HOSTNAME}" \
+    --network "bridge=${BRIDGE},model=virtio" $MACCMD \
+    --boot loader=/usr/share/OVMF/x64/OVMF_CODE.fd \
+    --import \
+    --disk "path=${VM_IMAGE_DIR}/images/${HOSTNAME}.img,format=qcow2" \
+    --cloud-init user-data=$VM_IMAGE_DIR/init/user-data \
+    --ram="${RAM}" \
+    --vcpus="${VCPUS}" \
+    --autostart \
+    --hvm \
+    --arch x86_64 \
+    --accelerate \
+    --check-cpu \
+    --osinfo detect=on,require=off \
+    --force \
+    --watchdog=default \
+    --graphics vnc,listen=0.0.0.0 \
+    --noautoconsole
+
+#--disk "path=$VM_IMAGE_DIR/images/${HOSTNAME}-cidata.img,device=cdrom" \
+# Make a backup of the VM's XML definition file
+virsh dumpxml "${HOSTNAME}" > "${VM_IMAGE_DIR}/xml/${HOSTNAME}.xml"
+
+if [ -n $VERBOSE ]; then
+    set +xv
+fi
+
+# Show running VMs
+virsh list

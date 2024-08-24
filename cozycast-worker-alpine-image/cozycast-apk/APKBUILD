@@ -1,0 +1,23 @@
+# Maintainer: Vorlent <vorlent@web.de>
+pkgname=cozycast
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="It's cozycast! What did you expect?"
+url="https://github.com/Vorlent/cozycast/"
+arch="all"
+license="AGPL"
+source="cozycast.tar"
+options="!check"
+
+package() {
+    COZYCAST_DIR=src/cozycast/
+    ls -la src
+    INSTALLATION_PATH="$pkgdir"/var/lib/
+    mkdir -p "$INSTALLATION_PATH"
+    mkdir -p "$INSTALLATION_PATH/../tmp"
+    cp -rf $COZYCAST_DIR "$INSTALLATION_PATH"
+    chmod 755 "$INSTALLATION_PATH"
+}
+sha512sums="
+6bc2d27f10136ffdfed0dee2e2f1512415003158d8caf753e1c30a686e3e0ec37d94b71b759ec8fe674d70f0b42fcc28465b6b8a7350949bf07f4db3268ca7e2  cozycast.tar
+"
