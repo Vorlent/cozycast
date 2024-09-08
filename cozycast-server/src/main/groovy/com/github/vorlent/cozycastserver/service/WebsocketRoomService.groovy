@@ -571,7 +571,7 @@ class WebsocketRoomService {
 
     private void joinActions(Room room, WebSocketSession session, Map jsonMessage, String username, Boolean existingUser) {
 
-        room.startVM()
+        room.joinActaionVM()
 
         log.info "Join actions started for $username"
         UserSession user = room.users.get(username)
@@ -1136,12 +1136,19 @@ class WebsocketRoomService {
         sendMessage(session, new CozycastError(message: message))
     }
 
-    private void sendMessage(WebSocketSession session, Object message) {
-        if(session) {
-            session.send(message)
-                .subscribe({arg -> ""})
+    def sendMessage(WebSocketSession session, Object message) {
+        if (session != null) {
+            try {
+                session.send(message).subscribe({ arg -> 
+                    log.info("Message sent successfully: $message")
+                }, { error ->
+                    log.error("Failed to send message: $error.message", error)
+                })
+            } catch (Exception e) {
+                log.error("An error occurred while sending the message: ${e.message}", e)
+            }
         } else {
-            log.error "session is null"
+            log.error("session is null")
         }
     }
 

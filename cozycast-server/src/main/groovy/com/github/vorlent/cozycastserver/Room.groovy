@@ -10,6 +10,11 @@ import com.github.vorlent.cozycastserver.events.LeaveEvent
 import com.github.vorlent.cozycastserver.events.DropRemoteEvent
 import com.github.vorlent.cozycastserver.events.MouseMoveEvent
 
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+
 
 import groovy.util.logging.Slf4j
 import org.slf4j.LoggerFactory
@@ -30,6 +35,8 @@ class StartStreamEvent {
 class Room {
     String name
     private static final vmLogger = LoggerFactory.getLogger("vm.management")
+    private final ExecutorService executorService = Executors.newSingleThreadScheduledExecutor()
+    private Future<?> scheduledStopTask
     final AtomicBoolean isVMRunning = new AtomicBoolean(false)
     final ConcurrentHashMap<String, UserSession> users = new ConcurrentHashMap<>()
     final ConcurrentHashMap<String, String> sessionToName = new ConcurrentHashMap<>()
@@ -92,11 +99,18 @@ class Room {
     }
 
     def sendMessage(WebSocketSession session, Object message) {
-        if(session) {
-            session.send(message)
-                .subscribe({arg -> ""})
+        if (session != null) {
+            try {
+                session.send(message).subscribe({ arg -> 
+                    log.info("Message sent successfully: $message")
+                }, { error ->
+                    log.error("Failed to send message: $error.message", error)
+                })
+            } catch (Exception e) {
+                log.error("An error occurred while sending the message: ${e.message}", e)
+            }
         } else {
-            log.error "session is null"
+            log.error("session is null")
         }
     }
 
@@ -130,16 +144,10 @@ class Room {
                             username: user.nickname,
                             anonymous: user.anonymous))
         }
-
-        vmLogger.info(name + ", Current users:" + users.size())
-        if(users.size() <= 0){
-            stopVM()
-        }
+        leaveActionVM()
     }
 
     def startVM() {
-        vmLogger.info(name + ", Current users:" + users.size())
-
         if (isVMRunning.compareAndSet(false, true)) {  // Only proceed if VM is not already running
             vmLogger.info(name + ", starting vm")
         }
@@ -148,6 +156,31 @@ class Room {
     def stopVM() {
         if (isVMRunning.compareAndSet(true, false)) {  // Only proceed if VM is not already running
             vmLogger.info(name + ", stopping vm")
+        }
+    }
+
+    private cancelStopVM(){
+        if (scheduledStopTask != null && !scheduledStopTask.isDone()) {
+            scheduledStopTask.cancel(false)
+            vmLogger.info(name + ", Previous VM stop task canceled.")
+        }
+    }
+
+    def joinActaionVM() {
+        vmLogger.info(name + ", Current users:" + users.size())
+        cancelStopVM()
+        startVM()
+    }
+
+    def leaveActionVM() {
+        vmLogger.info(name + ", Current users:" + users.size())
+        if(users.isEmpty()){
+            cancelStopVM()
+            // Schedule a new task to stop the VM after 5 minutes
+            scheduledStopTask = executorService.schedule({
+                stopVM()
+            }, 5, TimeUnit.MINUTES)
+            vmLogger.info(name + ", VM stop rescheduled for 5 minutes later.")
         }
     }
 
