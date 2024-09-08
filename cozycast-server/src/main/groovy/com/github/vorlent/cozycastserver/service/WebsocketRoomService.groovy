@@ -11,6 +11,7 @@ import io.micronaut.security.token.jwt.validator.JwtTokenValidator
 import io.micronaut.security.authentication.Authentication
 
 import com.github.vorlent.cozycastserver.*
+import com.github.vorlent.cozycastserver.events.*
 import com.github.vorlent.cozycastserver.UserState
 import com.github.vorlent.cozycastserver.domain.ChatMessage
 import com.github.vorlent.cozycastserver.domain.RoomPermission
@@ -59,247 +60,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 import groovy.util.logging.Slf4j
-
-class StartResponse {
-    String action = "startResponse"
-    String sdpAnswer
-    VideoSettings videoSettings
-}
-
-class IceCandidateEvent {
-    String action = "iceCandidate"
-    Map candidate
-}
-
-class TypingEvent {
-    String action = "typing"
-    String session
-    String state
-    String username
-    Long lastTypingTime
-}
-
-class UserActivityEvent {
-    String action = "userActivityChange"
-    String session
-    Boolean active
-    String lastTimeSeen
-}
-
-class UserMutedEvent {
-    String action = "userMutedChange"
-    String session
-    Boolean muted
-}
-
-class ChatHistoryEvent {
-    String action = "chat_history"
-    List<ReceiveMessageEvent> messages
-}
-
-class UserListInfo {
-    String action = "user_list_info"
-    List<UserSessionInfo> users
-}
-
-class ReceiveMessageEvent {
-    String action = "receivemessage"
-    String id
-    String message
-    String image
-    String type
-    String username
-    String session
-    String nameColor
-    String timestamp
-    boolean edited
-    boolean anonymous
-    boolean whisper = false
-}
-
-class DeleteMessageEvent {
-    String action = "deletemessage"
-    String id
-}
-
-class EditMessageEvent {
-    String action = "editmessage"
-    String id
-    String message
-}
-
-class KeyUpEvent {
-    String action = "keyup"
-    String key
-}
-
-class KeyDownEvent {
-    String action = "keydown"
-    String key
-}
-
-class MouseMoveEvent {
-    String action = "mousemove"
-    Double mouseX
-    Double mouseY
-}
-
-class MouseUpEvent {
-    String action = "mouseup"
-    Double mouseX
-    Double mouseY
-    Long button
-}
-
-class MouseDownEvent {
-    String action = "mousedown"
-    Double mouseX
-    Double mouseY
-    Long button
-}
-
-class PickupRemoteEvent {
-    String action = "pickup_remote"
-    String session
-    Boolean has_remote
-}
-
-class DropRemoteEvent {
-    String action = "drop_remote"
-    String session
-}
-
-class ResetKeyboardEvent {
-    String action = "reset_keyboard"
-}
-
-class LeaveEvent {
-    String action = "leave"
-    String session
-    String username
-    Boolean anonymous
-}
-
-class CozycastError {
-    String action = "error"
-    String message
-}
-
-class PlayEndEvent {
-    String action = "playEnd"
-}
-
-class LoadUsersEvent {
-    String action = "load_users"
-    List<JoinEvent> users
-}
-
-class JoinEvent {
-    String action = "join"
-    String session
-    String username
-    String url
-    String nameColor 
-    Boolean active
-    Boolean muted
-    String lastTimeSeen
-    String userEntryTime
-    Boolean anonymous
-}
-
-class UpdateUserEvent {
-    String action = "update_user"
-    String session
-    String username
-    String url
-    String nameColor 
-    Boolean active
-    Boolean muted
-    String lastTimeSeen
-}
+import org.slf4j.LoggerFactory
 
 
-class AuthenticationEvent {
-    String action = "authenticated"
-    Boolean admin
-    Boolean remotePermission
-    Boolean imagePermission
-    Boolean trusted
-    Boolean anonymous
-}
-
-class UpdatePermissionEvent {
-    String action = "updatePermission"
-    Boolean trusted
-    Boolean remotePermission
-    Boolean imagePermission
-}
-
-class UnauthorizedEvent {
-    String action = "unauthorized"
-    String message
-}
-
-class NextRestartAvailable {
-    String action = "nextRestartAvailable"
-    String time
-}
-
-class TextinputEvent {
-    String action = "textinput"
-    String text
-}
-
-class PasteEvent {
-    String action = "paste"
-    String clipboard
-}
-
-class ScrollEvent {
-    String action = "scroll"
-    String direction
-}
-
-class KeepAlive {
-    String action = "keepalive"
-}
-
-class SessonIdEvent {
-    String action = "session_id"
-    String session
-}
-
-class BanEvent {
-    String action = "ban"
-    String session
-    String expiration
-}
-
-class RateLimitExceededEvent {
-    String action = "rateLimitExceeded"
-}
-
-class RestartWorkerEvent {
-    String action = "worker_restart"
-}
-
-class UpdateWorkerSettingsEvent {
-    String action = "worker_update_settings"
-    VideoSettings settings
-    Boolean restart
-}
-
-class CurrentRoomSettingsEvent {
-    String action = "room_settings"
-    Boolean accountOnly 
-    Boolean verifiedOnly 
-    Boolean inviteOnly 
-    Boolean centerRemote 
-    Boolean remote_ownership
-    Boolean default_remote_permission
-    Boolean default_image_permission
-    Boolean hidden_to_unauthorized
-}
 
 import jakarta.inject.Singleton
 
@@ -314,11 +77,13 @@ class WebsocketRoomService {
     private final UserFetcher userFetcher
     private final RoomPermissionGormService roomPermissionGormService
     private final InviteService inviteService
+    private final vmLogger
 
     WebsocketRoomService(WebSocketBroadcaster broadcaster, KurentoClient kurento,
         RoomRegistry roomRegistry, JwtTokenValidator jwtTokenValidator,
         UserFetcher userFetcher,RoomPermissionGormService roomPermissionGormService,
         InviteService inviteService) {
+        this.vmLogger = LoggerFactory.getLogger("vm.management")
         this.broadcaster = broadcaster
         this.kurento = kurento
         this.roomRegistry = roomRegistry
@@ -805,6 +570,9 @@ class WebsocketRoomService {
     }
 
     private void joinActions(Room room, WebSocketSession session, Map jsonMessage, String username, Boolean existingUser) {
+
+        room.startVM()
+
         log.info "Join actions started for $username"
         UserSession user = room.users.get(username)
 
@@ -1341,31 +1109,7 @@ class WebsocketRoomService {
     }
 
     private void stop(Room room, String sessionId) {
-        String username = room.sessionToName.remove(sessionId)
-        if(!username) return;
-        UserSession user = room.users.get(username)
-        if(room.remote == username) {
-            dropremote(room, null ,username);
-        }
-        user?.release(sessionId);
-        int size = -1;
-        room.users.computeIfPresent(username, (key,value) -> {value.connections.remove(sessionId); size = value.connections.size(); return value;})
-        log.info "removed user ${username}, connections present for user: $size"
-        if(size == 0) {
-            room.users.remove(username)
-            room.users.each { key, value ->
-                value.connections.each {sessionIdKey, connection ->
-                    if (connection.webSocketSession != null) {
-                        sendMessage(connection.webSocketSession, new LeaveEvent(
-                            session: username,
-                            username: user.nickname,
-                            anonymous: user.anonymous
-                        ))
-                    }
-                }
-            }
-        }
-        
+        room.removeUser(sessionId)
     }
 
     private void onIceCandidate(Room room, String sessionId, Map jsonMessage, String username) {

@@ -25,3 +25,5 @@ nbdist/
 
 .gradle
 cache
+
+vm_management.log

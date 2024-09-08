@@ -1,9 +1,18 @@
 package com.github.vorlent.cozycastserver
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import java.time.format.DateTimeFormatter
 import java.time.ZonedDateTime
 import java.time.ZoneId
+import io.micronaut.websocket.WebSocketSession
+import com.github.vorlent.cozycastserver.events.LeaveEvent
+import com.github.vorlent.cozycastserver.events.DropRemoteEvent
+import com.github.vorlent.cozycastserver.events.MouseMoveEvent
+
+
+import groovy.util.logging.Slf4j
+import org.slf4j.LoggerFactory
 
 import io.micronaut.websocket.CloseReason
 
@@ -17,8 +26,11 @@ class StartStreamEvent {
     String action = "start_stream"
 }
 
+@Slf4j
 class Room {
     String name
+    private static final vmLogger = LoggerFactory.getLogger("vm.management")
+    final AtomicBoolean isVMRunning = new AtomicBoolean(false)
     final ConcurrentHashMap<String, UserSession> users = new ConcurrentHashMap<>()
     final ConcurrentHashMap<String, String> sessionToName = new ConcurrentHashMap<>()
     WorkerSession worker
@@ -68,6 +80,77 @@ class Room {
 
     Room(){};
 
+
+    def broadcast(Object event) {
+        users.each { key, user ->
+            user.connections.each { sessionIdKey, connection ->
+                if (connection.webSocketSession != null) {
+                    sendMessage(connection.webSocketSession, event)
+                }
+            }
+        }
+    }
+
+    def sendMessage(WebSocketSession session, Object message) {
+        if(session) {
+            session.send(message)
+                .subscribe({arg -> ""})
+        } else {
+            log.error "session is null"
+        }
+    }
+
+    def dropremote(Map jsonMessage, String username) {
+        if(centerRemote || jsonMessage?.center) {
+            sendMessage(worker?.websocket, new MouseMoveEvent(
+                mouseX: videoSettings.desktopWidth / 2,
+                mouseY: videoSettings.desktopHeight / 2))
+        }
+        remote = null
+        broadcast(new DropRemoteEvent(
+                session: username
+            ))
+    }
+
+    def removeUser(String sessionId) {
+        String username = sessionToName.remove(sessionId)
+        if(!username) return;
+        UserSession user = users.get(username)
+        if(remote == username) {
+            dropremote(room, null ,username);
+        }
+        user?.release(sessionId);
+        int size = -1;
+        users.computeIfPresent(username, (key,value) -> {value.connections.remove(sessionId); size = value.connections.size(); return value;})
+        log.info "removed user ${username}, connections present for user: $size"
+        if(size == 0) {
+            users.remove(username)
+            broadcast(new LeaveEvent(
+                            session: username,
+                            username: user.nickname,
+                            anonymous: user.anonymous))
+        }
+
+        vmLogger.info(name + ", Current users:" + users.size())
+        if(users.size() <= 0){
+            stopVM()
+        }
+    }
+
+    def startVM() {
+        vmLogger.info(name + ", Current users:" + users.size())
+
+        if (isVMRunning.compareAndSet(false, true)) {  // Only proceed if VM is not already running
+            vmLogger.info(name + ", starting vm")
+        }
+    }
+
+    def stopVM() {
+        if (isVMRunning.compareAndSet(true, false)) {  // Only proceed if VM is not already running
+            vmLogger.info(name + ", stopping vm")
+        }
+    }
+
     def getUserInfo() {
         List<UserSessionInfo> userSessionInfoList = users.values().stream()
         .map({ userSession -> new UserSessionInfo(userSession) })
@@ -106,33 +189,28 @@ class Room {
         }
     }
 
-    def stopStream() {
-        worker?.close()
-        worker = null
+    private def releaseAllUsers(Object event) {
         users.each { key, user ->
             if(user != null) {
                 user.connections.each {sessionId, connection ->
                     connection.webRtcEndpoint?.release();
                     if(connection.webSocketSession) {
-                        connection.webSocketSession.send(new StopStreamEvent()).subscribe({arg -> ""})
+                        connection.webSocketSession.send(event).subscribe({arg -> ""})
                     }
                 }
             }
         }
     }
 
+    def stopStream() {
+        worker?.close()
+        worker = null
+        releaseAllUsers(new StopStreamEvent())
+    }
+
     def startStream(WorkerSession workerNew = null) {
         worker?.close()
         worker = workerNew
-        users.each { key, user ->
-            if(user != null) {
-                user.connections.each {sessionId, connection ->
-                    connection.webRtcEndpoint?.release();
-                    if(connection.webSocketSession) {
-                        connection.webSocketSession.send(new StartStreamEvent()).subscribe({arg -> ""})
-                    }
-                }
-            }
-        }
+        releaseAllUsers(new StartStreamEvent())
     }
 }
