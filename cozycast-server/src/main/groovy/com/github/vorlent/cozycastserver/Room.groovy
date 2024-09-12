@@ -101,13 +101,11 @@ class Room {
     def sendMessage(WebSocketSession session, Object message) {
         if (session != null) {
             try {
-                session.send(message).subscribe({ arg -> 
-                    log.info("Message sent successfully: $message")
-                }, { error ->
-                    log.error("Failed to send message: $error.message", error)
+                session.send(message).subscribe({ arg -> ""}, { error ->
+                    log.error("Failed to send message: $error.message")
                 })
             } catch (Exception e) {
-                log.error("An error occurred while sending the message: ${e.message}", e)
+                log.error("An error occurred while sending the message: ${e.message}")
             }
         } else {
             log.error("session is null")
@@ -131,7 +129,7 @@ class Room {
         if(!username) return;
         UserSession user = users.get(username)
         if(remote == username) {
-            dropremote(room, null ,username);
+            dropremote(null, username);
         }
         user?.release(sessionId);
         int size = -1;

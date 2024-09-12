@@ -178,7 +178,6 @@ class WebsocketRoomService {
     }
 
     private void typing(Room room, WebSocketSession session, Map jsonMessage, String username) {
-        log.info jsonMessage.toString()
         final UserSession user = room.users.get(username)
         room.users.each { key, value ->
         value.connections.each {sessionId, connection ->
@@ -1139,13 +1138,11 @@ class WebsocketRoomService {
     def sendMessage(WebSocketSession session, Object message) {
         if (session != null) {
             try {
-                session.send(message).subscribe({ arg -> 
-                    log.info("Message sent successfully: $message")
-                }, { error ->
-                    log.error("Failed to send message: $error.message", error)
+                session.send(message).subscribe({ arg -> ""}, { error ->
+                    log.error("Failed to send message: $error.message")
                 })
             } catch (Exception e) {
-                log.error("An error occurred while sending the message: ${e.message}", e)
+                log.error("An error occurred while sending the message: ${e.message}")
             }
         } else {
             log.error("session is null")
