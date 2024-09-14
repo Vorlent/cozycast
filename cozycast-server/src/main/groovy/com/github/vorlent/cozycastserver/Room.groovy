@@ -15,7 +15,6 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
-
 import groovy.util.logging.Slf4j
 import org.slf4j.LoggerFactory
 
@@ -24,17 +23,22 @@ import io.micronaut.websocket.CloseReason
 import com.github.vorlent.cozycastserver.domain.RoomPersistence
 
 class StopStreamEvent {
-    String action = "stop_stream"
+
+    String action = 'stop_stream'
+
 }
 
 class StartStreamEvent {
-    String action = "start_stream"
+
+    String action = 'start_stream'
+
 }
 
 @Slf4j
 class Room {
+
     String name
-    private static final vmLogger = LoggerFactory.getLogger("vm.management")
+    private static final vmLogger = LoggerFactory.getLogger('vm.management')
     private final ExecutorService executorService = Executors.newSingleThreadScheduledExecutor()
     private Future<?> scheduledStopTask
     final AtomicBoolean isVMRunning = new AtomicBoolean(false)
@@ -57,14 +61,14 @@ class Room {
         scaleWidth: 1280,
         scaleHeight: 720,
         framerate: 25,
-        videoBitrate: "1M",
-        audioBitrate: "96k"
+        videoBitrate: '1M',
+        audioBitrate: '96k'
     )
 
-    ZonedDateTime lastRestarted = ZonedDateTime.now(ZoneId.of("UTC"));
+    ZonedDateTime lastRestarted = ZonedDateTime.now(ZoneId.of('UTC'))
 
-    Room(RoomPersistence roomPersistence){
-        this.name = roomPersistence.name;
+    Room(RoomPersistence roomPersistence) {
+        this.name = roomPersistence.name
         this.accountOnly = roomPersistence.accountOnly
         this.verifiedOnly = roomPersistence.verifiedOnly
         this.inviteOnly = roomPersistence.inviteOnly
@@ -85,10 +89,9 @@ class Room {
         )
     }
 
-    Room(){};
+    Room() { }
 
-
-    def broadcast(Object event) {
+    void broadcast(Object event) {
         users.each { key, user ->
             user.connections.each { sessionIdKey, connection ->
                 if (connection.webSocketSession != null) {
@@ -98,10 +101,10 @@ class Room {
         }
     }
 
-    def exclusive_broadcast(Object event, String sessionId) {
+    void exclusive_broadcast(Object event, String sessionId) {
         users.each { key, user ->
             user.connections.each { sessionIdKey, connection ->
-                if(sessionId != sessionIdKey) {
+                if (sessionId != sessionIdKey) {
                     if (connection.webSocketSession != null) {
                         sendMessage(connection.webSocketSession, event)
                     }
@@ -110,22 +113,23 @@ class Room {
         }
     }
 
-    def sendMessage(WebSocketSession session, Object message) {
+    void sendMessage(WebSocketSession session, Object message) {
         if (session != null) {
             try {
-                session.send(message).subscribe({ arg -> ""}, { error ->
-                    log.error("Failed to send message: $error.message")
-                })
+                session.send(message).subscribe(
+                    { arg -> '' },
+                    { error -> log.error("Failed to send message: $error.message")
+                    })
             } catch (Exception e) {
                 log.error("An error occurred while sending the message: ${e.message}")
             }
         } else {
-            log.error("session is null")
+            log.error('session is null')
         }
     }
 
-    def dropremote(Map jsonMessage, String username) {
-        if(centerRemote || jsonMessage?.center) {
+    void dropremote(Map jsonMessage, String username) {
+        if (centerRemote || jsonMessage?.center) {
             sendMessage(worker?.websocket, new MouseMoveEvent(
                 mouseX: videoSettings.desktopWidth / 2,
                 mouseY: videoSettings.desktopHeight / 2))
@@ -136,18 +140,23 @@ class Room {
             ))
     }
 
-    def removeUser(String sessionId) {
+    void removeUser(String sessionId) {
         String username = sessionToName.remove(sessionId)
-        if(!username) return;
+        if (!username) { return }
         UserSession user = users.get(username)
-        if(remote == username) {
-            dropremote(null, username);
+        if (remote == username) {
+            dropremote(null, username)
         }
-        user?.release(sessionId);
-        int size = -1;
-        users.computeIfPresent(username, (key,value) -> {value.connections.remove(sessionId); size = value.connections.size(); return value;})
+        user?.release(sessionId)
+        int size = -1
+        users.computeIfPresent(username, (key, value) ->
+            {
+                value.connections.remove(sessionId)
+                size = value.connections.size()
+                return value
+            })
         log.info "removed user ${username}, connections present for user: $size"
-        if(size == 0) {
+        if (size == 0) {
             users.remove(username)
             broadcast(new LeaveEvent(
                             session: username,
@@ -157,88 +166,67 @@ class Room {
         leaveActionVM()
     }
 
-    def startVM() {
+    void startVM() {
         if (isVMRunning.compareAndSet(false, true)) {  // Only proceed if VM is not already running
-            vmLogger.info(name + ", starting vm")
+            vmLogger.info(name + ', starting vm')
         }
     }
 
-    def stopVM() {
+    void stopVM() {
         if (isVMRunning.compareAndSet(true, false)) {  // Only proceed if VM is not already running
-            vmLogger.info(name + ", stopping vm")
+            vmLogger.info(name + ', stopping vm')
         }
     }
 
-    private cancelStopVM(){
-        if (scheduledStopTask != null && !scheduledStopTask.isDone()) {
-            scheduledStopTask.cancel(false)
-            vmLogger.info(name + ", Previous VM stop task canceled.")
-        }
-    }
-
-    def joinActaionVM() {
-        vmLogger.info(name + ", Current users:" + users.size())
+    void joinActaionVM() {
+        vmLogger.info(name + ', Current users:' + users.size())
         cancelStopVM()
         startVM()
     }
 
-    def leaveActionVM() {
-        vmLogger.info(name + ", Current users:" + users.size())
-        if(users.isEmpty()){
+    void leaveActionVM() {
+        vmLogger.info(name + ', Current users:' + users.size())
+        if (users.isEmpty()) {
             cancelStopVM()
             // Schedule a new task to stop the VM after 5 minutes
             scheduledStopTask = executorService.schedule({
                 stopVM()
             }, 5, TimeUnit.MINUTES)
-            vmLogger.info(name + ", VM stop rescheduled for 5 minutes later.")
+            vmLogger.info(name + ', VM stop rescheduled for 5 minutes later.')
         }
     }
 
-    def getUserInfo() {
+    List<UserSessionInfo> getUserInfo() {
         List<UserSessionInfo> userSessionInfoList = users.values().stream()
         .map({ userSession -> new UserSessionInfo(userSession) })
         .collect()
-        return userSessionInfoList;
+        return userSessionInfoList
     }
 
-
-    def restartByUser(){
-        if(ZonedDateTime.now(ZoneId.of("UTC")).minusHours(1) > lastRestarted){
-            lastRestarted = ZonedDateTime.now(ZoneId.of("UTC"));
-            return true;
+    Boolean restartByUser() {
+        if (ZonedDateTime.now(ZoneId.of('UTC')).minusHours(1) > lastRestarted) {
+            lastRestarted = ZonedDateTime.now(ZoneId.of('UTC'))
+            return true
         }
-        else return false;
+        return false
     }
 
-    def restartByAdmin(){
-        lastRestarted = ZonedDateTime.now(ZoneId.of("UTC"));
+    void restartByAdmin() {
+        lastRestarted = ZonedDateTime.now(ZoneId.of('UTC'))
     }
 
-    def close(restart = false) {
+    void close(restart = false) {
         worker?.close()
         users.each { key, user ->
-            if(user != null) {
-                user.connections.each {sessionId, connection ->
-                    connection.webRtcEndpoint?.release();
-                    if(connection.webSocketSession) {
+            if (user != null) {
+                user.connections.each { sessionId, connection ->
+                    connection.webRtcEndpoint?.release()
+                    if (connection.webSocketSession) {
                         try {
                             connection.webSocketSession.close(restart ? CloseReason.SERVICE_RESTART : CloseReason.GOING_AWAY)
-                        } catch(IOException e) {
+                        } catch (IOException e) {
                             e.printStackTrace()
                         }
-                    }
-                }
-            }
-        }
-    }
-
-    private def releaseAllUsers(Object event) {
-        users.each { key, user ->
-            if(user != null) {
-                user.connections.each {sessionId, connection ->
-                    connection.webRtcEndpoint?.release();
-                    if(connection.webSocketSession) {
-                        connection.webSocketSession.send(event).subscribe({arg -> ""})
                     }
                 }
             }
@@ -256,4 +244,25 @@ class Room {
         worker = workerNew
         releaseAllUsers(new StartStreamEvent())
     }
+
+    private void cancelStopVM() {
+        if (scheduledStopTask != null && !scheduledStopTask.isDone()) {
+            scheduledStopTask.cancel(false)
+            vmLogger.info(name + ', Previous VM stop task canceled.')
+        }
+    }
+
+    private def releaseAllUsers(Object event) {
+        users.each { key, user ->
+            if (user != null) {
+                user.connections.each { sessionId, connection ->
+                    connection.webRtcEndpoint?.release()
+                    if (connection.webSocketSession) {
+                        connection.webSocketSession.send(event).subscribe({ arg -> '' })
+                    }
+                }
+            }
+        }
+    }
+
 }

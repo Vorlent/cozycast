@@ -62,8 +62,6 @@ import java.util.Date
 import groovy.util.logging.Slf4j
 import org.slf4j.LoggerFactory
 
-
-
 import jakarta.inject.Singleton
 
 @Slf4j
@@ -83,7 +81,7 @@ class WebsocketRoomService {
         RoomRegistry roomRegistry, JwtTokenValidator jwtTokenValidator,
         UserFetcher userFetcher,RoomPermissionGormService roomPermissionGormService,
         InviteService inviteService) {
-        this.vmLogger = LoggerFactory.getLogger("vm.management")
+        this.vmLogger = LoggerFactory.getLogger('vm.management')
         this.broadcaster = broadcaster
         this.kurento = kurento
         this.roomRegistry = roomRegistry
@@ -91,25 +89,25 @@ class WebsocketRoomService {
         this.userFetcher = userFetcher
         this.roomPermissionGormService = roomPermissionGormService
         this.inviteService = inviteService
-    }
+        }
 
     private void keepalive(Room room, WebSocketSession session, Map jsonMessage) {
         sendMessage(session, new KeepAlive())
     }
 
-    private void userActivity(Room room, WebSocketSession session, Map jsonMessage,String username){
+    private void userActivity(Room room, WebSocketSession session, Map jsonMessage, String username) {
         UserSession user = room.users.get(username)
-        if(user.active == !jsonMessage.tabbedOut){
+        if (user.active == !jsonMessage.tabbedOut) {
             //no change no update
-            return;
+            return
         }
-        if(jsonMessage.tabbedOut){
-            if(user.active){
-                user.lastTimeSeen = ZonedDateTime.now(ZoneId.of("UTC")).minusMinutes(5)
+        if (jsonMessage.tabbedOut) {
+            if (user.active) {
+                user.lastTimeSeen = ZonedDateTime.now(ZoneId.of('UTC')).minusMinutes(5)
                 user.active = false
             }
         }
-        else{
+        else {
             user.active = true
         }
         room.broadcast(
@@ -120,40 +118,41 @@ class WebsocketRoomService {
             ))
     }
 
-    private void userMuted(Room room, WebSocketSession session, Map jsonMessage, String username){
+    private void userMuted(Room room, WebSocketSession session, Map jsonMessage, String username) {
         UserSession user = room.users.get(username)
-        if(user.muted == jsonMessage.muted){
+        if (user.muted == jsonMessage.muted) {
             //no change no update
-            return;
+            return
         }
-        user.muted = jsonMessage.muted;
+        user.muted = jsonMessage.muted
         room.broadcast(new UserMutedEvent(
                 session: username,
                 muted: user.muted
             ))
     }
 
-    private void start(Room room, WebSocketSession session, Map jsonMessage,String username) {
+    private void start(Room room, WebSocketSession session, Map jsonMessage, String username) {
         final UserSession user = room.users.get(username)
         user?.release(session.getId())
 
-        if(!room.worker) {
-            throw new RuntimeException("NO WORKER FOUND")
+        if (!room.worker) {
+            throw new RuntimeException('NO WORKER FOUND')
         }
 
         MediaPipeline pipeline = room.worker.getMediaPipeline(kurento)
         WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build()
-        if(System.getenv("NETWORK_INTERFACES") != null) {
-            webRtcEndpoint.setNetworkInterfaces(System.getenv("NETWORK_INTERFACES"));
+        if (System.getenv('NETWORK_INTERFACES') != null) {
+            webRtcEndpoint.setNetworkInterfaces(System.getenv('NETWORK_INTERFACES'))
         }
-        if(System.getenv("EXTERNAL_IPV4") != null) {
-            webRtcEndpoint.setExternalIPv4(System.getenv("EXTERNAL_IPV4"));
+        if (System.getenv('EXTERNAL_IPV4') != null) {
+            webRtcEndpoint.setExternalIPv4(System.getenv('EXTERNAL_IPV4'))
         }
-        user.connections.computeIfPresent(session.getId(), (k,v) -> {v.webRtcEndpoint = webRtcEndpoint; return v});
+        user.connections.computeIfPresent(session.getId(), (k, v) -> { v.webRtcEndpoint = webRtcEndpoint; return v });
 
         room.worker.rtpEndpoint.connect(webRtcEndpoint)
 
         webRtcEndpoint.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
+
             public void onEvent(IceCandidateFoundEvent event) {
                 sendMessage(session, new IceCandidateEvent(
                     candidate: [
@@ -162,9 +161,10 @@ class WebsocketRoomService {
                         sdpMLineIndex: event.candidate.sdpMLineIndex
                     ]))
             }
+
         })
 
-        String sdpOffer = jsonMessage.sdpOffer;
+        String sdpOffer = jsonMessage.sdpOffer
         String sdpAnswer = webRtcEndpoint.processOffer(sdpOffer)
         sendMessage(session, new StartResponse(sdpAnswer: sdpAnswer, videoSettings: room.videoSettings))
 
@@ -178,33 +178,33 @@ class WebsocketRoomService {
                     state: jsonMessage.state,
                     username: user.nickname,
                     lastTypingTime: new Date().getTime()
-                ), session.getId() )
+), session.getId())
     }
 
-    private void chatmessage(Room room, WebSocketSession session, Map jsonMessage,String username) {
+    private void chatmessage(Room room, WebSocketSession session, Map jsonMessage, String username) {
         final UserSession user = room.users.get(username)
-        if(jsonMessage.message == null || !(jsonMessage.message instanceof String) || jsonMessage.message.length() == 0) {
+        if (jsonMessage.message == null || !(jsonMessage.message instanceof String) || jsonMessage.message.length() == 0) {
             return
         }
-        if(user.anonymous && jsonMessage.message.length() > 250) {
-            return;
+        if (user.anonymous && jsonMessage.message.length() > 250) {
+            return
         }
-        if(user.anonymous && !user.rateLimiter.tryConsume()) {
+        if (user.anonymous && !user.rateLimiter.tryConsume()) {
             sendMessage(session, new RateLimitExceededEvent())
-            return;
+            return
         }
-        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))
+        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of('UTC'))
         String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
         ChatMessage.withTransaction {
             ChatMessage.where { room == room.name &&
-                timestamp < ZonedDateTime.now(ZoneId.of("UTC")).minusHours(1)
+                timestamp < ZonedDateTime.now(ZoneId.of('UTC')).minusHours(1)
             }.list().each { it.delete() }
             ChatMessage.where { room == room.name }
                 .list(sort: 'timestamp', order: 'desc', offset: 1000).each { it.delete() }
             def chatMessage = new ChatMessage(
                 room: room.name,
                 message: jsonMessage.message.replaceAll(/(^\n+|\n+$)/, ''),
-                type: "text",
+                type: 'text',
                 username: user.nickname,
                 session: username,
                 nameColor: user.nameColor,
@@ -212,12 +212,12 @@ class WebsocketRoomService {
                 timestamp: zonedDateTime,
                 edited: false
             )
-            if(chatMessage.validate()) {
-                chatMessage.save();
+            if (chatMessage.validate()) {
+                chatMessage.save()
                 room.broadcast(new ReceiveMessageEvent(
                     id: chatMessage.id,
                     message: chatMessage.message,
-                    type: "text",
+                    type: 'text',
                     username: chatMessage.username,
                     session: chatMessage.session,
                     nameColor: chatMessage.nameColor,
@@ -229,41 +229,41 @@ class WebsocketRoomService {
                 log.warn "Chat message by user ${user.username} in room ${room.name} is too long: ${jsonMessage.message?.substring(0, 4096)}"
                 return
             }
+            }
         }
-    }
 
-    private void whisper(Room room, WebSocketSession session, Map jsonMessage,String username) {
+    private void whisper(Room room, WebSocketSession session, Map jsonMessage, String username) {
         log.info "$jsonMessage.message $jsonMessage.userId"
-        if(jsonMessage.message == null || jsonMessage.userId == null || jsonMessage.message?.length() == 0) return;
+        if (jsonMessage.message == null || jsonMessage.userId == null || jsonMessage.message?.length() == 0) return
         def whisperSession = jsonMessage.userId
         UserSession modUser = room.users.get(username)
-        if(modUser.admin) {
+        if (modUser.admin) {
             UserSession user = room.users.get(whisperSession)
-            if(user == null) return
-            ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))
+            if (user == null) return
+            ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of('UTC'))
             String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
-            user.connections.each {sessionId, connection ->
+            user.connections.each { sessionId, connection ->
                 sendMessage(connection.webSocketSession, new ReceiveMessageEvent(
-                    id: "whisper-" + nowAsISO,
+                    id: 'whisper-' + nowAsISO,
                     message: jsonMessage.message,
-                    type: "whisper",
-                    username: "Mod Whisper",
-                    session: "Whisper",
-                    nameColor: "#fff",
+                    type: 'whisper',
+                    username: 'Mod Whisper',
+                    session: 'Whisper',
+                    nameColor: '#fff',
                     anonymous: false,
                     timestamp: nowAsISO,
                     edited: false,
                     whisper: true
                 ))
             }
-            modUser.connections.each {sessionId, connection ->
+            modUser.connections.each { sessionId, connection ->
                 sendMessage(connection.webSocketSession, new ReceiveMessageEvent(
-                    id: "whisper-" + nowAsISO,
+                    id: 'whisper-' + nowAsISO,
                     message: jsonMessage.message,
-                    type: "whisper",
-                    username: "Mod Whisper",
-                    session: "Whisper",
-                    nameColor: "#fff",
+                    type: 'whisper',
+                    username: 'Mod Whisper',
+                    session: 'Whisper',
+                    nameColor: '#fff',
                     anonymous: false,
                     timestamp: nowAsISO,
                     edited: false,
@@ -273,31 +273,30 @@ class WebsocketRoomService {
         }
     }
 
-
-    public boolean checkImageRights(String room, String username){
+    public boolean checkImageRights(String room, String username) {
         Room currentRoom = roomRegistry.getRoomNoCreate(room)
-        if(currentRoom == null) return false;
-        if(!username) return false
+        if (currentRoom == null) return false
+        if (!username) return false
         UserSession user = currentRoom.users.get(username)
-        if(user == null) return false;
-        if(!(user.trusted || user.image_permission || currentRoom.default_image_permission)) return false;
-        return true;
+        if (user == null) return false
+        if (!(user.trusted || user.image_permission || currentRoom.default_image_permission)) return false
+        return true
     }
 
     public void chatMedia(String roomName, String username, String url, String type) {
-        Room room = roomRegistry.getRoomNoCreate(roomName);
-        final UserSession user = room.users.get(username);
-        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"))
+        Room room = roomRegistry.getRoomNoCreate(roomName)
+        final UserSession user = room.users.get(username)
+        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of('UTC'))
         String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
         ChatMessage.withTransaction {
             ChatMessage.where { room == room.name &&
-                timestamp < ZonedDateTime.now(ZoneId.of("UTC")).minusHours(1)
+                timestamp < ZonedDateTime.now(ZoneId.of('UTC')).minusHours(1)
             }.list().each { it.delete() }
             ChatMessage.where { room == room.name }
                 .list(sort: 'timestamp', order: 'desc', offset: 1000).each { it.delete() }
             def chatMessage = new ChatMessage(
                 room: room.name,
-                message: "",
+                message: '',
                 image: url,
                 type: type,
                 username: user.nickname,
@@ -307,8 +306,8 @@ class WebsocketRoomService {
                 timestamp: zonedDateTime,
                 edited: false
             )
-            if(chatMessage.validate()) {
-                chatMessage.save();
+            if (chatMessage.validate()) {
+                chatMessage.save()
                 room.broadcast(new ReceiveMessageEvent(
                     id: chatMessage.id,
                     message: chatMessage.message,
@@ -325,31 +324,31 @@ class WebsocketRoomService {
                 log.warn "Chat media posted by $username in room $roomName failed"
                 return
             }
+            }
         }
-    }
 
-    private void deletemessage(Room room, WebSocketSession session, Map jsonMessage,String username) {
+    private void deletemessage(Room room, WebSocketSession session, Map jsonMessage, String username) {
         UserSession user = room.users.get(username)
         ChatMessage.withTransaction {
             def message = ChatMessage.get(jsonMessage.id)
-            if(message && message.room == room.name && (user.admin || ((message.anonymous && message.session == session.getId()) || (!message.anonymous && message.session == user.username)))){
-                message.delete(); 
-                room.broadcast(new DeleteMessageEvent (
+            if (message && message.room == room.name && (user.admin || ((message.anonymous && message.session == session.getId()) || (!message.anonymous && message.session == user.username)))) {
+                message.delete()
+                room.broadcast(new DeleteMessageEvent(
                         id: message.id
                     ))
             }
         }
     }
 
-    private void editmessage(Room room, WebSocketSession session, Map jsonMessage,String username) {
+    private void editmessage(Room room, WebSocketSession session, Map jsonMessage, String username) {
         UserSession user = room.users.get(username)
         ChatMessage.withTransaction {
             def message = ChatMessage.get(jsonMessage.id)
-            if(jsonMessage.message && (jsonMessage.message instanceof String) && jsonMessage.message.length() > 0 && message && message.type == "text" && message.room == room.name && ((message.anonymous && message.session == session.getId()) || (!message.anonymous && message.session == user.username))){
-                message.message = jsonMessage.message;
-                message.edited = true;
-                message.save();
-                room.broadcast(new EditMessageEvent (
+            if (jsonMessage.message && (jsonMessage.message instanceof String) && jsonMessage.message.length() > 0 && message && message.type == 'text' && message.room == room.name && ((message.anonymous && message.session == session.getId()) || (!message.anonymous && message.session == user.username))) {
+                message.message = jsonMessage.message
+                message.edited = true
+                message.save()
+                room.broadcast(new EditMessageEvent(
                         id: message.id,
                         message: message.message
                     ))
@@ -361,105 +360,104 @@ class WebsocketRoomService {
         def token = jsonMessage.token
         String username = session.getId()
 
-        boolean remote_permission = false;
-        boolean image_permission = false;
-        boolean invited = false;
-        String tempInviteName = null;
-        ZonedDateTime userEntryTime = ZonedDateTime.now(ZoneId.of("UTC"));
+        boolean remote_permission = false
+        boolean image_permission = false
+        boolean invited = false
+        String tempInviteName = null
+        ZonedDateTime userEntryTime = ZonedDateTime.now(ZoneId.of('UTC'))
 
-        if(jsonMessage.access){
+        if (jsonMessage.access) {
             def accessResponse = inviteService.access(jsonMessage.access)
-            if(accessResponse){
+            if (accessResponse) {
                 remote_permission = accessResponse.remote_permission
                 image_permission = accessResponse.image_permission
-                tempInviteName = accessResponse.name + ":" + jsonMessage.access
+                tempInviteName = accessResponse.name + ':' + jsonMessage.access
                 invited = true
             }
         }
 
-        if(token != null) {
-            def completed = false;
-            def admin = false;
-            boolean trusted = false;
-            boolean existingUser = false;
-            boolean verified = false;
+        if (token != null) {
+            def completed = false
+            def admin = false
+            boolean trusted = false
+            boolean existingUser = false
+            boolean verified = false
 
-            jwtTokenValidator.validateToken(token,null).subscribe({
-                auth -> 
-                    def name = auth.getName();
-                    if(name != null) {
-                        UserState user = userFetcher.findByUsername(name);
-                        if(user != null){
-                            username = user.getUsername();
-                            admin = user.admin;
-                            verified = user.verified || admin;
-                            RoomPermission perm;
-                            RoomPermission.withTransaction{
-                                perm = RoomPermission.findByUserAndRoom(user,room.name);
-                                if(perm == null){
+            jwtTokenValidator.validateToken(token, null).subscribe({
+                auth ->
+                    def name = auth.getName()
+                    if (name != null) {
+                        UserState user = userFetcher.findByUsername(name)
+                        if (user != null) {
+                            username = user.getUsername()
+                            admin = user.admin
+                            verified = user.verified || admin
+                            RoomPermission perm
+                            RoomPermission.withTransaction {
+                                perm = RoomPermission.findByUserAndRoom(user, room.name)
+                                if (perm == null) {
                                     perm = new RoomPermission(
                                         user: user,
                                         room: room.name
                                     )
-                                    perm.save();
+                                    perm.save()
                                 }
                             }
-                            if(perm != null) {
-                                if(perm.banned) {
-                                    if(perm.bannedUntil == null) {
+                            if (perm != null) {
+                                if (perm.banned) {
+                                    if (perm.bannedUntil == null) {
                                         sendMessage(session, new BanEvent(
                                             session: name,
-                                            expiration: "unlimited"))
-                                        return;
+                                            expiration: 'unlimited'))
+                                        return
                                     }
-                                    if(ZonedDateTime.now(ZoneId.of("UTC")) > perm.bannedUntil){
-                                        roomPermissionGormService.updateBanned(perm.id,false)
+                                    if (ZonedDateTime.now(ZoneId.of('UTC')) > perm.bannedUntil) {
+                                        roomPermissionGormService.updateBanned(perm.id, false)
                                     } else {
                                         sendMessage(session, new BanEvent(
                                             session: name,
                                             expiration: perm.bannedUntil.toOffsetDateTime().toString()))
-                                        return;
+                                        return
                                     }
-
                                 }
-                                trusted = perm.trusted || admin;
-                                remote_permission = perm.remote_permission || remote_permission;
-                                image_permission = perm.image_permission || image_permission;
-                                invited = perm.invited || invited;
+                                trusted = perm.trusted || admin
+                                remote_permission = perm.remote_permission || remote_permission
+                                image_permission = perm.image_permission || image_permission
+                                invited = perm.invited || invited
                             }
-                            if( room.inviteOnly && !trusted && !invited && !admin) {
-                                sendMessage(session, new UnauthorizedEvent(message: "Unauthorized action"))
-                                return;
+                            if (room.inviteOnly && !trusted && !invited && !admin) {
+                                sendMessage(session, new UnauthorizedEvent(message: 'Unauthorized action'))
+                                return
                             } else {
                                 //user already is in the room
-                                UserSession userSession = room.users.get(username);
-                                if(userSession){
-                                    room.users.computeIfPresent(username,(key, oldValue) -> {
-                                        oldValue.nickname = user.getNickname();
-                                        oldValue.avatarUrl = user.getAvatarUrl();
-                                        oldValue.nameColor = user.getNameColor();
-                                        oldValue.lastTimeSeen = ZonedDateTime.now(ZoneId.of("UTC")); 
-                                        oldValue.active = true;
-                                        oldValue.muted = jsonMessage.muted;
-                                        oldValue.admin = admin;
-                                        oldValue.verified = verified;
-                                        oldValue.invited = invited || oldValue.invited;
-                                        oldValue.trusted = trusted;
-                                        oldValue.remote_permission = remote_permission || oldValue.remote_permission;
-                                        oldValue.image_permission = image_permission || oldValue.image_permission;
-                                        if(!oldValue.tempInviteName) oldValue.tempInviteName = tempInviteName;
-                                        oldValue.connections.put(session.getId(), new UserEndpoint(webSocketSession: session)); 
+                                UserSession userSession = room.users.get(username)
+                                if (userSession) {
+                                    room.users.computeIfPresent(username, (key, oldValue) -> {
+                                        oldValue.nickname = user.getNickname()
+                                        oldValue.avatarUrl = user.getAvatarUrl()
+                                        oldValue.nameColor = user.getNameColor()
+                                        oldValue.lastTimeSeen = ZonedDateTime.now(ZoneId.of('UTC'))
+                                        oldValue.active = true
+                                        oldValue.muted = jsonMessage.muted
+                                        oldValue.admin = admin
+                                        oldValue.verified = verified
+                                        oldValue.invited = invited || oldValue.invited
+                                        oldValue.trusted = trusted
+                                        oldValue.remote_permission = remote_permission || oldValue.remote_permission
+                                        oldValue.image_permission = image_permission || oldValue.image_permission
+                                        if (!oldValue.tempInviteName) oldValue.tempInviteName = tempInviteName
+                                        oldValue.connections.put(session.getId(), new UserEndpoint(webSocketSession: session))
                                         return oldValue})
-                                    existingUser = true;
+                                    existingUser = true
                                 }
-                                else{
+                                else {
                                     //new user joined the room
                                     userSession = new UserSession(
                                         username: username,
                                         nickname: user.getNickname(),
                                         avatarUrl: user.getAvatarUrl(),
                                         nameColor: user.getNameColor(),
-                                        lastTimeSeen: ZonedDateTime.now(ZoneId.of("UTC")),
+                                        lastTimeSeen: ZonedDateTime.now(ZoneId.of('UTC')),
                                         active: true,
                                         muted: jsonMessage.muted,
                                         admin: admin,
@@ -476,39 +474,39 @@ class WebsocketRoomService {
                                     room.users.put(username, userSession)
                                 }
                                 room.sessionToName.put(session.getId(), username)
-                                completed = true;
+                                completed = true
                             }
-                        }else{
-                            //TODO: ERROR IF USER SUDDENTLY DOES NOT EXIST ANYMORE
+                        }else {
+                        //TODO: ERROR IF USER SUDDENTLY DOES NOT EXIST ANYMORE
                         }
                     }
                 },null,
-                comp -> 
+                comp ->
                 {
-                    if(!completed){
-                        sendMessage(session, new UnauthorizedEvent(message: "Unauthorized action"))
+                    if (!completed) {
+                        sendMessage(session, new UnauthorizedEvent(message: 'Unauthorized action'))
                     } else {
-                        sendMessage(session, 
+                        sendMessage(session,
                             new AuthenticationEvent(
-                                admin: admin, 
-                                remotePermission: remote_permission, 
-                                imagePermission: image_permission, 
+                                admin: admin,
+                                remotePermission: remote_permission,
+                                imagePermission: image_permission,
                                 trusted: trusted,
                                 anonymous: false))
-                        joinActions(room,session,jsonMessage,username,existingUser);
+                        joinActions(room, session, jsonMessage, username, existingUser)
                     }
                 }
             )
         } else {
-            if(!invited && (room.accountOnly || room.verifiedOnly || room.inviteOnly)){
-                sendMessage(session, new UnauthorizedEvent(message: "Unauthorized action"))
+            if (!invited && (room.accountOnly || room.verifiedOnly || room.inviteOnly)) {
+                sendMessage(session, new UnauthorizedEvent(message: 'Unauthorized action'))
             } else {
                 UserSession anonSession = new UserSession(
                     username: session.getId(),
-                    nickname: "Anonymous",
-                    avatarUrl: "/png/default_avatar_on_alpha.png",
+                    nickname: 'Anonymous',
+                    avatarUrl: '/png/default_avatar_on_alpha.png',
                     nameColor: stringToColor(session.getId()),
-                    lastTimeSeen: ZonedDateTime.now(ZoneId.of("UTC")),
+                    lastTimeSeen: ZonedDateTime.now(ZoneId.of('UTC')),
                     userEntryTime: userEntryTime,
                     active: true,
                     muted: jsonMessage.muted,
@@ -518,31 +516,30 @@ class WebsocketRoomService {
                     image_permission: image_permission,
                     tempInviteName: tempInviteName,
                 )
-                anonSession.connections.put(session.getId(), new UserEndpoint(webSocketSession: session));
-                room.users.put(session.getId(),anonSession)
+                anonSession.connections.put(session.getId(), new UserEndpoint(webSocketSession: session))
+                room.users.put(session.getId(), anonSession)
                 room.sessionToName.put(session.getId(), session.getId())
-                sendMessage(session, new AuthenticationEvent(admin: false, remotePermission: remote_permission, imagePermission: image_permission, trusted: false,anonymous: true));
-                joinActions(room,session,jsonMessage,username,false);
+                sendMessage(session, new AuthenticationEvent(admin: false, remotePermission: remote_permission, imagePermission: image_permission, trusted: false, anonymous: true))
+                joinActions(room, session, jsonMessage, username, false)
             }
         }
     }
 
     private String stringToColor(String name) {
-        int hash = 0;
+        int hash = 0
         for (int i = 0; i < name.length(); i++) {
-            hash = Character.codePointAt(name, i) + ((hash << 5) - hash);
+            hash = Character.codePointAt(name, i) + ((hash << 5) - hash)
         }
-        String colour = '#';
+        String colour = '#'
         for (int i = 0; i < 3; i++) {
-            int value = (hash >> (i * 8)) & 0xFF;
-            String some =  Integer.toHexString(value);
-            colour += (('00' + some).substring(some.length()));
+            int value = (hash >> (i * 8)) & 0xFF
+            String some =  Integer.toHexString(value)
+            colour += (('00' + some).substring(some.length()))
         }
-        return colour;
+        return colour
     }
 
     private void joinActions(Room room, WebSocketSession session, Map jsonMessage, String username, Boolean existingUser) {
-
         room.joinActaionVM()
 
         log.info "Join actions started for $username"
@@ -562,14 +559,14 @@ class WebsocketRoomService {
             session: username
         ))
         sendMessage(session, new WindowTitleEvent(
-            title: (room.title ?: "")
+            title: (room.title ?: '')
         ))
 
         ChatMessage.withTransaction {
             sendMessage(session, new ChatHistoryEvent(
                 messages: ChatMessage.where { room == room.name &&
-                        timestamp > ZonedDateTime.now(ZoneId.of("UTC")).minusHours(1)
-                    }.list(sort: "timestamp", order: "desc", max: 500).collect {
+                        timestamp > ZonedDateTime.now(ZoneId.of('UTC')).minusHours(1)
+                    }.list(sort: 'timestamp', order: 'desc', max: 500).collect {
                     new ReceiveMessageEvent(
                         id: it.id,
                         message: it.message,
@@ -589,7 +586,7 @@ class WebsocketRoomService {
 
         //send existing users to new user
         sendMessage(session, new LoadUsersEvent(
-            users: room.users.collect{key,value -> new JoinEvent(
+            users: room.users.collect { key, value -> new JoinEvent(
                     session: key,
                     username: value.getNickname(),
                     url: value.getAvatarUrl(),
@@ -599,11 +596,11 @@ class WebsocketRoomService {
                     userEntryTime: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(value.getUserEntryTime()),
                     muted: value.getMuted(),
                     anonymous: value.isAnonymous()
-                ) 
-                }
+                )
+            }
         ))
 
-        if(!existingUser){
+        if (!existingUser) {
             room.exclusive_broadcast(
                 new JoinEvent(
                         session: user.username,
@@ -619,37 +616,37 @@ class WebsocketRoomService {
             )
         }
         else {
-            updateUser(room,session,user);
+            updateUser(room, session, user)
         }
 
         //send remote info for joining user
-        if(room.remote != null){
+        if (room.remote != null) {
             sendMessage(session, new PickupRemoteEvent(
                 session: room.remote,
                 has_remote: room.remote == user.username))
         }
     }
 
-    private void updateProfile(Room room, WebSocketSession session, String username){
-        UserState user = userFetcher.findByUsername(username);
-        if(user != null){
-            UserSession userSession = room.users.get(username);
-            if(userSession){
-                room.users.computeIfPresent(username,(key, oldValue) -> {
-                        oldValue.nickname = user.getNickname();
-                        oldValue.avatarUrl = user.getAvatarUrl();
-                        oldValue.nameColor = user.getNameColor();
-                        oldValue.lastTimeSeen = ZonedDateTime.now(ZoneId.of("UTC")); 
-                        oldValue.active = true;
+    private void updateProfile(Room room, WebSocketSession session, String username) {
+        UserState user = userFetcher.findByUsername(username)
+        if (user != null) {
+            UserSession userSession = room.users.get(username)
+            if (userSession) {
+                room.users.computeIfPresent(username, (key, oldValue) -> {
+                        oldValue.nickname = user.getNickname()
+                        oldValue.avatarUrl = user.getAvatarUrl()
+                        oldValue.nameColor = user.getNameColor()
+                        oldValue.lastTimeSeen = ZonedDateTime.now(ZoneId.of('UTC'))
+                        oldValue.active = true
                     return oldValue;});
-                updateUser(room,null,userSession);
+                updateUser(room, null, userSession)
             }
         }
     }
 
-    private void updateUser(Room room, WebSocketSession session, UserSession user){
+    private void updateUser(Room room, WebSocketSession session, UserSession user) {
         def sessionId = session == null ? null : session.getId()
-        room.exclusive_broadcast( new UpdateUserEvent(
+        room.exclusive_broadcast(new UpdateUserEvent(
                         session: user.username,
                         username: user.nickname,
                         url: user.avatarUrl,
@@ -660,18 +657,18 @@ class WebsocketRoomService {
                     ), sessionId)
     }
 
-    private void updatePermission(Room room, WebSocketSession session, Map jsonMessage, String username){
+    private void updatePermission(Room room, WebSocketSession session, Map jsonMessage, String username) {
         UserSession modUser = room.users.get(username)
-        if(modUser.admin){
-            if (!jsonMessage.containsKey("userId") || !jsonMessage.containsKey("invited") || !jsonMessage.containsKey("remote_permission") || !jsonMessage.containsKey("image_permission") || !jsonMessage.containsKey("trusted")) {
-            throw new IllegalArgumentException("Missing or invalid keys in the jsonMessage map.");
+        if (modUser.admin) {
+            if (!jsonMessage.containsKey('userId') || !jsonMessage.containsKey('invited') || !jsonMessage.containsKey('remote_permission') || !jsonMessage.containsKey('image_permission') || !jsonMessage.containsKey('trusted')) {
+                throw new IllegalArgumentException('Missing or invalid keys in the jsonMessage map.')
             }
 
-            UserState user = userFetcher.findByUsername(jsonMessage.userId);
-            if(user != null){
-                RoomPermission.withTransaction{
-                    RoomPermission perms = RoomPermission.findByUserAndRoom(user, room.name);
-                    if(perms == null){
+            UserState user = userFetcher.findByUsername(jsonMessage.userId)
+            if (user != null) {
+                RoomPermission.withTransaction {
+                    RoomPermission perms = RoomPermission.findByUserAndRoom(user, room.name)
+                    if (perms == null) {
                         perms = new RoomPermission(
                             user: user,
                             room: room.name,
@@ -682,45 +679,45 @@ class WebsocketRoomService {
                             banned: false,
                             bannedUntil : null
                         )
-                    } else{
+                    } else {
                         perms.invited = jsonMessage.invited
                         perms.remote_permission = jsonMessage.remote_permission
                         perms.image_permission = jsonMessage.image_permission
                         perms.trusted = jsonMessage.trusted
                     }
-                    perms.save();
+                    perms.save()
                 }
             }
-            UserSession userSession = room.users.get(jsonMessage.userId);
-            if(userSession){
-                room.users.computeIfPresent(jsonMessage.userId,(key, oldValue) -> {
-                        oldValue.invited = jsonMessage.invited;
-                        oldValue.remote_permission = jsonMessage.remote_permission;
-                        oldValue.image_permission = jsonMessage.image_permission; 
-                        oldValue.trusted = jsonMessage.trusted;
+            UserSession userSession = room.users.get(jsonMessage.userId)
+            if (userSession) {
+                room.users.computeIfPresent(jsonMessage.userId, (key, oldValue) -> {
+                        oldValue.invited = jsonMessage.invited
+                        oldValue.remote_permission = jsonMessage.remote_permission
+                        oldValue.image_permission = jsonMessage.image_permission
+                        oldValue.trusted = jsonMessage.trusted
                     return oldValue;});
             }
-            if(room.remote == jsonMessage.userId){
+            if (room.remote == jsonMessage.userId) {
                 this.dropremote(room, null, jsonMessage.userId)
             }
-            if(!(userSession.invited || userSession.trusted) && ((room.accountOnly && userSession.anonymous) ||  room.inviteOnly)){
-                if(userSession.username == room.remote){
+            if (!(userSession.invited || userSession.trusted) && ((room.accountOnly && userSession.anonymous) ||  room.inviteOnly)) {
+                if (userSession.username == room.remote) {
                     this.dropremote(room, null, jsonMessage.userId)
                 }
-                userSession.connections.each {sessionId, connection ->
-                    connection.webRtcEndpoint?.release();
-                    if(connection.webSocketSession) {
+                userSession.connections.each { sessionId, connection ->
+                    connection.webRtcEndpoint?.release()
+                    if (connection.webSocketSession) {
                         try {
-                            sendMessage(connection.webSocketSession, new UnauthorizedEvent(message: "Kicked"));
+                            sendMessage(connection.webSocketSession, new UnauthorizedEvent(message: 'Kicked'))
                             connection.webSocketSession.close(CloseReason.NORMAL)
-                        } catch(IOException e) {
+                        } catch (IOException e) {
                             e.printStackTrace()
                         }
                     }
                 }
             }
-            else{
-                userSession.connections.each {sessionId, connection ->
+            else {
+                userSession.connections.each { sessionId, connection ->
                     sendMessage(connection.webSocketSession, new UpdatePermissionEvent(
                         trusted: jsonMessage.trusted,
                         remotePermission: jsonMessage.remote_permission,
@@ -731,39 +728,39 @@ class WebsocketRoomService {
     }
 
     private void scroll(Room room, WebSocketSession session, Map jsonMessage, String username) {
-        if(username == room.remote) {
+        if (username == room.remote) {
             sendMessage(room.worker?.websocket, new ScrollEvent(direction: jsonMessage.direction))
         }
     }
 
     private void textinput(Room room, WebSocketSession session, Map jsonMessage, String username) {
-        if(username == room.remote) {
+        if (username == room.remote) {
             log.info jsonMessage.toString()
-            sendMessage(room.worker?.websocket, new TextinputEvent(text: jsonMessage.text));
+            sendMessage(room.worker?.websocket, new TextinputEvent(text: jsonMessage.text))
         }
     }
 
     private void paste(Room room, WebSocketSession session, Map jsonMessage, String username) {
-        if(username == room.remote) {
+        if (username == room.remote) {
             log.info jsonMessage.toString()
             sendMessage(room.worker?.websocket, new PasteEvent(clipboard: jsonMessage.clipboard))
         }
     }
 
     private void keyup(Room room, WebSocketSession session, Map jsonMessage, String username) {
-        if(username == room.remote) {
+        if (username == room.remote) {
             sendMessage(room.worker?.websocket, new KeyUpEvent(key: jsonMessage.key))
         }
     }
 
     private void keydown(Room room, WebSocketSession session, Map jsonMessage, String username) {
-        if(username == room.remote) {
+        if (username == room.remote) {
             sendMessage(room.worker?.websocket, new KeyDownEvent(key: jsonMessage.key))
         }
     }
 
     private void mousemove(Room room, WebSocketSession session, Map jsonMessage, String username) {
-        if(username == room.remote) {
+        if (username == room.remote) {
             sendMessage(room.worker?.websocket, new MouseMoveEvent(
                 mouseX: jsonMessage.mouseX,
                 mouseY: jsonMessage.mouseY))
@@ -771,7 +768,7 @@ class WebsocketRoomService {
     }
 
     private void mouseup(Room room, WebSocketSession session, Map jsonMessage, String username) {
-        if(username == room.remote) {
+        if (username == room.remote) {
             sendMessage(room.worker?.websocket, new MouseUpEvent(
                 mouseX: jsonMessage.mouseX,
                 mouseY: jsonMessage.mouseY,
@@ -780,7 +777,7 @@ class WebsocketRoomService {
     }
 
     private void mousedown(Room room, WebSocketSession session, Map jsonMessage, String username) {
-        if(username == room.remote) {
+        if (username == room.remote) {
             sendMessage(room.worker?.websocket, new MouseDownEvent(
                 mouseX: jsonMessage.mouseX,
                 mouseY: jsonMessage.mouseY,
@@ -789,22 +786,22 @@ class WebsocketRoomService {
     }
 
     private void pickupremote(Room room, WebSocketSession session, String username) {
-        if(room.remote_ownership && room.remote) return;
+        if (room.remote_ownership && room.remote) return
         UserSession user = room.users.get(username)
-        if(!( user.trusted || user.remote_permission || room.default_remote_permission)) return
+        if (!(user.trusted || user.remote_permission || room.default_remote_permission)) return
         room.remote = username
         room.users.each { key, value ->
-        value.connections.each {sessionId, connection ->
-            sendMessage(connection.webSocketSession, new PickupRemoteEvent(
+            value.connections.each { sessionId, connection ->
+                sendMessage(connection.webSocketSession, new PickupRemoteEvent(
                 session: username,
                 has_remote: sessionId == session.getId()))
-        }
+            }
         }
         sendMessage(room.worker?.websocket, new ResetKeyboardEvent())
     }
 
-    private void dropremote(Room room, Map jsonMessage,String username) {
-        if(room.centerRemote || jsonMessage?.center) {
+    private void dropremote(Room room, Map jsonMessage, String username) {
+        if (room.centerRemote || jsonMessage?.center) {
             sendMessage(room.worker?.websocket, new MouseMoveEvent(
                 mouseX: room.videoSettings.desktopWidth / 2,
                 mouseY: room.videoSettings.desktopHeight / 2))
@@ -815,137 +812,137 @@ class WebsocketRoomService {
             ))
     }
 
-    private void restartWorker(Room room, WebSocketSession session, Map jsonMessage,String username) {
+    private void restartWorker(Room room, WebSocketSession session, Map jsonMessage, String username) {
         UserSession user = room.users.get(username)
-        if(user.admin) {
-            log.info "Admin restarting worker"
+        if (user.admin) {
+            log.info 'Admin restarting worker'
             room.restartByAdmin()
             sendMessage(room.worker?.websocket, new RestartWorkerEvent())
-        } else if(user.trusted){
-            if(room.restartByUser()){
-                log.info "Trusted user restarting worker"
-                sendMessage(room.worker?.websocket, new RestartWorkerEvent());
+        } else if (user.trusted) {
+            if (room.restartByUser()) {
+                log.info 'Trusted user restarting worker'
+                sendMessage(room.worker?.websocket, new RestartWorkerEvent())
             } else {
-                String timeWhenRestartAvail = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(room.lastRestarted.plusHours(1));
+                String timeWhenRestartAvail = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(room.lastRestarted.plusHours(1))
                 sendMessage(session, new NextRestartAvailable(time: timeWhenRestartAvail))
-                log.info "Trusted user failed to restarting worker $timeWhenRestartAvail" 
+                log.info "Trusted user failed to restarting worker $timeWhenRestartAvail"
             }
         }
-        else log.info "User with missing permissions tried to restart worker"
+        else log.info 'User with missing permissions tried to restart worker'
     }
 
-    private void saveRoomSettings(Room room, WebSocketSession session, Map jsonMessage,String username) {
+    private void saveRoomSettings(Room room, WebSocketSession session, Map jsonMessage, String username) {
         UserSession user = room.users.get(username)
-        if(user.admin) {
+        if (user.admin) {
             def resolutions = [
-                "1080": [ height: 1080, width: 1920 ],
-                "720": [ height: 720, width: 1280 ],
-                "480": [ height: 480, width: 853 ],
-                "240": [ height: 240, width: 426 ],
-                "144": [ height: 144, width: 256 ]
+                '1080': [ height: 1080, width: 1920 ],
+                '720': [ height: 720, width: 1280 ],
+                '480': [ height: 480, width: 853 ],
+                '240': [ height: 240, width: 426 ],
+                '144': [ height: 144, width: 256 ]
             ]
-            if(jsonMessage.desktopResolution) {
+            if (jsonMessage.desktopResolution) {
                 def res = resolutions[jsonMessage.desktopResolution.toString()]
-                if(res) {
+                if (res) {
                     room.videoSettings.desktopWidth = res.width
                     room.videoSettings.desktopHeight = res.height
                 }
             }
-            if(jsonMessage.streamResolution) {
+            if (jsonMessage.streamResolution) {
                 def res = resolutions[jsonMessage.streamResolution.toString()]
-                if(res) {
+                if (res) {
                     room.videoSettings.scaleWidth = res.width
                     room.videoSettings.scaleHeight = res.height
                 }
             }
-            if(jsonMessage.framerate) {
+            if (jsonMessage.framerate) {
                 def fps = [
-                    "25": 25,
-                    "20": 20,
-                    "15": 15,
-                    "10": 10,
-                    "5": 5
+                    '25': 25,
+                    '20': 20,
+                    '15': 15,
+                    '10': 10,
+                    '5': 5
                 ]
-                if(fps[jsonMessage.framerate.toString()]) {
+                if (fps[jsonMessage.framerate.toString()]) {
                     room.videoSettings.framerate = fps[jsonMessage.framerate.toString()]
                 }
             }
-            if(jsonMessage.videoBitrate) {
+            if (jsonMessage.videoBitrate) {
                 def bitrates = [
-                    "2M": "2M",
-                    "1M": "1M",
-                    "500k": "500k",
-                    "300k": "300k"
+                    '2M': '2M',
+                    '1M': '1M',
+                    '500k': '500k',
+                    '300k': '300k'
                 ]
-                if(bitrates[jsonMessage.videoBitrate.toString()]) {
+                if (bitrates[jsonMessage.videoBitrate.toString()]) {
                     room.videoSettings.videoBitrate = bitrates[jsonMessage.videoBitrate.toString()]
                 }
             }
-            if(jsonMessage.audioBitrate) {
+            if (jsonMessage.audioBitrate) {
                 def bitrates = [
-                    "192k": "192k",
-                    "96k": "96k",
-                    "64k": "64k",
-                    "48k": "48k",
-                    "32k": "32k"
+                    '192k': '192k',
+                    '96k': '96k',
+                    '64k': '64k',
+                    '48k': '48k',
+                    '32k': '32k'
                 ]
-                if(bitrates[jsonMessage.audioBitrate.toString()]) {
+                if (bitrates[jsonMessage.audioBitrate.toString()]) {
                     room.videoSettings.audioBitrate = bitrates[jsonMessage.audioBitrate.toString()]
                 }
             }
-            RoomPersistence.withTransaction{
-                RoomPersistence roomPers = RoomPersistence.get(room.name);
-                if(roomPers != null){
-                    roomPers.desktopWidth = room.videoSettings.desktopWidth;
-                    roomPers.desktopHeight = room.videoSettings.desktopHeight;
-                    roomPers.scaleWidth = room.videoSettings.scaleWidth;
-                    roomPers.scaleHeight = room.videoSettings.scaleHeight;
-                    roomPers.framerate = room.videoSettings.framerate;
-                    roomPers.videoBitrate = room.videoSettings.videoBitrate;
-                    roomPers.audioBitrate = room.videoSettings.audioBitrate;
-                    roomPers.save(flush: true);
+            RoomPersistence.withTransaction {
+                RoomPersistence roomPers = RoomPersistence.get(room.name)
+                if (roomPers != null) {
+                    roomPers.desktopWidth = room.videoSettings.desktopWidth
+                    roomPers.desktopHeight = room.videoSettings.desktopHeight
+                    roomPers.scaleWidth = room.videoSettings.scaleWidth
+                    roomPers.scaleHeight = room.videoSettings.scaleHeight
+                    roomPers.framerate = room.videoSettings.framerate
+                    roomPers.videoBitrate = room.videoSettings.videoBitrate
+                    roomPers.audioBitrate = room.videoSettings.audioBitrate
+                    roomPers.save(flush: true)
                 }
             }
             sendMessage(room.worker?.websocket, new UpdateWorkerSettingsEvent(settings: room.videoSettings, restart: true))
         } else {
-            sendMessage(session, new CozycastError(message: "Not authorized"))
+            sendMessage(session, new CozycastError(message: 'Not authorized'))
         }
     }
 
-    private void saveRoomAccess(Room room, WebSocketSession session, Map jsonMessage,String username) {
+    private void saveRoomAccess(Room room, WebSocketSession session, Map jsonMessage, String username) {
         log.info jsonMessage.toString()
         UserSession user = room.users.get(username)
-        if(user.admin) {
-            if(jsonMessage.default_remote_permission){
-                room.default_remote_permission = jsonMessage.default_remote_permission == "true"
+        if (user.admin) {
+            if (jsonMessage.default_remote_permission) {
+                room.default_remote_permission = jsonMessage.default_remote_permission == 'true'
             }
-            if(jsonMessage.default_image_permission){
-                room.default_image_permission = jsonMessage.default_image_permission == "true"
+            if (jsonMessage.default_image_permission) {
+                room.default_image_permission = jsonMessage.default_image_permission == 'true'
             }
-            if(jsonMessage.remote_ownership){
-                room.remote_ownership = jsonMessage.remote_ownership == "true"
+            if (jsonMessage.remote_ownership) {
+                room.remote_ownership = jsonMessage.remote_ownership == 'true'
             }
-            if(jsonMessage.hidden_to_unauthorized){
-                room.hidden_to_unauthorized = jsonMessage.hidden_to_unauthorized == "true"
+            if (jsonMessage.hidden_to_unauthorized) {
+                room.hidden_to_unauthorized = jsonMessage.hidden_to_unauthorized == 'true'
             }
-            if(jsonMessage.accessType) {
-                if(jsonMessage.accessType == "public") {
+            if (jsonMessage.accessType) {
+                if (jsonMessage.accessType == 'public') {
                     room.inviteOnly = false
                     room.verifiedOnly = false
                     room.accountOnly = false
                 }
-                if(jsonMessage.accessType == "authenticated") {
+                if (jsonMessage.accessType == 'authenticated') {
                     room.inviteOnly = false
                     room.verifiedOnly = false
                     room.accountOnly = true
                 }
-                if(jsonMessage.accessType == "invite") {
+                if (jsonMessage.accessType == 'invite') {
                     room.inviteOnly = false
                     room.verifiedOnly = false
                     room.inviteOnly = true
                 }
             }
-            if(jsonMessage.centerRemote) {
+            if (jsonMessage.centerRemote) {
                 room.centerRemote = true
             } else {
                 room.centerRemote = false
@@ -960,70 +957,70 @@ class WebsocketRoomService {
                 default_image_permission: room.default_image_permission,
                 hidden_to_unauthorized: room.hidden_to_unauthorized
             )
-            RoomPersistence.withTransaction{
-                RoomPersistence roomPers = RoomPersistence.get(room.name);
-                if(roomPers != null){
-                    roomPers.accountOnly = room.accountOnly;
-                    roomPers.verifiedOnly = room.verifiedOnly;
-                    roomPers.inviteOnly = room.inviteOnly;
-                    roomPers.centerRemote = room.centerRemote;
-                    roomPers.default_remote_permission = room.default_remote_permission;
-                    roomPers.default_image_permission = room.default_image_permission;
-                    roomPers.remote_ownership = room.remote_ownership;
-                    roomPers.hidden_to_unauthorized = room.hidden_to_unauthorized;
-                    roomPers.save(flush: true);
+            RoomPersistence.withTransaction {
+                RoomPersistence roomPers = RoomPersistence.get(room.name)
+                if (roomPers != null) {
+                    roomPers.accountOnly = room.accountOnly
+                    roomPers.verifiedOnly = room.verifiedOnly
+                    roomPers.inviteOnly = room.inviteOnly
+                    roomPers.centerRemote = room.centerRemote
+                    roomPers.default_remote_permission = room.default_remote_permission
+                    roomPers.default_image_permission = room.default_image_permission
+                    roomPers.remote_ownership = room.remote_ownership
+                    roomPers.hidden_to_unauthorized = room.hidden_to_unauthorized
+                    roomPers.save(flush: true)
                 }
             }
             room.users.each { key, roomUser ->
-            if(roomUser != null) {
-                if(!(roomUser.invited || roomUser.trusted) && ((room.accountOnly && roomUser.anonymous) ||  room.inviteOnly)){
-                    if(roomUser.username == room.remote){
-                        this.dropremote(room, null, jsonMessage.userId)
-                    }
-                    roomUser.connections.each {sessionId, connection ->
-                        connection.webRtcEndpoint?.release();
-                        if(connection.webSocketSession) {
-                            try {
-                                sendMessage(connection.webSocketSession, new UnauthorizedEvent(message: "Kicked"));
-                                connection.webSocketSession.close(CloseReason.NORMAL)
-                            } catch(IOException e) {
-                                e.printStackTrace()
+                if (roomUser != null) {
+                    if (!(roomUser.invited || roomUser.trusted) && ((room.accountOnly && roomUser.anonymous) ||  room.inviteOnly)) {
+                        if (roomUser.username == room.remote) {
+                            this.dropremote(room, null, jsonMessage.userId)
+                        }
+                        roomUser.connections.each { sessionId, connection ->
+                            connection.webRtcEndpoint?.release()
+                            if (connection.webSocketSession) {
+                                try {
+                                    sendMessage(connection.webSocketSession, new UnauthorizedEvent(message: 'Kicked'))
+                                    connection.webSocketSession.close(CloseReason.NORMAL)
+                            } catch (IOException e) {
+                                    e.printStackTrace()
+                                }
                             }
                         }
                     }
+                else {
+                        roomUser.connections.each { sessionId, connection ->
+                            sendMessage(connection.webSocketSession, roomSettings)
+                        }
                 }
-                else{
-                    roomUser.connections.each {sessionId, connection ->
-                        sendMessage(connection.webSocketSession, roomSettings)
-                    }
                 }
             }
-        }
         } else {
-            sendMessage(session, new CozycastError(message: "Not authorized"))
+            sendMessage(session, new CozycastError(message: 'Not authorized'))
         }
     }
 
-    private void ban(Room room, WebSocketSession session, Map jsonMessage,String username) {
+    private void ban(Room room, WebSocketSession session, Map jsonMessage, String username) {
         def bannedSession = jsonMessage.session
         UserSession modUser = room.users.get(username)
-        if(modUser.admin) {
+        if (modUser.admin) {
             UserSession user = room.users.get(bannedSession)
-            if(user == null) return
-            def expiration = "unlimited"
+            if (user == null) return
+            def expiration = 'unlimited'
             def expirationDate = null
-            if(jsonMessage.expiration.isInteger() && jsonMessage.expiration.toLong() >= 0) {
-                expirationDate = ZonedDateTime.now(ZoneId.of("UTC"))
+            if (jsonMessage.expiration.isInteger() && jsonMessage.expiration.toLong() >= 0) {
+                expirationDate = ZonedDateTime.now(ZoneId.of('UTC'))
                 expirationDate = expirationDate.plusMinutes(jsonMessage.expiration.toLong())
                 expiration = expirationDate.toOffsetDateTime().toString()
             }
-            User.withTransaction{
-            User userDb = User.get(bannedSession)
-            if(userDb != null){
-            RoomPermission.withTransaction {
-                RoomPermission perms = RoomPermission.findByUserAndRoom(userDb,room.name)
-                if(perms == null){
-                    perms = new RoomPermission(
+            User.withTransaction {
+                User userDb = User.get(bannedSession)
+                if (userDb != null) {
+                    RoomPermission.withTransaction {
+                        RoomPermission perms = RoomPermission.findByUserAndRoom(userDb, room.name)
+                        if (perms == null) {
+                            perms = new RoomPermission(
                         user: userDb,
                         room: room.name,
                         invited: false,
@@ -1032,36 +1029,36 @@ class WebsocketRoomService {
                         remote_permission: false,
                         image_permission: false
                     )
-                } else{
-                        perms.banned = true;
-                        perms.bannedUntil = expirationDate
+                } else {
+                            perms.banned = true
+                            perms.bannedUntil = expirationDate
+                        }
+                        perms.save()
+                    }
                 }
-                perms.save();
             }
-            }
-        }
-            user.connections.each {sessionId, connection ->
+            user.connections.each { sessionId, connection ->
                 sendMessage(connection.webSocketSession, new BanEvent(
                     session: bannedSession,
                     expiration: expiration))
-                connection.webSocketSession.close();
+                connection.webSocketSession.close()
             }
         }
         else {
             def banSource = username
             def banTarget = bannedSession
             log.info "${banSource} attempted to ban ${banTarget} without admin rights"
-            sendMessage(session, new CozycastError(message: "Not authorized"))
+            sendMessage(session, new CozycastError(message: 'Not authorized'))
         }
     }
 
-    private void getUserInfo(Room room, WebSocketSession session,  String username){
+    private void getUserInfo(Room room, WebSocketSession session,  String username) {
         UserSession modUser = room.users.get(username)
-        if(modUser.admin) {
+        if (modUser.admin) {
             sendMessage(session, new UserListInfo(users: room.getUserInfo()))
         }  else {
             log.info "${username} attempted to get UserInfos without admin rights"
-            sendMessage(session, new CozycastError(message: "Not authorized"))
+            sendMessage(session, new CozycastError(message: 'Not authorized'))
         }
     }
 
@@ -1073,13 +1070,13 @@ class WebsocketRoomService {
         UserSession user = room.users.get(username)
 
         if (user != null) {
-            Map jsonCandidate = jsonMessage.candidate;
+            Map jsonCandidate = jsonMessage.candidate
             log.info jsonCandidate.toString()
             IceCandidate candidate = new IceCandidate(
                 jsonCandidate.candidate,
                 jsonCandidate.sdpMid,
                 jsonCandidate.sdpMLineIndex)
-            user.connections.computeIfPresent(sessionId, (k,v) -> {v.webRtcEndpoint?.addIceCandidate(candidate); return v});
+            user.connections.computeIfPresent(sessionId, (k, v) -> { v.webRtcEndpoint?.addIceCandidate(candidate); return v });
         }
     }
 
@@ -1096,132 +1093,132 @@ class WebsocketRoomService {
     def sendMessage(WebSocketSession session, Object message) {
         if (session != null) {
             try {
-                session.send(message).subscribe({ arg -> ""}, { error ->
+                session.send(message).subscribe({ arg -> '' }, { error ->
                     log.error("Failed to send message: $error.message")
-                })
+            })
             } catch (Exception e) {
                 log.error("An error occurred while sending the message: ${e.message}")
-            }
-        } else {
-            log.error("session is null")
         }
+        } else {
+            log.error('session is null')
+    }
     }
 
     public void onClose(String room, WebSocketSession session) {
-        Room roomObj = roomRegistry.getRoomNoCreate(room);
-        if(roomObj) stop(roomObj, session.getId())
+        Room roomObj = roomRegistry.getRoomNoCreate(room)
+        if (roomObj) stop(roomObj, session.getId())
     }
 
     public void onMessage(WebSocketSession session, String room, Map jsonMessage) {
         String sessionId = session.getId()
         Room currentRoom = roomRegistry.getRoomNoCreate(room)
-        if(currentRoom == null) {
-            sendMessage(session, new UnauthorizedEvent(message: "Unauthorized action"))
-            session.close();
-            return;
-            }
+        if (currentRoom == null) {
+            sendMessage(session, new UnauthorizedEvent(message: 'Unauthorized action'))
+            session.close()
+            return
+        }
         String username = currentRoom.sessionToName.get(sessionId)
-        if(username == null){
-            if(jsonMessage.action == 'join'){
-                join(currentRoom, session, jsonMessage);
+        if (username == null) {
+            if (jsonMessage.action == 'join') {
+                join(currentRoom, session, jsonMessage)
             }
             else {
-                sendMessage(session, new UnauthorizedEvent(message: "Unauthorized action"))
+                sendMessage(session, new UnauthorizedEvent(message: 'Unauthorized action'))
             }
         }
         else {
             try {
                 switch (jsonMessage.action) {
-                    case "chatmessage":
+                    case 'chatmessage':
                         chatmessage(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "keepalive":
+                        break
+                    case 'keepalive':
                         keepalive(currentRoom, session, jsonMessage)
-                        break;
-                    case "userActivity":
+                        break
+                    case 'userActivity':
                         userActivity(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "userMuted":
+                        break
+                    case 'userMuted':
                         userMuted(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "start":
+                        break
+                    case 'start':
                         start(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "stop":
+                        break
+                    case 'stop':
                         stop(currentRoom, sessionId)
-                        break;
-                    case "typing":
+                        break
+                    case 'typing':
                         typing(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "updateprofile":
+                        break
+                    case 'updateprofile':
                         updateProfile(currentRoom, session, username)
-                        break;
-                    case "whisper":
+                        break
+                    case 'whisper':
                         whisper(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "deletemessage":
+                        break
+                    case 'deletemessage':
                         deletemessage(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "editmessage":
+                        break
+                    case 'editmessage':
                         editmessage(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "getuserinfo":
+                        break
+                    case 'getuserinfo':
                         getUserInfo(currentRoom, session,  username)
-                        break;
-                    case "updatePermission":
-                        updatePermission(currentRoom,session,jsonMessage, username)
-                        break;
-                    case "join":
+                        break
+                    case 'updatePermission':
+                        updatePermission(currentRoom, session, jsonMessage, username)
+                        break
+                    case 'join':
                         join(currentRoom, session, jsonMessage)
-                        break;
-                    case "scroll":
+                        break
+                    case 'scroll':
                         scroll(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "mousemove":
-                        mousemove(currentRoom, session, jsonMessage,username)
-                        break;
-                    case "mouseup":
+                        break
+                    case 'mousemove':
+                        mousemove(currentRoom, session, jsonMessage, username)
+                        break
+                    case 'mouseup':
                         mouseup(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "mousedown":
+                        break
+                    case 'mousedown':
                         mousedown(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "textinput":
+                        break
+                    case 'textinput':
                         textinput(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "paste":
+                        break
+                    case 'paste':
                         paste(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "keyup":
+                        break
+                    case 'keyup':
                         keyup(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "keydown":
+                        break
+                    case 'keydown':
                         keydown(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "pickup_remote":
+                        break
+                    case 'pickup_remote':
                         pickupremote(currentRoom, session, username)
-                        break;
-                    case "drop_remote":
+                        break
+                    case 'drop_remote':
                         dropremote(currentRoom, jsonMessage, username)
-                        break;
-                    case "worker_restart":
+                        break
+                    case 'worker_restart':
                         restartWorker(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "room_settings_save":
+                        break
+                    case 'room_settings_save':
                         saveRoomSettings(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "room_access_save":
+                        break
+                    case 'room_access_save':
                         saveRoomAccess(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "ban":
+                        break
+                    case 'ban':
                         ban(currentRoom, session, jsonMessage, username)
-                        break;
-                    case "onIceCandidate":
+                        break
+                    case 'onIceCandidate':
                         onIceCandidate(currentRoom, sessionId, jsonMessage, username)
-                        break;
+                        break
                     default:
-                        sendError(session, "Invalid message with action " + jsonMessage.action)
-                        break;
+                        sendError(session, 'Invalid message with action ' + jsonMessage.action)
+                        break
                 }
             } catch (Throwable t) {
                 t.printStackTrace()
@@ -1229,4 +1226,5 @@ class WebsocketRoomService {
             }
         }
     }
-}
+
+    }
