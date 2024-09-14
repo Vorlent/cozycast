@@ -98,6 +98,18 @@ class Room {
         }
     }
 
+    def exclusive_broadcast(Object event, String sessionId) {
+        users.each { key, user ->
+            user.connections.each { sessionIdKey, connection ->
+                if(sessionId != sessionIdKey) {
+                    if (connection.webSocketSession != null) {
+                        sendMessage(connection.webSocketSession, event)
+                    }
+                }
+            }
+        }
+    }
+
     def sendMessage(WebSocketSession session, Object message) {
         if (session != null) {
             try {

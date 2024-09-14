@@ -112,15 +112,12 @@ class WebsocketRoomService {
         else{
             user.active = true
         }
-        room.users.each { key, value ->
-            value.connections.each {sessionId, connection ->
-                sendMessage(connection.webSocketSession, new UserActivityEvent(
+        room.broadcast(
+            new UserActivityEvent(
                     session: username,
                     active: user.active,
                     lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen),
-                ))
-            }
-        }
+            ))
     }
 
     private void userMuted(Room room, WebSocketSession session, Map jsonMessage, String username){
@@ -130,13 +127,10 @@ class WebsocketRoomService {
             return;
         }
         user.muted = jsonMessage.muted;
-        room.users.each { key, value ->
-        value.connections.each {sessionId, connection ->
-            sendMessage(connection.webSocketSession, new UserMutedEvent(
+        room.broadcast(new UserMutedEvent(
                 session: username,
                 muted: user.muted
             ))
-        }}
     }
 
     private void start(Room room, WebSocketSession session, Map jsonMessage,String username) {
@@ -179,18 +173,12 @@ class WebsocketRoomService {
 
     private void typing(Room room, WebSocketSession session, Map jsonMessage, String username) {
         final UserSession user = room.users.get(username)
-        room.users.each { key, value ->
-        value.connections.each {sessionId, connection ->
-            if(session.getId() != connection.getWebSocketSession().getId()) {
-                sendMessage(connection.webSocketSession, new TypingEvent(
+        room.exclusive_broadcast(new TypingEvent(
                     session: username,
                     state: jsonMessage.state,
                     username: user.nickname,
                     lastTypingTime: new Date().getTime()
-                ))
-            }
-        }
-        }
+                ), session.getId() )
     }
 
     private void chatmessage(Room room, WebSocketSession session, Map jsonMessage,String username) {
@@ -226,9 +214,7 @@ class WebsocketRoomService {
             )
             if(chatMessage.validate()) {
                 chatMessage.save();
-                room.users.each { key, value ->
-                value.connections.each {sessionId, connection ->
-                sendMessage(connection.webSocketSession, new ReceiveMessageEvent(
+                room.broadcast(new ReceiveMessageEvent(
                     id: chatMessage.id,
                     message: chatMessage.message,
                     type: "text",
@@ -238,8 +224,7 @@ class WebsocketRoomService {
                     anonymous: chatMessage.anonymous,
                     timestamp: nowAsISO,
                     edited: false,
-                ))
-            }}
+                    ))
             } else {
                 log.warn "Chat message by user ${user.username} in room ${room.name} is too long: ${jsonMessage.message?.substring(0, 4096)}"
                 return
@@ -324,9 +309,7 @@ class WebsocketRoomService {
             )
             if(chatMessage.validate()) {
                 chatMessage.save();
-                room.users.each { key, value ->
-                value.connections.each {sessionId, connection ->
-                sendMessage(connection.webSocketSession, new ReceiveMessageEvent(
+                room.broadcast(new ReceiveMessageEvent(
                     id: chatMessage.id,
                     message: chatMessage.message,
                     image: chatMessage.image,
@@ -338,8 +321,6 @@ class WebsocketRoomService {
                     timestamp: nowAsISO,
                     edited: false,
                 ))
-            }
-            }
             } else {
                 log.warn "Chat media posted by $username in room $roomName failed"
                 return
@@ -353,13 +334,9 @@ class WebsocketRoomService {
             def message = ChatMessage.get(jsonMessage.id)
             if(message && message.room == room.name && (user.admin || ((message.anonymous && message.session == session.getId()) || (!message.anonymous && message.session == user.username)))){
                 message.delete(); 
-                room.users.each { key, value ->
-                value.connections.each {sessionId, connection ->
-                    sendMessage(connection.webSocketSession, new DeleteMessageEvent (
+                room.broadcast(new DeleteMessageEvent (
                         id: message.id
                     ))
-                }
-                }
             }
         }
     }
@@ -372,14 +349,10 @@ class WebsocketRoomService {
                 message.message = jsonMessage.message;
                 message.edited = true;
                 message.save();
-                room.users.each { key, value ->
-                value.connections.each {sessionId, connection ->
-                    sendMessage(connection.webSocketSession, new EditMessageEvent (
+                room.broadcast(new EditMessageEvent (
                         id: message.id,
                         message: message.message
                     ))
-                }
-                }
             }
         }
     }
@@ -631,11 +604,8 @@ class WebsocketRoomService {
         ))
 
         if(!existingUser){
-            room.users.each { key, value ->
-                // send new user to existing users
-                value.connections.each {sessionId, connection ->
-                if(connection.getWebSocketSession() != session) {
-                    sendMessage(connection.webSocketSession, new JoinEvent(
+            room.exclusive_broadcast(
+                new JoinEvent(
                         session: user.username,
                         username: user.nickname,
                         url: user.avatarUrl,
@@ -645,10 +615,8 @@ class WebsocketRoomService {
                         userEntryTime: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(user.userEntryTime),
                         muted: user.muted,
                         anonymous: user.anonymous
-                    ))
-                }
-                }
-            }
+                    ), session.getId()
+            )
         }
         else {
             updateUser(room,session,user);
@@ -680,11 +648,8 @@ class WebsocketRoomService {
     }
 
     private void updateUser(Room room, WebSocketSession session, UserSession user){
-        room.users.each { key, value ->
-            // update user for all
-            value.connections.each {sessionId, connection ->
-                if(connection.getWebSocketSession() != session) {
-                    sendMessage(connection.webSocketSession, new UpdateUserEvent(
+        def sessionId = session == null ? null : session.getId()
+        room.exclusive_broadcast( new UpdateUserEvent(
                         session: user.username,
                         username: user.nickname,
                         url: user.avatarUrl,
@@ -692,10 +657,7 @@ class WebsocketRoomService {
                         nameColor: user.nameColor,
                         lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen),
                         muted: user.muted
-                    ))
-                }
-            }
-        }
+                    ), sessionId)
     }
 
     private void updatePermission(Room room, WebSocketSession session, Map jsonMessage, String username){
@@ -848,13 +810,9 @@ class WebsocketRoomService {
                 mouseY: room.videoSettings.desktopHeight / 2))
         }
         room.remote = null
-        room.users.each { key, value ->
-        value.connections.each {sessionId, connection ->
-            sendMessage(connection.webSocketSession, new DropRemoteEvent(
+        room.broadcast(new DropRemoteEvent(
                 session: username
             ))
-        }
-        }
     }
 
     private void restartWorker(Room room, WebSocketSession session, Map jsonMessage,String username) {
