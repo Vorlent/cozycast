@@ -17,6 +17,8 @@ import org.kurento.client.MediaPipeline
 import org.kurento.client.RtpEndpoint
 import groovy.util.logging.Slf4j
 
+import com.github.vorlent.cozycastserver.events.WindowTitleEvent
+
 class SDPOffer {
     String type = "sdpOffer"
     String ip
@@ -27,11 +29,6 @@ class SDPOffer {
 class SDPAnswer {
     String type = "sdpAnswer"
     String content
-}
-
-class WindowTitleEvent {
-    String action = "window_title"
-    String title
 }
 
 class UpdateWorkerSettingsEvent {

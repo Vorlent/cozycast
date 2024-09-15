@@ -9,11 +9,16 @@ import io.micronaut.websocket.WebSocketSession
 import com.github.vorlent.cozycastserver.events.LeaveEvent
 import com.github.vorlent.cozycastserver.events.DropRemoteEvent
 import com.github.vorlent.cozycastserver.events.MouseMoveEvent
+import com.github.vorlent.cozycastserver.events.CurrentRoomSettingsEvent
+import com.github.vorlent.cozycastserver.events.WindowTitleEvent
+
+import org.kurento.client.MediaType
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 import groovy.util.logging.Slf4j
 import org.slf4j.LoggerFactory
@@ -23,25 +28,29 @@ import io.micronaut.websocket.CloseReason
 import com.github.vorlent.cozycastserver.domain.RoomPersistence
 
 class StopStreamEvent {
-
     String action = 'stop_stream'
-
 }
 
 class StartStreamEvent {
-
     String action = 'start_stream'
+}
 
+class StreamStatusEvent {
+    String action = 'stream_status'
+    Boolean managed_vm
+    Boolean running
 }
 
 @Slf4j
 class Room {
 
     String name
+    private Boolean managed_vm = true
     private static final vmLogger = LoggerFactory.getLogger('vm.management')
     private final ExecutorService executorService = Executors.newSingleThreadScheduledExecutor()
     private Future<?> scheduledStopTask
     final AtomicBoolean isVMRunning = new AtomicBoolean(false)
+    private final AtomicInteger activeUsers = new AtomicInteger(0)
     final ConcurrentHashMap<String, UserSession> users = new ConcurrentHashMap<>()
     final ConcurrentHashMap<String, String> sessionToName = new ConcurrentHashMap<>()
     WorkerSession worker
@@ -90,6 +99,23 @@ class Room {
     }
 
     Room() { }
+
+    // Method to increment the user count
+    void newStreamStart() {
+        int activUsersInt = activeUsers.incrementAndGet()
+        vmLogger.info(name + ', active users:' + activUsersInt)
+        log.info "added, active users $activUsersInt"
+        startVM()
+    }
+
+    // Method to decrement the user count and check if it is zero
+    void streamStop() {
+        int remainingUsers = activeUsers.decrementAndGet()
+        log.info "removed, active users $remainingUsers" 
+        if (remainingUsers == 0){
+            stopVM()
+        }
+    }
 
     void broadcast(Object event) {
         users.each { key, user ->
@@ -168,20 +194,100 @@ class Room {
 
     void startVM() {
         if (isVMRunning.compareAndSet(false, true)) {  // Only proceed if VM is not already running
+            //mimic start stream event
+            releaseAllUsers(new StartStreamEvent())
             vmLogger.info(name + ', starting vm')
+
+            //TODO: only update the status after the VM is actually online
+            broadcast(new StreamStatusEvent(
+                managed_vm: managed_vm,
+                running: isVMRunning.get()
+            ))
         }
     }
 
     void stopVM() {
         if (isVMRunning.compareAndSet(true, false)) {  // Only proceed if VM is not already running
+            //mimic stopping the vm
+            broadcast(new StreamStatusEvent(
+                managed_vm: managed_vm,
+                running: isVMRunning.get()
+            ))
+            releaseAllUsers(new StopStreamEvent())
             vmLogger.info(name + ', stopping vm')
         }
     }
 
-    void joinActaionVM() {
+    private def checkIfWebRtcEndpointOpenForAnyUser() {
+        def isAnyOpen = false
+
+        users.each { key, user ->
+            if (user != null) {
+                log.info("$user.username")
+                user.connections.each { sessionId, connection ->
+                    log.info("$sessionId $connection")
+                    log.info("webrtc $connection.webRtcEndpoint")
+                if (connection?.webRtcEndpoint != null) {
+                    // Check if media is flowing in or out (audio or video)
+                    def mediaFlowInVideo = connection.webRtcEndpoint.isMediaFlowingIn(MediaType.VIDEO)
+                    log.info("MediaFlowIn (VIDEO): $mediaFlowInVideo for sessionId: $sessionId")
+                    // Check if media is flowing in or out for AUDIO
+                    def mediaFlowInAudio = connection.webRtcEndpoint.isMediaFlowingIn(MediaType.AUDIO)
+                    log.info("MediaFlowIn (AUDIO): $mediaFlowInAudio for sessionId: $sessionId")
+
+
+                    if (mediaFlowInVideo  || mediaFlowInAudio) {
+                        log.info("WebRTC media is flowing")
+                        isAnyOpen = true  // Set flag if media is flowing
+                        return false  // Exit if any active connection is found
+                    }
+                }
+                }
+                if (isAnyOpen) {
+                    return // Break out of the outer closure
+                }
+            }
+        }
+
+        return !isAnyOpen  // Return true if no open connection was found, false otherwise
+    }
+
+    void stopVmManual(){
+        if(checkIfWebRtcEndpointOpenForAnyUser()){
+            log.info "All closed shut down"
+        }
+        else log.info "At least one open"
+
+        //PLEINAIR, fix checkifweb... meme and then stop the vm only then if no active connections are online
+        stopVM()
+    }
+
+    void joinActaionVM(WebSocketSession session) {
+
+        sendMessage(session, new CurrentRoomSettingsEvent(
+            accountOnly : accountOnly,
+            verifiedOnly : verifiedOnly,
+            inviteOnly : inviteOnly,
+            centerRemote : centerRemote,
+            remote_ownership: remote_ownership,
+            default_remote_permission: default_remote_permission,
+            default_image_permission: default_image_permission,
+            hidden_to_unauthorized: hidden_to_unauthorized
+        ))
+
+        sendMessage(session, new WindowTitleEvent(
+            title: (title ?: '')
+        ))
+
+        sendMessage(session, new StreamStatusEvent(
+            managed_vm: managed_vm,
+            running: isVMRunning.get()
+        ))
+
+        if(isVMRunning.get()) sendMessage(session, new StartStreamEvent())
+
         vmLogger.info(name + ', Current users:' + users.size())
         cancelStopVM()
-        startVM()
     }
 
     void leaveActionVM() {

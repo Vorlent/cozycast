@@ -46,6 +46,9 @@ import org.kurento.client.MediaStateChangedEvent
 import org.kurento.client.RtpEndpoint
 import org.kurento.client.VideoInfo
 import org.kurento.client.WebRtcEndpoint
+import org.kurento.client.MediaType
+import org.kurento.client.MediaFlowInStateChangeEvent
+import org.kurento.client.MediaFlowOutStateChangeEvent
 import org.kurento.commons.exception.KurentoException
 import org.kurento.jsonrpc.JsonUtils
 import java.util.regex.Pattern
@@ -139,6 +142,9 @@ class WebsocketRoomService {
             throw new RuntimeException('NO WORKER FOUND')
         }
 
+        //TOTO: check if doing this here is enough, maybe some error cases need to be considerd
+        //room.newStreamStart()
+
         MediaPipeline pipeline = room.worker.getMediaPipeline(kurento)
         WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build()
         if (System.getenv('NETWORK_INTERFACES') != null) {
@@ -178,7 +184,7 @@ class WebsocketRoomService {
                     state: jsonMessage.state,
                     username: user.nickname,
                     lastTypingTime: new Date().getTime()
-), session.getId())
+        ), session.getId())
     }
 
     private void chatmessage(Room room, WebSocketSession session, Map jsonMessage, String username) {
@@ -540,26 +546,14 @@ class WebsocketRoomService {
     }
 
     private void joinActions(Room room, WebSocketSession session, Map jsonMessage, String username, Boolean existingUser) {
-        room.joinActaionVM()
+        
+        room.joinActaionVM(session)
 
         log.info "Join actions started for $username"
         UserSession user = room.users.get(username)
 
-        sendMessage(session, new CurrentRoomSettingsEvent(
-            accountOnly : room.accountOnly,
-            verifiedOnly : room.verifiedOnly,
-            inviteOnly : room.inviteOnly,
-            centerRemote : room.centerRemote,
-            remote_ownership: room.remote_ownership,
-            default_remote_permission: room.default_remote_permission,
-            default_image_permission: room.default_image_permission,
-            hidden_to_unauthorized: room.hidden_to_unauthorized
-        ))
         sendMessage(session, new SessonIdEvent(
             session: username
-        ))
-        sendMessage(session, new WindowTitleEvent(
-            title: (room.title ?: '')
         ))
 
         ChatMessage.withTransaction {
@@ -1071,7 +1065,7 @@ class WebsocketRoomService {
 
         if (user != null) {
             Map jsonCandidate = jsonMessage.candidate
-            log.info jsonCandidate.toString()
+            log.debug jsonCandidate.toString()
             IceCandidate candidate = new IceCandidate(
                 jsonCandidate.candidate,
                 jsonCandidate.sdpMid,
@@ -1146,6 +1140,12 @@ class WebsocketRoomService {
                         break
                     case 'stop':
                         stop(currentRoom, sessionId)
+                        break
+                    case 'start_vm':
+                        currentRoom.startVM()
+                        break
+                    case 'stop_vm':
+                        currentRoom.stopVmManual()
                         break
                     case 'typing':
                         typing(currentRoom, session, jsonMessage, username)
