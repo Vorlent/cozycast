@@ -5,7 +5,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install -y ffmpeg xvfb git cmake lua5.1 lua5.1-dev luajit libssl-dev m4 luarocks xdotool pulseaudio \
     libnss3 libcurl3-gnutls sudo xfce4 xfce4-terminal xclip fonts-wqy-microhei inotify-tools vlc && \
-    apt-get remove -y xscreensaver 
+    apt-get remove -y xfce4-screensaver
 
 ENV UNAME cozycast
 
