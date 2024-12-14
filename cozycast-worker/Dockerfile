@@ -1,5 +1,5 @@
-FROM ubuntu:20.04
-ENV REPO="xenial"
+FROM ubuntu:22.04
+ENV REPO="jammy"
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
