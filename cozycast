@@ -121,7 +121,7 @@ case $1 in
         ;;
     build)
         cd docker-compose
-        sudo -E docker-compose -p cozycast -f docker-compose.worker.yml -f docker-compose.yml build
+        sudo -E docker-compose -p cozycast -f docker-compose.worker.yml -f docker-compose.yml --progress plain build
         exit;
         ;;
     dev)
