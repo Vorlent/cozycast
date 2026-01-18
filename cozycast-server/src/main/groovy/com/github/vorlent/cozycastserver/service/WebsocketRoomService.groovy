@@ -546,7 +546,6 @@ class WebsocketRoomService {
     }
 
     private void joinActions(Room room, WebSocketSession session, Map jsonMessage, String username, Boolean existingUser) {
-        
         room.joinActaionVM(session)
 
         log.info "Join actions started for $username"

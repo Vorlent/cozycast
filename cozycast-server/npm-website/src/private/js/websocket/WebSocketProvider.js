@@ -555,7 +555,7 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
                         state.banned.value = null;
                     }
                 }
-                if(state.banned.value) return;
+                if (state.banned.value) return;
             }
             console.log('Provider: useEffect');
             var wsProtocol = 'wss'
@@ -618,7 +618,7 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
 
                     //Videostream events
                     case 'stream_status':
-                        batch(()=>{
+                        batch(() => {
                             state.streamRunning.value = parsedMessage.running
                             state.managedVm.value = parsedMessage.managed_vm
                         })
@@ -675,12 +675,12 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
                         break;
                     case 'join':
                         join(parsedMessage, state.userlist, state.pingLookup);
-                        if(!parsedMessage.anonymous)
+                        if (!parsedMessage.anonymous)
                             pushTempMessage(`${parsedMessage.username} joined`, state.chatMessages);
                         break;
                     case 'leave':
                         leave(parsedMessage, state.userlist, state.pingLookup);
-                        if(!parsedMessage.anonymous)
+                        if (!parsedMessage.anonymous)
                             pushTempMessage(`${parsedMessage.username} left`, state.chatMessages);
                         break;
                     case 'update_user':
