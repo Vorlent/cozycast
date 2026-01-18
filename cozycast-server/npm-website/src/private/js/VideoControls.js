@@ -15,7 +15,7 @@ function disableContextmenu(e) {
 
 export const VideoControls = () => {
     const { volume, muted } = useContext(AppStateContext);
-    const { streamRunning, managedVm, remoteInfo, videoPaused, videoLoading, toggleVideo, sendMessage, viewPort } = useContext(WebSocketContext);
+    const { remoteInfo, videoPaused, videoLoading, toggleVideo, sendMessage, viewPort } = useContext(WebSocketContext);
     const videoElementRef = useRef();
     const videocontrols = useRef();
 
@@ -213,8 +213,7 @@ export const VideoControls = () => {
     }
 
     const autoplayDetected = (loadingState) => {
-        //TODO: find out why this is here
-        //videoPaused.value = false;
+        videoPaused.value = false;
     }
 
     const onCanPlay = (e) => {
@@ -233,67 +232,54 @@ export const VideoControls = () => {
         }
     }
 
-    const startVm = (e) => {
-        e.stopPropagation()
-        sendMessage({
-            action: 'start_vm'
-        });
-    }
-
     return (
-            <div class="videoAndControlsWrapper">
-                <div id="videoBig">
-                {managedVm.value && !streamRunning.value &&
-                    <div style={{'z-index': 100, position: "absolute", width: "100%", height: "100%", background: "rgb(0,0,0)", color: "white", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
-                        <div>Currently the VM is always running, so click the button if you want to watch something.</div>
-                        <button onClick={startVm} style={{ height: "40px", marginTop: "20px", padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}>Start VM</button>
-                    </div>
-                }
-                    <div id="videocontrols" tabindex="-1"
-                        oncontextmenu={disableContextmenu}
-                        onmousemove={videoMousemove}
-                        onmouseup={videoMouseUp}
-                        onmousedown={videoMouseDown}
-                        onpaste={paste}
-                        onkeyup={videoKeyUp}
-                        onkeydown={videoKeyDown}
-                        onwheel={videoScroll}
+        <div class="videoAndControlsWrapper">
+            <div id="videoBig">
+                <div id="videocontrols" tabindex="-1"
+                    oncontextmenu={disableContextmenu}
+                    onmousemove={videoMousemove}
+                    onmouseup={videoMouseUp}
+                    onmousedown={videoMouseDown}
+                    onpaste={paste}
+                    onkeyup={videoKeyUp}
+                    onkeydown={videoKeyDown}
+                    onwheel={videoScroll}
 
-                        onTouchStart={setTouchPosition}
-                        onTouchMove={videoTouchmove}
+                    onTouchStart={setTouchPosition}
+                    onTouchMove={videoTouchmove}
 
-                        ref={videocontrols}
-                    >
-                        {videoPaused.value &&
-                            <div class="paused-screen">
-                                <div class="play-button"><img title="Play" src="/svg/initial_play_button.svg" /></div>
-                            </div>}
-                        {videoLoading.value == "loading" && !videoPaused.value &&
-                            <div class="paused-screen">
-                                <div class="loading-screen">
-                                    <img src="/svg/loading-cozy.svg" />
-                                    LOADING...
-                                </div>
+                    ref={videocontrols}
+                >
+                    {videoPaused.value &&
+                        <div class="paused-screen">
+                            <div class="play-button"><img title="Play" src="/svg/initial_play_button.svg" /></div>
+                        </div>}
+                    {videoLoading.value == "loading" && !videoPaused.value &&
+                        <div class="paused-screen">
+                            <div class="loading-screen">
+                                <img src="/svg/loading-cozy.svg" />
+                                LOADING...
                             </div>
-                        }
-                    </div>
-                    <audio id="autoplay" controls="" volume="0" src="/audio/pop.wav" autoplay
-                        preload="auto" onplay={e => autoplayDetected(false)} />
-                    <div id="videosizer">
-                        <video id="video"
-                            ref={videoElementRef}
-                            autoplay
-                            tabindex="-1"
-                            oncanplay={e => onCanPlay(e)}
-                            onloadstart={e => onLoadStart(e)}
-                        ></video>
-                    </div>
+                        </div>
+                    }
                 </div>
-                <MobileRemoteControls
-                    onKeyDown={videoKeyDown}
-                    onKeyUp={videoKeyUp}
-                    onPaste={paste}
-                    lastRemotePosition={lastRemotePosition} />
+                <audio id="autoplay" controls="" volume="0" src="/audio/pop.wav" autoplay
+                    preload="auto" onplay={e => autoplayDetected(false)} />
+                <div id="videosizer">
+                    <video id="video"
+                        ref={videoElementRef}
+                        autoplay
+                        tabindex="-1"
+                        oncanplay={e => onCanPlay(e)}
+                        onloadstart={e => onLoadStart(e)}
+                    ></video>
+                </div>
             </div>
+            <MobileRemoteControls
+                onKeyDown={videoKeyDown}
+                onKeyUp={videoKeyUp}
+                onPaste={paste}
+                lastRemotePosition={lastRemotePosition} />
+        </div>
     );
 }

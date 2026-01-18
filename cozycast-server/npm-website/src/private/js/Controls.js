@@ -12,7 +12,7 @@ export const Controls = ({ roomSidebar, userlistHidden, userRoomSettings, fullsc
     const { userSettings, volume, muted } = useContext(AppStateContext);
     const { userlistOnLeft, showIfMuted } = userSettings.value;
 
-    const { streamRunning ,sendMessage, remoteInfo, permissions, authorization, roomSettings, toggleVideo, videoPaused } = useContext(WebSocketContext);
+    const { sendMessage, remoteInfo, permissions, authorization, roomSettings, toggleVideo, videoPaused } = useContext(WebSocketContext);
     const disabledRemote = remoteInfo.value.remoteUsed && roomSettings.value.remote_remote_ownership;
 
     const changeVolume = (e) => {
@@ -73,19 +73,6 @@ export const Controls = ({ roomSidebar, userlistHidden, userRoomSettings, fullsc
         }
     }
 
-    const stopVm = () => {
-        const userConfirmed = window.confirm("This will stop the stream for all users. Are you sure you want to continue?");
-        
-        if (userConfirmed) {
-            sendMessage({
-                action: 'stop_vm'
-            });
-        } else {
-            // Optional: You can handle the "cancel" action here if needed
-            console.log("Action cancelled.");
-        }
-    };
-
     const remote = () => {
         if (disabledRemote) return;
         if (remoteInfo.value.remote) {
@@ -111,11 +98,11 @@ export const Controls = ({ roomSidebar, userlistHidden, userRoomSettings, fullsc
                 </div>
             </Button>
             }
-            <Button enabled={videoPaused.value} onclick={toggleVideo} disabled={!streamRunning.value}
+            <Button enabled={videoPaused.value} onclick={toggleVideo}
                 title={videoPaused.value ? 'Pause' : 'Play'} style="buttonSmall">
                 <img class="video-control-icon" src={videoPaused.value ? '/svg/play_button.svg' : '/svg/pause_button.svg'} />
             </Button>
-            <Button enabled={fullscreen.value} disabled={!streamRunning.value}
+            <Button enabled={fullscreen.value}
                 title="Fullscreen" onclick={toggleFullscreen} style="buttonSmall">
                 <img class="video-control-icon" src="/svg/fullscreen_button.svg" />
             </Button>
@@ -142,10 +129,6 @@ export const Controls = ({ roomSidebar, userlistHidden, userRoomSettings, fullsc
                 <a class='btn btn-primary buttonSmall' href='/' style={{ display: 'flex' }}>
                     <img class="video-control-icon" src="/svg/home.svg" style={{ 'pointer-events': 'none' }} />
                 </a>
-                <Button enabled={true}
-                    title="StopVM" onclick={stopVm} style="buttonSmall">
-                    <img class="video-control-icon" src="/svg/pause_button.svg" />
-                </Button>
             </div>
             {middle}
             <div class="subControls">

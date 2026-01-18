@@ -2,11 +2,6 @@ package com.github.vorlent.cozycastserver.events
 
 import com.github.vorlent.cozycastserver.*
 
-class WindowTitleEvent {
-    String action = "window_title"
-    String title
-}
-
 class StartResponse {
     String action = "startResponse"
     String sdpAnswer

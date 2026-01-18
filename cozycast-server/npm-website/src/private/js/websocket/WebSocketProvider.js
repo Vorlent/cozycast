@@ -647,6 +647,7 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
                                 action: 'keepalive',
                             });
                         }, 30000);
+                        webrtc_start(webRtcPeerRef, onIceCandidate, onOffer);
                         break
                     case 'updatePermission':
                         updatePermission(parsedMessage, state.authorization, state.personalPermissions);
@@ -663,12 +664,6 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
                         break;
 
                     //Videostream events
-                    case 'stream_status':
-                        batch(() => {
-                            state.streamRunning.value = parsedMessage.running
-                            state.managedVm.value = parsedMessage.managed_vm
-                        })
-                        break;
                     case 'startResponse':
                         startResponse(parsedMessage, webRtcPeerRef, state.viewPort, state.roomSettings);
                         break;
