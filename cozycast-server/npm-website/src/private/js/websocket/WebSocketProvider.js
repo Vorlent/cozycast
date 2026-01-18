@@ -92,11 +92,13 @@ const parseMessage = (parsedMessage, pingName) => {
 }
 
 const chatHistory = (allMessages, valueContainer) => {
-    if (!allMessages) return;
+    if (!allMessages || allMessages.length === 0) return;
 
-    valueContainer.value = allMessages.slice().reverse().reduce((list, currentMessage) => {
+    // 1. Process the incoming batch (Newest-first from server -> Oldest-first via reverse)
+    const newGroups = allMessages.slice().reverse().reduce((list, currentMessage) => {
         const { queuedMessages } = parseMessage(currentMessage, '');
         const timestamp = moment(currentMessage.timestamp).format('h:mm A');
+
         const lastMessage = list[list.length - 1];
         const data = {
             messages: queuedMessages,
@@ -104,7 +106,8 @@ const chatHistory = (allMessages, valueContainer) => {
             timestamp,
             msg: currentMessage.message || "",
             edited: currentMessage.edited
-        }
+        };
+
         const sameUser = lastMessage &&
             lastMessage.session === currentMessage.session &&
             lastMessage.anonymous === currentMessage.anonymous;
@@ -122,6 +125,30 @@ const chatHistory = (allMessages, valueContainer) => {
         }
         return list;
     }, []);
+
+    // 2. Append to existing history instead of overwriting
+    if (valueContainer.value.length === 0) {
+        valueContainer.value = newGroups;
+    } else {
+        const existingHistory = [...valueContainer.value];
+        const lastExistingGroup = existingHistory[existingHistory.length - 1];
+        const firstNewGroup = newGroups[0];
+
+        // 3. Check the "Seam": Should the first new group merge into the last old group?
+        const isSameUserAtSeam = lastExistingGroup && firstNewGroup &&
+            lastExistingGroup.session === firstNewGroup.session &&
+            lastExistingGroup.anonymous === firstNewGroup.anonymous;
+
+        if (isSameUserAtSeam) {
+            // Merge the data into the existing bubble
+            lastExistingGroup.data = [...lastExistingGroup.data, ...firstNewGroup.data];
+            // Add the rest of the new groups
+            valueContainer.value = [...existingHistory, ...newGroups.slice(1)];
+        } else {
+            // Just append the new groups as they are
+            valueContainer.value = [...existingHistory, ...newGroups];
+        }
+    }
 }
 
 const chatMessage = (parsedMessage, chatMessages, newMessageCount, session, profile, userSettings, favicon) => {
@@ -451,6 +478,7 @@ const unauthorized = (parsedMessage) => {
 const ban = (parsedMessage, socketRef, roomId, banned) => {
     localStorage.setItem("banned-" + roomId.value, parsedMessage.expiration);
     banned.value = parsedMessage.expiration;
+    isManualClose.current = true;
     if (socketRef.current) {
         socketRef.current.close();
     }
@@ -527,11 +555,14 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
     const socketRef = useRef(null);
     const webRtcPeerRef = useRef(null);
     const keepAlive = useRef();
+    const reconnectTimer = useRef();
+    const lastMessageTimestamp = useRef(null); // Track the last message time
+    const isManualClose = useRef(false); // Distinguish between logout and error
+
     const state = useMemo(() => createWebsocketState(), []);
     const favicon = useRef(new Favico({ animation: 'none' }));
 
-    useEffect(() => {
-        state.roomId.value = roomId;
+    const connect = () => {
         getToken().then(e => {
             let bearerToken = e;
             switch (e) {
@@ -555,7 +586,7 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
                         state.banned.value = null;
                     }
                 }
-                if(state.banned.value) return;
+                if (state.banned.value) return;
             }
             console.log('Provider: useEffect');
             var wsProtocol = 'wss'
@@ -567,17 +598,32 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
 
             ws.onopen = () => {
                 socketRef.current = ws;
+                isManualClose.current = false;
                 sendMessage({
                     action: 'join',
                     token: bearerToken,
                     access: matches.access,
-                    muted: userSettings.value.showIfMuted && muted.value
-                })
+                    muted: userSettings.value.showIfMuted && muted.value,
+                    lastTimestamp: lastMessageTimestamp.current // NEW: Pass the timestamp
+                });
                 document.addEventListener('visibilitychange', handleVisibilityChange);
             };
 
             ws.onmessage = (event) => {
                 const parsedMessage = JSON.parse(event.data);
+                // Track the timestamp of any incoming chat message
+                if (parsedMessage.action === 'receivemessage' || parsedMessage.action === 'chat_history') {
+                    const messages = parsedMessage.messages || [parsedMessage];
+                    if (messages.length > 0) {
+                        // Update the ref to the latest timestamp found
+                        const latest = messages.reduce((prev, curr) =>
+                            (new Date(curr.timestamp) > new Date(prev)) ? curr.timestamp : prev,
+                            lastMessageTimestamp.current || "1970-01-01T00:00:00Z"
+                        );
+                        lastMessageTimestamp.current = latest;
+                    }
+                }
+
                 switch (parsedMessage.action) {
                     case 'keepalive':
                         break;
@@ -601,6 +647,7 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
                                 action: 'keepalive',
                             });
                         }, 30000);
+                        webrtc_start(webRtcPeerRef, onIceCandidate, onOffer);
                         break
                     case 'updatePermission':
                         updatePermission(parsedMessage, state.authorization, state.personalPermissions);
@@ -617,12 +664,6 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
                         break;
 
                     //Videostream events
-                    case 'stream_status':
-                        batch(()=>{
-                            state.streamRunning.value = parsedMessage.running
-                            state.managedVm.value = parsedMessage.managed_vm
-                        })
-                        break;
                     case 'startResponse':
                         startResponse(parsedMessage, webRtcPeerRef, state.viewPort, state.roomSettings);
                         break;
@@ -675,12 +716,12 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
                         break;
                     case 'join':
                         join(parsedMessage, state.userlist, state.pingLookup);
-                        if(!parsedMessage.anonymous)
+                        if (!parsedMessage.anonymous)
                             pushTempMessage(`${parsedMessage.username} joined`, state.chatMessages);
                         break;
                     case 'leave':
                         leave(parsedMessage, state.userlist, state.pingLookup);
-                        if(!parsedMessage.anonymous)
+                        if (!parsedMessage.anonymous)
                             pushTempMessage(`${parsedMessage.username} left`, state.chatMessages);
                         break;
                     case 'update_user':
@@ -706,27 +747,48 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
             };
 
             ws.onclose = () => {
+                console.log("Websocket closed", event.reason);
                 document.removeEventListener('visibilitychange', handleVisibilityChange);
-                webrtc_stop(webRtcPeerRef)
-                clearInterval(keepAlive.current)
-                keepAlive.current = null;
-                batch(() => {
-                    state.userlist.value = [];
-                    state.chatMessages.value = [];
-                    state.remoteInfo.value.remote = false;
-                    windowTitle.value = "";
-                })
-                route('/', true);
-            }
+                webrtc_stop(webRtcPeerRef);
+                clearInterval(keepAlive.current);
+
+                if (!isManualClose.current) {
+                    console.log("Unexpected disconnect. Attempting to reconnect in 10s...");
+                    batch(() => {
+                        state.userlist.value = [];
+                        state.remoteInfo.value.remote = false;
+                        windowTitle.value = "DISCONNECTED";
+                    });
+                    reconnectTimer.current = setTimeout(() => {
+                        connect();
+                    }, 10000); // Retry every 10 seconds
+                } else {
+                    // Actual cleanup only on manual leave
+                    batch(() => {
+                        state.userlist.value = [];
+                        state.chatMessages.value = [];
+                        state.remoteInfo.value.remote = false;
+                        windowTitle.value = "";
+                    });
+                    route('/', true);
+                }
+            };
         });
+    };
+
+    useEffect(() => {
+        state.roomId.value = roomId;
+        connect(); // Initial connection
+
         return () => {
             console.log("Websocket Cleanup");
+            isManualClose.current = true; // Flag that this is an intentional teardown
             if (socketRef.current) {
                 socketRef.current.close();
-                socketRef.current = null; // This line is optional
             }
+            clearTimeout(reconnectTimer.current);
         };
-    }, []);
+    }, [roomId]);
 
     const sendMessage = useCallback((message) => {
         if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {

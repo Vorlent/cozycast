@@ -806,6 +806,29 @@ button {
     box-sizing: border-box;
 }
 
+.manual-load-placeholder {
+    padding: 5px 10px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--cozyOrange); /* or your theme color */
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    color: var(--cozyOrange);
+    text-align: center;
+}
+
+.manual-load-placeholder:hover {
+    background: rgba(255, 145, 0, 0.1);
+}
+
+.manual-load-pfp {
+    background-color: #333; /* Dark placeholder color */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .sidebar.fullscreenSidebar {
     background: transparent;
     position: absolute;
@@ -1538,6 +1561,13 @@ input[type=range]::-webkit-slider-thumb {
     margin: auto auto;
     vertical-align: middle;
     filter: var(--cozyIconChange)
+}
+
+.placeholder-pfp-icon {
+    width: 65%;
+    height: 65%;
+    opacity: 0.6;
+    pointer-events: none; /* Prevents the image itself from intercepting the click */
 }
 
 .filter-opacitry-lower {

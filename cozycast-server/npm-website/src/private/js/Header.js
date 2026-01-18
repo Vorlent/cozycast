@@ -15,6 +15,7 @@ export const Header = ({ url, logout }) => {
                 <div class={`avatarContainerHeader floatRight inNav ${url == '/profile' ? 'active' : null}`} onclick={() => route('/profile', true)} ><img src={profile.value.avatarUrl} class="avatarImageHeader"></img></div>}
             <nav>
                 <Link activeClassName="active" href="/">Rooms</Link>
+                <Link activeClassName="active" href="/settings">Settings</Link>
                 {!loggedIn.value &&
                     <Link activeClassName="active" href="/login">Login</Link>
                 }

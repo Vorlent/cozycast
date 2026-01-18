@@ -46,9 +46,6 @@ import org.kurento.client.MediaStateChangedEvent
 import org.kurento.client.RtpEndpoint
 import org.kurento.client.VideoInfo
 import org.kurento.client.WebRtcEndpoint
-import org.kurento.client.MediaType
-import org.kurento.client.MediaFlowInStateChangeEvent
-import org.kurento.client.MediaFlowOutStateChangeEvent
 import org.kurento.commons.exception.KurentoException
 import org.kurento.jsonrpc.JsonUtils
 import java.util.regex.Pattern
@@ -117,7 +114,7 @@ class WebsocketRoomService {
             new UserActivityEvent(
                     session: username,
                     active: user.active,
-                    lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen),
+                    lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(user.lastTimeSeen),
             ))
     }
 
@@ -141,9 +138,6 @@ class WebsocketRoomService {
         if (!room.worker) {
             throw new RuntimeException('NO WORKER FOUND')
         }
-
-        //TOTO: check if doing this here is enough, maybe some error cases need to be considerd
-        //room.newStreamStart()
 
         MediaPipeline pipeline = room.worker.getMediaPipeline(kurento)
         WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build()
@@ -184,7 +178,7 @@ class WebsocketRoomService {
                     state: jsonMessage.state,
                     username: user.nickname,
                     lastTypingTime: new Date().getTime()
-        ), session.getId())
+), session.getId())
     }
 
     private void chatmessage(Room room, WebSocketSession session, Map jsonMessage, String username) {
@@ -200,7 +194,7 @@ class WebsocketRoomService {
             return
         }
         ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of('UTC'))
-        String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
+        String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(zonedDateTime)
         ChatMessage.withTransaction {
             ChatMessage.where { room == room.name &&
                 timestamp < ZonedDateTime.now(ZoneId.of('UTC')).minusHours(1)
@@ -247,7 +241,7 @@ class WebsocketRoomService {
             UserSession user = room.users.get(whisperSession)
             if (user == null) return
             ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of('UTC'))
-            String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
+            String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(zonedDateTime)
             user.connections.each { sessionId, connection ->
                 sendMessage(connection.webSocketSession, new ReceiveMessageEvent(
                     id: 'whisper-' + nowAsISO,
@@ -293,7 +287,7 @@ class WebsocketRoomService {
         Room room = roomRegistry.getRoomNoCreate(roomName)
         final UserSession user = room.users.get(username)
         ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of('UTC'))
-        String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(zonedDateTime)
+        String nowAsISO = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(zonedDateTime)
         ChatMessage.withTransaction {
             ChatMessage.where { room == room.name &&
                 timestamp < ZonedDateTime.now(ZoneId.of('UTC')).minusHours(1)
@@ -499,7 +493,7 @@ class WebsocketRoomService {
                                 imagePermission: image_permission,
                                 trusted: trusted,
                                 anonymous: false))
-                        joinActions(room, session, jsonMessage, username, existingUser)
+                        joinActions(room, session, jsonMessage, username, existingUser, jsonMessage.lastTimestamp)
                     }
                 }
             )
@@ -526,7 +520,7 @@ class WebsocketRoomService {
                 room.users.put(session.getId(), anonSession)
                 room.sessionToName.put(session.getId(), session.getId())
                 sendMessage(session, new AuthenticationEvent(admin: false, remotePermission: remote_permission, imagePermission: image_permission, trusted: false, anonymous: true))
-                joinActions(room, session, jsonMessage, username, false)
+                joinActions(room, session, jsonMessage, username, false, jsonMessage.lastTimestamp)
             }
         }
     }
@@ -545,37 +539,56 @@ class WebsocketRoomService {
         return colour
     }
 
-    private void joinActions(Room room, WebSocketSession session, Map jsonMessage, String username, Boolean existingUser) {
-        
-        room.joinActaionVM(session)
+    private void joinActions(Room room, WebSocketSession session, Map jsonMessage, String username, Boolean existingUser, String lastTimestamp) {
+        room.joinActaionVM()
 
         log.info "Join actions started for $username"
         UserSession user = room.users.get(username)
 
+        sendMessage(session, new CurrentRoomSettingsEvent(
+            accountOnly : room.accountOnly,
+            verifiedOnly : room.verifiedOnly,
+            inviteOnly : room.inviteOnly,
+            centerRemote : room.centerRemote,
+            remote_ownership: room.remote_ownership,
+            default_remote_permission: room.default_remote_permission,
+            default_image_permission: room.default_image_permission,
+            hidden_to_unauthorized: room.hidden_to_unauthorized
+        ))
         sendMessage(session, new SessonIdEvent(
             session: username
         ))
+        sendMessage(session, new WindowTitleEvent(
+            title: (room.title ?: '')
+        ))
 
         ChatMessage.withTransaction {
-            sendMessage(session, new ChatHistoryEvent(
-                messages: ChatMessage.where { room == room.name &&
-                        timestamp > ZonedDateTime.now(ZoneId.of('UTC')).minusHours(1)
-                    }.list(sort: 'timestamp', order: 'desc', max: 500).collect {
-                    new ReceiveMessageEvent(
-                        id: it.id,
-                        message: it.message,
-                        image: it.image,
-                        type: it.type,
-                        username: it.username,
-                        anonymous: it.anonymous,
-                        session: it.session,
-                        nameColor: it.nameColor,
-                        timestamp: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'")
-                            .format(it.timestamp),
-                        edited: it.edited
-                    )
-                }
-            ))
+            def query = ChatMessage.where { room == room.name }
+
+            if (lastTimestamp) {
+                ZonedDateTime lastTime = ZonedDateTime.parse(lastTimestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of('UTC')))
+                ZonedDateTime startTime = lastTime.plusSeconds(1)
+                query = query.where { timestamp >= startTime }
+        } else {
+                query = query.where { timestamp > ZonedDateTime.now(ZoneId.of('UTC')).minusHours(1) }
+            }
+
+            List<ReceiveMessageEvent> history = query.list(sort: 'timestamp', order: 'desc', max: 500).collect {
+                new ReceiveMessageEvent(
+                id: it.id,
+                message: it.message,
+                image: it.image,
+                type: it.type,
+                username: it.username,
+                anonymous: it.anonymous,
+                session: it.session,
+                nameColor: it.nameColor,
+                timestamp: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(it.timestamp),
+                edited: it.edited
+            )
+            }
+
+            sendMessage(session, new ChatHistoryEvent(messages: history))
         }
 
         //send existing users to new user
@@ -586,7 +599,7 @@ class WebsocketRoomService {
                     url: value.getAvatarUrl(),
                     active:  value.getActive(),
                     nameColor: value.getNameColor(),
-                    lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(value.getLastTimeSeen()),
+                    lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(value.getLastTimeSeen()),
                     userEntryTime: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(value.getUserEntryTime()),
                     muted: value.getMuted(),
                     anonymous: value.isAnonymous()
@@ -602,7 +615,7 @@ class WebsocketRoomService {
                         url: user.avatarUrl,
                         active:  user.active,
                         nameColor: user.nameColor,
-                        lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen),
+                        lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(user.lastTimeSeen),
                         userEntryTime: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(user.userEntryTime),
                         muted: user.muted,
                         anonymous: user.anonymous
@@ -646,7 +659,7 @@ class WebsocketRoomService {
                         url: user.avatarUrl,
                         active:  user.active,
                         nameColor: user.nameColor,
-                        lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(user.lastTimeSeen),
+                        lastTimeSeen: DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(user.lastTimeSeen),
                         muted: user.muted
                     ), sessionId)
     }
@@ -817,7 +830,7 @@ class WebsocketRoomService {
                 log.info 'Trusted user restarting worker'
                 sendMessage(room.worker?.websocket, new RestartWorkerEvent())
             } else {
-                String timeWhenRestartAvail = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'").format(room.lastRestarted.plusHours(1))
+                String timeWhenRestartAvail = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(room.lastRestarted.plusHours(1))
                 sendMessage(session, new NextRestartAvailable(time: timeWhenRestartAvail))
                 log.info "Trusted user failed to restarting worker $timeWhenRestartAvail"
             }
@@ -1065,7 +1078,7 @@ class WebsocketRoomService {
 
         if (user != null) {
             Map jsonCandidate = jsonMessage.candidate
-            log.debug jsonCandidate.toString()
+            log.info jsonCandidate.toString()
             IceCandidate candidate = new IceCandidate(
                 jsonCandidate.candidate,
                 jsonCandidate.sdpMid,
@@ -1140,12 +1153,6 @@ class WebsocketRoomService {
                         break
                     case 'stop':
                         stop(currentRoom, sessionId)
-                        break
-                    case 'start_vm':
-                        currentRoom.startVM()
-                        break
-                    case 'stop_vm':
-                        currentRoom.stopVmManual()
                         break
                     case 'typing':
                         typing(currentRoom, session, jsonMessage, username)
