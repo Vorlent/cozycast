@@ -822,6 +822,14 @@ button {
     background: rgba(255, 145, 0, 0.1);
 }
 
+.manual-load-pfp {
+    background-color: #333; /* Dark placeholder color */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .sidebar.fullscreenSidebar {
     background: transparent;
     position: absolute;
@@ -1554,6 +1562,13 @@ input[type=range]::-webkit-slider-thumb {
     margin: auto auto;
     vertical-align: middle;
     filter: var(--cozyIconChange)
+}
+
+.placeholder-pfp-icon {
+    width: 65%;
+    height: 65%;
+    opacity: 0.6;
+    pointer-events: none; /* Prevents the image itself from intercepting the click */
 }
 
 .filter-opacitry-lower {

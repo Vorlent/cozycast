@@ -1,13 +1,54 @@
 import { h, Fragment } from 'preact'
-import { useContext } from 'preact/hooks';
+import { useContext, useState } from 'preact/hooks';
 import { WebSocketContext } from './websocket/WebSocketContext.js';
 import { AppStateContext } from './appstate/AppStateContext.js';
+
+/**
+ * Specialized component to handle manual loading of user profile pictures.
+ */
+const ManualAvatarLoader = ({ user, manualLoadMedia }) => {
+    const [revealed, setRevealed] = useState(false);
+
+    const handleReveal = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setRevealed(true);
+    };
+
+    const isRevealed = !manualLoadMedia || revealed;
+    
+    let style = {};
+    if (isRevealed) {
+        style['background-image'] = `url(${user.url})`;
+    }
+    
+    // We keep the background color for anonymous users so the UI remains consistent
+    if (user.anonymous) {
+        style['background-color'] = user.nameColor + "99";
+    }
+
+    return (
+        <div 
+            className={`image avatar ${user.active ? "" : "isAway"} ${!isRevealed ? "manual-load-pfp" : ""}`} 
+            style={style}
+            onClick={!isRevealed ? handleReveal : null}
+        >
+            {!isRevealed && (
+                <img 
+                    className="placeholder-pfp-icon" 
+                    src="/svg/user-silhouette.svg" 
+                    alt="Load profile picture"
+                />
+            )}
+        </div>
+    );
+};
 
 export const Userlist = ({ isLeft, fullscreen, hoverText }) => {
     const { userlist, remoteInfo } = useContext(WebSocketContext)
     const { userSettings } = useContext(AppStateContext);
 
-    const { showUsernames, smallPfp } = userSettings.value;
+    const { showUsernames, smallPfp, manualLoadMedia } = userSettings.value;
 
     const showHover = (e, name, isActive) => {
         const pos = isLeft ? "right" : "top";
@@ -38,27 +79,39 @@ export const Userlist = ({ isLeft, fullscreen, hoverText }) => {
         hoverText.value = null;
     }
 
-    return <div id="userlist" class={`userlist ${smallPfp ? "smallPfp" : ""} ${showUsernames ? "big" : "small"} ${isLeft ? "left" : "bottom"} ${fullscreen ? "fullscreenUserlist" : ""} ${remoteInfo.value.remote ? " hasRemote" : ""}`} >
-        {userlist.value.map(user => {
-            let background = { 'background-image': `url(${user.url})` };
-            if (user.anonymous) background['background-color'] = user.nameColor + "99"
-            {
-                return <div class="user" key={user.session}>
-                    <div class={`avatarContainer ${!showUsernames || isLeft ? "bar" : ""}`}
-                        onMouseover={e => showHover(e, user.username, user.active)} onMouseout={hideHover}>
-                        <div class={`image avatar ${user.active ? "" : "isAway"}`} style={background} />
+    return (
+        <div id="userlist" class={`userlist ${smallPfp ? "smallPfp" : ""} ${showUsernames ? "big" : "small"} ${isLeft ? "left" : "bottom"} ${fullscreen ? "fullscreenUserlist" : ""} ${remoteInfo.value.remote ? " hasRemote" : ""}`} >
+            {userlist.value.map(user => (
+                <div class="user" key={user.session}>
+                    <div
+                        class={`avatarContainer ${!showUsernames || isLeft ? "bar" : ""}`}
+                        onMouseover={e => showHover(e, user.username, user.active)}
+                        onMouseout={hideHover}
+                    >
+                        {/* New Manual Loader Component */}
+                        <ManualAvatarLoader
+                            user={user}
+                            manualLoadMedia={manualLoadMedia}
+                        />
+
                         {user.remote && <div class="orangeCircle"></div>}
+
                         <div class={`mutedDot ${user.muted ? "" : "noDisplay"}`}>
-                            <img class="mutedDotIcon" src="/svg/headphone-slash.svg"></img>
-                        </div>
-                        <div class={`remoteIcon ${user.remote ? "" : "noDisplay"}`} >
-                            <img class="remoteIconIcon" src="/svg/remoteAlpha.svg"></img>
+                            <img class="mutedDotIcon" src="/svg/headphone-slash.svg" />
                         </div>
 
+                        <div class={`remoteIcon ${user.remote ? "" : "noDisplay"}`} >
+                            <img class="remoteIconIcon" src="/svg/remoteAlpha.svg" />
+                        </div>
                     </div>
-                    {showUsernames && !(smallPfp && isLeft) && <div class={`${user.active ? "" : "isAway"} userprofileName`}>{user.username}</div>}
+
+                    {showUsernames && !(smallPfp && isLeft) && (
+                        <div class={`${user.active ? "" : "isAway"} userprofileName`}>
+                            {user.username}
+                        </div>
+                    )}
                 </div>
-            }
-        })}
-    </div>
+            ))}
+        </div>
+    );
 }
