@@ -58,7 +58,6 @@ export const UserRoomSettings = ({ close }) => {
         setDesignTemp(e.target.value);
     }
 
-
     const profileUpdateCallback = () => {
         setProfileMode({ open: false });
         sendMessage({
@@ -76,7 +75,7 @@ export const UserRoomSettings = ({ close }) => {
         }
     }
 
-    const ToggleSetting = ({name, description}) => {
+    const ToggleSetting = ({ name, description }) => {
         return (
             <div><input
                 class="modal-username"
@@ -119,10 +118,10 @@ export const UserRoomSettings = ({ close }) => {
                             class={openTabs.notification ? "open" : ""}>Notification</button>
                         {openTabs.notification &&
                             <div class="subSettings">
-                                <ToggleSetting name='muteChatNotification' description='Mute Chat Notification'/>
-                                <ToggleSetting name='showIfMuted' description='Show Others If Muted'/>
-                                <ToggleSetting name='showLeaveJoinMsg' description='Show Leave/Join Message'/>
-                                <ToggleSetting name='titleNameInFront' description='Display CozyCast In Title First'/>
+                                <ToggleSetting name='muteChatNotification' description='Mute Chat Notification' />
+                                <ToggleSetting name='showIfMuted' description='Show Others If Muted' />
+                                <ToggleSetting name='showLeaveJoinMsg' description='Show Leave/Join Message' />
+                                <ToggleSetting name='titleNameInFront' description='Display CozyCast In Title First' />
                             </div>}
 
                         <button
@@ -132,10 +131,22 @@ export const UserRoomSettings = ({ close }) => {
                             class={openTabs.userlist ? "open" : ""}>Userlist</button>
                         {openTabs.userlist &&
                             <div class="subSettings">
-                                <ToggleSetting name='userlistOnLeft' description='Show Users On Left'/>
-                                <ToggleSetting name='showUsernames' description='Show Usernames'/>
-                                <ToggleSetting name='smallPfp' description='Use Small Profile Pictures'/>
+                                <ToggleSetting name='userlistOnLeft' description='Show Users On Left' />
+                                <ToggleSetting name='showUsernames' description='Show Usernames' />
+                                <ToggleSetting name='smallPfp' description='Use Small Profile Pictures' />
                             </div>}
+
+                        {/* --- NEW MEDIA SECTION --- */}
+                        <button
+                            type="button"
+                            name="media"
+                            onClick={toggleTabs}
+                            class={openTabs.media ? "open" : ""}>Media</button>
+                        {openTabs.media &&
+                            <div class="subSettings">
+                                <ToggleSetting name='manualLoadMedia' description='Manually Load Images and Videos' />
+                            </div>}
+                        {/* ------------------------- */}
 
                         <button
                             type="button"
@@ -144,7 +155,7 @@ export const UserRoomSettings = ({ close }) => {
                             class={openTabs.design ? "open" : ""}>Design</button>
                         {openTabs.design &&
                             <div class="subSettings">
-                                <ToggleSetting name='transparentChat' description='Fullscreen Transparent Chat'/>
+                                <ToggleSetting name='transparentChat' description='Fullscreen Transparent Chat' />
                                 <div>
                                     <input
                                         class="modal-username"

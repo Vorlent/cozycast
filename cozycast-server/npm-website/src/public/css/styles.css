@@ -806,6 +806,22 @@ button {
     box-sizing: border-box;
 }
 
+.manual-load-placeholder {
+    display: inline-block;
+    padding: 5px 10px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--cozyOrange); /* or your theme color */
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    color: var(--cozyOrange);
+    margin: 5px 0;
+}
+
+.manual-load-placeholder:hover {
+    background: rgba(255, 145, 0, 0.1);
+}
+
 .sidebar.fullscreenSidebar {
     background: transparent;
     position: absolute;

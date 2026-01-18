@@ -1,5 +1,5 @@
 import { h, Fragment } from 'preact';
-import { useEffect, useContext, useCallback, useRef } from 'preact/hooks';
+import { useEffect, useContext, useCallback, useRef, useState } from 'preact/hooks';
 import { WebSocketContext } from './websocket/WebSocketContext';
 import { AppStateContext } from './appstate/AppStateContext.js';
 import { memo } from 'preact/compat';
@@ -26,7 +26,6 @@ const TextInput = ({ sendMessage, value, editInfo, scrollToBottom }) => {
         }
     }, [text.value]);
 
-
     const handleKeyDown = (e) => {
         if (e.key == 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -51,7 +50,7 @@ const TextInput = ({ sendMessage, value, editInfo, scrollToBottom }) => {
     }
 
     const exit = () => {
-        if(editInfo.value.fromTextInput && editInfo.value.fromTextInput.current){
+        if (editInfo.value.fromTextInput && editInfo.value.fromTextInput.current) {
             editInfo.value.fromTextInput.current.focus();
         }
         editInfo.value = {};
@@ -90,7 +89,70 @@ const TempMessage = memo(({ message, showLeaveJoinMsg }) => {
     ) : null;
 })
 
-function SubMessages({ data, message, profile, session, deleteMessage, clickImage, pingLookup, sendMessage, editInfo, scrollToBottom }) {
+/**
+ * Specialized component to handle media loading logic.
+ * State is only initialized here if the message contains media.
+ */
+const ManualMediaLoader = ({ msg, type, manualLoadMedia, clickImage, scrollToBottom }) => {
+    const [revealed, setRevealed] = useState(false);
+
+    const handleReveal = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setRevealed(true);
+    };
+
+    const isRevealed = !manualLoadMedia || revealed;
+
+    if (type === "image") {
+        return (
+            <div class="chat-image">
+                {isRevealed ? (
+                    <a tabindex="-1" class="chat-link" target="_blank" href={msg.href}>
+                        <img
+                            tabindex="-1"
+                            onload={scrollToBottom}
+                            src={msg.href}
+                            alt={msg.href}
+                            onclick={(e) => { e.preventDefault(); clickImage("image", msg.href) }}
+                        />
+                    </a>
+                ) : (
+                    <div class="manual-load-placeholder" onclick={handleReveal}>
+                        [ Load Image ]
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    if (type === "video") {
+        return (
+            <div class="chat-video">
+                {isRevealed ? (
+                    <a tabindex="-1" class="chat-link" target="_blank" href={msg.href}>
+                        <video
+                            tabindex="-1"
+                            loop
+                            autoplay
+                            muted
+                            onloadeddata={scrollToBottom}
+                            src={msg.href}
+                            onclick={(e) => { e.preventDefault(); clickImage("video", msg.href) }}
+                        />
+                    </a>
+                ) : (
+                    <div class="manual-load-placeholder" onclick={handleReveal}>
+                        [ Load Video ]
+                    </div>
+                )}
+            </div>
+        );
+    }
+    return null;
+}
+
+function SubMessages({ data, message, profile, session, deleteMessage, clickImage, pingLookup, sendMessage, editInfo, scrollToBottom, manualLoadMedia }) {
     if (editInfo.value.id == data.id) {
         return <TextInput value={editInfo.value.msg} editInfo={editInfo} sendMessage={sendMessage} scrollToBottom={scrollToBottom} />
     }
@@ -124,13 +186,16 @@ function SubMessages({ data, message, profile, session, deleteMessage, clickImag
                     case "url":
                         return <span><a class="chat-link" target="_blank" href={msg.href}>{msg.value}</a></span>;
                     case "image":
-                        return <div class="chat-image">
-                            <a tabindex="-1" class="chat-link" target="_blank" href={msg.href}><img tabindex="-1" onload={scrollToBottom} src={msg.href} alt={msg.href} onclick={(e) => { e.preventDefault(); clickImage("image", msg.href) }} /></a>
-                        </div>
                     case "video":
-                        return <div class="chat-video">
-                            <a tabindex="-1" class="chat-link" target="_blank" href={msg.href}><video tabindex="-1" loop autoplay muted onloadeddata={scrollToBottom} src={msg.href} onclick={(e) => { e.preventDefault(); clickImage("video", msg.href) }} /></a>
-                        </div>
+                        return (
+                            <ManualMediaLoader
+                                msg={msg}
+                                type={msg.type}
+                                manualLoadMedia={manualLoadMedia}
+                                clickImage={clickImage}
+                                scrollToBottom={scrollToBottom}
+                            />
+                        );
                     case "deleted":
                         return <div class="chat-deleted">deleted </div>;
                     case "whisper":
@@ -144,9 +209,9 @@ function SubMessages({ data, message, profile, session, deleteMessage, clickImag
     );
 }
 
-const Message = memo(({ message, profile, session, deleteMessage, clickImage, pingLookup, sendMessage, editInfo, scrollToBottom }) => {
+const Message = memo(({ message, profile, session, deleteMessage, clickImage, pingLookup, sendMessage, editInfo, scrollToBottom, manualLoadMedia }) => {
     return (
-        <div className={`message ${ message.golden ? "golden": ""}`}  key={message.data[0].id + message.data.length} id={message.data[0].id}>
+        <div className={`message ${message.golden ? "golden" : ""}`} key={message.data[0].id + message.data.length} id={message.data[0].id}>
             <div className="username" style={{ color: message.nameColor }}>
                 {message.username}
                 <div className="real-username">
@@ -166,18 +231,17 @@ const Message = memo(({ message, profile, session, deleteMessage, clickImage, pi
                     sendMessage={sendMessage}
                     editInfo={editInfo}
                     scrollToBottom={scrollToBottom}
+                    manualLoadMedia={manualLoadMedia}
                 />
             ))}
         </div>
     );
 })
 
-
-
 const ChatMessages = ({ historyMode, imageModal, editInfo }) => {
     const { chatMessages, sendMessage, pingLookup, session } = useContext(WebSocketContext);
     const { profile, userSettings } = useContext(AppStateContext);
-    const { showLeaveJoinMsg } = userSettings.value;
+    const { showLeaveJoinMsg, manualLoadMedia } = userSettings.value;
     const messageBody = useRef(null);
 
     const isUserScroll = useRef(false);
@@ -203,8 +267,8 @@ const ChatMessages = ({ historyMode, imageModal, editInfo }) => {
     const handeChatWheel = (event) => {
         if (event.deltaY < 0) {
             setTimeout(() => {
-                chatScroll(null,true);
-              }, 100);
+                chatScroll(null, true);
+            }, 100);
         }
     }
 
@@ -268,6 +332,7 @@ const ChatMessages = ({ historyMode, imageModal, editInfo }) => {
                         sendMessage={sendMessage}
                         editInfo={editInfo}
                         scrollToBottom={scrollToBottom}
+                        manualLoadMedia={manualLoadMedia}
                     />
                 )
             )}
