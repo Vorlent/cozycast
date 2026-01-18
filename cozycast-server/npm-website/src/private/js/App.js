@@ -13,13 +13,14 @@ import { Profile } from './Profile.js';
 import { InfoScreen } from './InfoScreen.js';
 import { Access } from './Access.js';
 import { AdminPage } from './AdminPage.js';
+import { MediaSettings } from './MediaSettings.js';
 import { WebSocketProvider } from './websocket/WebSocketProvider.js';
 import { useCallback, useContext, useEffect } from 'preact/hooks';
 import { AppStateContext } from './appstate/AppStateContext.js';
 import { batch, effect } from "@preact/signals";
 
 export const App = () => {
-    const { design, profile, loggedIn, loginCompleted, registerWithInviteOnly, cozyMessage  } = useContext(AppStateContext);
+    const { design, profile, loggedIn, loginCompleted, registerWithInviteOnly, cozyMessage } = useContext(AppStateContext);
 
     const logoutUser = () => {
         logOut();
@@ -28,7 +29,7 @@ export const App = () => {
 
     const fetchMisc = useCallback(() => {
         fetch("/api/misc").then((e) => e.json()).then((e) => {
-            batch(()=>{
+            batch(() => {
                 registerWithInviteOnly.value = e.registerWithInviteOnly;
                 cozyMessage.value = !e.message ? "" : e.message
             });
@@ -108,6 +109,7 @@ export const App = () => {
                 <Login path="/login/" logout={logoutUser} updateProfile={updateProfile} />
                 <Register path="/register" updateProfile={updateProfile} />
                 <Profile path="/profile" />
+                <MediaSettings path="/settings" />
                 <AdminPage path="/accounts" />
                 <AdminPage path="/invites" />
                 <AdminPage path="/permission" />
