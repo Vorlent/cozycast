@@ -807,7 +807,6 @@ button {
 }
 
 .manual-load-placeholder {
-    display: inline-block;
     padding: 5px 10px;
     background: rgba(0,0,0,0.2);
     border: 1px solid var(--cozyOrange); /* or your theme color */
@@ -815,7 +814,7 @@ button {
     cursor: pointer;
     font-size: 0.9em;
     color: var(--cozyOrange);
-    margin: 5px 0;
+    text-align: center;
 }
 
 .manual-load-placeholder:hover {
