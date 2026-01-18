@@ -567,7 +567,8 @@ class WebsocketRoomService {
 
             if (lastTimestamp) {
                 ZonedDateTime lastTime = ZonedDateTime.parse(lastTimestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of('UTC')))
-                query = query.where { timestamp > lastTime }
+                ZonedDateTime startTime = lastTime.plusSeconds(1)
+                query = query.where { timestamp >= startTime }
         } else {
                 query = query.where { timestamp > ZonedDateTime.now(ZoneId.of('UTC')).minusHours(1) }
             }
