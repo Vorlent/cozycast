@@ -15,7 +15,7 @@ function disableContextmenu(e) {
 
 export const VideoControls = () => {
     const { volume, muted } = useContext(AppStateContext);
-    const { remoteInfo, videoPaused, videoLoading, toggleVideo, sendMessage, viewPort } = useContext(WebSocketContext);
+    const { audioOnly, remoteInfo, videoPaused, videoLoading, toggleVideo, sendMessage, viewPort } = useContext(WebSocketContext);
     const videoElementRef = useRef();
     const videocontrols = useRef();
 
@@ -250,15 +250,28 @@ export const VideoControls = () => {
 
                     ref={videocontrols}
                 >
+                    {/* State 1: Paused */}
                     {videoPaused.value &&
                         <div class="paused-screen">
                             <div class="play-button"><img title="Play" src="/svg/initial_play_button.svg" /></div>
                         </div>}
+
+                    {/* State 2: Loading (but not paused) */}
                     {videoLoading.value == "loading" && !videoPaused.value &&
                         <div class="paused-screen">
                             <div class="loading-screen">
                                 <img src="/svg/loading-cozy.svg" />
                                 LOADING...
+                            </div>
+                        </div>
+                    }
+
+                    {/* State 3: Audio Only (Running, not loading, no video) */}
+                    {audioOnly.value && !videoPaused.value && videoLoading.value !== "loading" &&
+                        <div class="audio-only-indicator">
+                            <div class="audio-content">
+                                <img src="/svg/volume-up.svg" alt="Audio Only" />
+                                <span>Audio Only Stream Running</span>
                             </div>
                         </div>
                     }

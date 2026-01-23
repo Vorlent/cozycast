@@ -145,6 +145,7 @@ export const UserRoomSettings = ({ close }) => {
                         {openTabs.media &&
                             <div class="subSettings">
                                 <ToggleSetting name='manualLoadMedia' description='Manually Load Images and Videos' />
+                                <ToggleSetting name='audioOnly' description='Stream Music Only' />
                             </div>}
                         {/* ------------------------- */}
 

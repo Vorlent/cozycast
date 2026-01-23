@@ -26,7 +26,8 @@ export const MediaSettings = () => {
                 <div class="roomSettingsHeaders">MEDIA PREFERENCES</div>
                 <div class="settingsContainer">
                     <div class="subSettings" style={{ display: 'block' }}>
-                        <div style={{ padding: '10px 0' }}>
+                        {/* Manual Load Media Option */}
+                        <div style={{ padding: '10px 0', borderBottom: '1px solid #333' }}>
                             <div style={{ display: 'flex', alignItems: 'center' }}>
                                 <input
                                     class="modal-username"
@@ -49,6 +50,32 @@ export const MediaSettings = () => {
                                 Note: This is only useful if your internet connection is very slow.
                             </p>
                         </div>
+
+                        {/* Audio Only Option */}
+                        <div style={{ padding: '15px 0' }}>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <input
+                                    class="modal-username"
+                                    type="checkbox"
+                                    id="audioOnly"
+                                    name="audioOnly"
+                                    onClick={toggle}
+                                    checked={settings.audioOnly}
+                                />
+                                <label for="audioOnly" style={{ marginLeft: '8px' }}>
+                                    Stream Music Only
+                                </label>
+                            </div>
+                            <p style={{
+                                fontSize: '0.85rem',
+                                color: '#aaa',
+                                marginTop: '5px',
+                                fontStyle: 'italic'
+                            }}>
+                                Disables video feeds to save bandwidth.
+                            </p>
+                        </div>
+
                     </div>
                 </div>
                 <div class="confirmButton">

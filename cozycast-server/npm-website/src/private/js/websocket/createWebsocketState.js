@@ -29,6 +29,7 @@ export function createWebsocketState() {
   const session = signal({});
   const videoPaused = signal(true);
   const videoLoading = signal('loading');
+  const audioOnly = signal(false);
 
-  return { chatMessages, typingUsers,newMessageCount, permissions, personalPermissions, authorization, userlist, userlistAdmin , pingLookup, remoteInfo, session, roomSettings, roomId, viewPort, videoPaused, videoLoading, banned }
+  return { audioOnly, chatMessages, typingUsers,newMessageCount, permissions, personalPermissions, authorization, userlist, userlistAdmin , pingLookup, remoteInfo, session, roomSettings, roomId, viewPort, videoPaused, videoLoading, banned }
 }
