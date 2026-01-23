@@ -493,19 +493,20 @@ const rapidPing = (times) => {
 }
 
 //VIDEOSTREAM
-const webrtc_start = (webRtcPeer, onIceCandidate, onOffer) => {
+const webrtc_start = (webRtcPeer, onIceCandidate, onOffer, audioOnly, audioOnlyStream) => {
     fetch("/turn/credential").then((e) => e.json()).then((iceServer) => {
         var options = {
             remoteVideo: document.getElementById("video"),
             mediaConstraints: {
                 audio: true,
-                video: true
+                video: !audioOnly
             },
             onicecandidate: onIceCandidate,
             configuration: {
                 iceServers: [iceServer]
             }
         }
+        audioOnlyStream.value = audioOnly
         webRtcPeer.current = new kurentoUtils.WebRtcPeer.WebRtcPeerRecvonly(options,
             (error) => {
                 if (error) {
@@ -647,7 +648,7 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
                                 action: 'keepalive',
                             });
                         }, 30000);
-                        webrtc_start(webRtcPeerRef, onIceCandidate, onOffer);
+                        webrtc_start(webRtcPeerRef, onIceCandidate, onOffer, userSettings.value.audioOnly, state.audioOnly);
                         break
                     case 'updatePermission':
                         updatePermission(parsedMessage, state.authorization, state.personalPermissions);
@@ -821,7 +822,7 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
         if (!state.videoPaused.value) stopVideo();
         var videoElement = document.getElementById('video');
         videoElement.play();
-        webrtc_start(webRtcPeerRef, onIceCandidate, onOffer);
+        webrtc_start(webRtcPeerRef, onIceCandidate, onOffer, userSettings.value.audioOnly, state.audioOnly);
         state.videoPaused.value = false;
     }, []);
 
