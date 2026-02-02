@@ -648,7 +648,12 @@ export const WebSocketProvider = ({ roomId, children, matches }) => {
                                 action: 'keepalive',
                             });
                         }, 30000);
-                        webrtc_start(webRtcPeerRef, onIceCandidate, onOffer, userSettings.value.audioOnly, state.audioOnly);
+                        if (!state.videoPaused.value) {
+                            console.log("Starting video/audio stream");
+                            webrtc_start(webRtcPeerRef, onIceCandidate, onOffer, userSettings.value.audioOnly, state.audioOnly);
+                        } else {
+                            console.log("Reconnected, but keeping video paused as per user state.");
+                        }
                         break
                     case 'updatePermission':
                         updatePermission(parsedMessage, state.authorization, state.personalPermissions);
