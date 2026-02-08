@@ -408,8 +408,8 @@ function start_server()
     print("worker.lua: Starting Worker")
 
     local server = os.getenv("COZYCAST_IP")
-    if os.getenv("DUCKDNS_DOMAIN") ~= "" then
-        server = os.getenv("DUCKDNS_DOMAIN")
+    if os.getenv("HTTPS_DOMAIN") ~= "" then
+        server = os.getenv("HTTPS_DOMAIN")
     end
 
     if os.getenv("LOCAL_WORKER") == "true" then

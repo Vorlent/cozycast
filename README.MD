@@ -50,6 +50,7 @@ If you have made modifications to the source code then it is recommended to set 
 export MICRONAUT_ENVIRONMENTS=ssl
 export DUCKDNS_TOKEN=#<token to set txt record'>#
 export DUCKDNS_DOMAIN=#<duck dns domain>#
+export HTTPS_DOMAIN=$DUCKDNS_DOMAIN
 export KEYSTORE_PASSWORD=#<arbitrary_secret_value>#
 export FORCE_HTTPS=true
 ```

@@ -96,7 +96,7 @@ case $1 in
                 echo "Example: example_server,example_room,example_key,true"
                 exit 1
             fi
-            export DUCKDNS_DOMAIN=$server
+            export HTTPS_DOMAIN=$server
             export COZYCAST_ROOM=$roomname
             export COZYCAST_WORKER_KEY=$key
             export FORCE_HTTPS=$https
@@ -143,11 +143,11 @@ case $1 in
             certbot)
                 sudo -E docker run --rm -it -p 80:80 -v $(realpath data/certbot-http):/etc/letsencrypt/ certbot/certbot \
                     --server https://acme-v02.api.letsencrypt.org/directory \
-		    -d $DUCKDNS_DOMAIN \
-		    -d $SECOND_DOMAIN \
+		    -d $HTTPS_DOMAIN \
 		    --standalone \
 		    --preferred-chain "ISRG Root X1" \
 		    --preferred-challenges http-01 certonly
+		# -d $DUCKDNS_DOMAIN
 		#acme-staging-v02
                 exit;
                 ;;
@@ -172,7 +172,7 @@ case $1 in
 
                 if test -f "$RELOAD_TRIGGER"; then
                     echo "$RELOAD_TRIGGER exists."
-                    ./cozycast ssl keystore $DUCKDNS_DOMAIN
+                    ./cozycast ssl keystore $HTTPS_DOMAIN
                     if [ -z ${SSL_SERVER_RESTART+x} ]; then
 			 echo "sudo docker restart cozycast-server";
 		    else
