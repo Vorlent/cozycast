@@ -2,6 +2,9 @@ version: '3'
 
 services:
     cozycast-server:
+        ports:
+        - "80:80"
+        - "443:443"
         entrypoint:
         - /root/cozycast/cozycast-server/gradlew
         - -t
